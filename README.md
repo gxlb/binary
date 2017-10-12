@@ -3,7 +3,7 @@
 
   The main purpose of this package is to replace package "std.binary".
 
-  1. support all serilize-able basic types:
+  1. support all serialize-able basic types:
   int, int8, int16, int32, int64,
   uint, uint8, uint16, uint32, uint64,
   float32, float64, complex64, complex128,
