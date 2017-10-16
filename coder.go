@@ -47,7 +47,7 @@ func (this *coder) Skip(size int) int {
 	return -1
 }
 
-// Reset move the read/wite pointer to the beginning of buffer.
+// Reset move the read/write pointer to the beginning of buffer.
 func (this *coder) Reset() {
 	this.pos = 0
 }

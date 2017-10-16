@@ -140,7 +140,7 @@ func (this *Encoder) Varint(x int64) int {
 func (this *Encoder) Uvarint(x uint64) int {
 	i, _x := 0, x
 	for ; _x >= 0x80; _x >>= 7 {
-		this.Uint8(byte(x) | 0x80)
+		this.Uint8(byte(_x) | 0x80)
 		i++
 	}
 	this.Uint8(byte(_x))

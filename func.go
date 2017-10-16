@@ -32,7 +32,7 @@ func sizeof(i interface{}) int {
 		return 2
 	case int32, uint32, *int32, *uint32, float32, *float32:
 		return 4
-	case int64, uint64, *int64, *uint64, float64, *float64, complex64, *complex64, int, *int, uint, *uint:
+	case int64, uint64, *int64, *uint64, float64, *float64, complex64, *complex64:
 		return 8
 	case complex128:
 		return 16

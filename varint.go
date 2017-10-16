@@ -148,7 +148,7 @@ func SizeofVarint(x int64) int {
 // SizeofVarint return bytes number of an uint64 value store as varint
 func SizeofUvarint(ux uint64) int {
 	i := 0
-	for x := ux; x >= 0x80; x >>= 7 {
+	for n := ux; n >= 0x80; n >>= 7 {
 		i++
 	}
 	return i + 1
