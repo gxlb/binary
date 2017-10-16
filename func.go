@@ -6,10 +6,6 @@ import (
 	"unicode/utf8"
 )
 
-const (
-	__cntSize = 4 //size of length data
-)
-
 //var nameToType = map[string]reflect.Kind{
 //	"uint8":  reflect.Uint8,
 //	"uint16": reflect.Uint16,
@@ -27,8 +23,6 @@ const (
 //	}
 //	return reflect.Invalid
 //}
-
-type __cntType = uint32
 
 func sizeof(i interface{}) int {
 	switch d := i.(type) { //fast size calculation
@@ -69,9 +63,9 @@ func sizeofValue(v reflect.Value) (l int) {
 			if t.Elem().Kind() == reflect.Bool {
 				return sizeofBoolArray(v.Len())
 			}
-			return __cntSize + s*v.Len()
+			return SizeofUvarint(uint64(v.Len())) + s*v.Len()
 		} else {
-			sum := __cntSize //array size
+			sum := SizeofUvarint(uint64(v.Len())) //array size
 			for i, n := 0, v.Len(); i < n; i++ {
 				s := sizeofValue(v.Index(i))
 				if s < 0 {
@@ -82,7 +76,7 @@ func sizeofValue(v reflect.Value) (l int) {
 			return sum
 		}
 	case reflect.Map:
-		sum := __cntSize //array size
+		sum := SizeofUvarint(uint64(v.Len())) //array size
 		keys := v.MapKeys()
 		l := len(keys)
 		for i := 0; i < l; i++ {
@@ -131,7 +125,7 @@ func sizeofEmptyValue(v reflect.Value) (l int) {
 	}
 	switch t := v.Type(); t.Kind() {
 	case reflect.Slice, reflect.Array, reflect.String:
-		return __cntSize
+		return SizeofUvarint(uint64(0))
 
 	case reflect.Struct:
 		sum := 0
@@ -173,8 +167,6 @@ func newPtr(v reflect.Value) bool {
 			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
 			reflect.Complex128, reflect.String, reflect.Array, reflect.Struct, reflect.Slice, reflect.Map:
 			v.Set(reflect.New(e))
-			//		case reflect.Slice:
-			//			v.Set(reflect.MakeSlice(e, 0, 0).Addr()) //make a default slice
 		default:
 			return false
 		}
@@ -185,8 +177,8 @@ func newPtr(v reflect.Value) bool {
 
 func validField(v reflect.Value, f reflect.StructField) bool {
 	//println("validField", v.CanSet(), f.Name, f.Index)
-	if v.CanSet() ||
-		(isExported(f.Name) && f.Tag.Get("binary") != "ignore") {
+	if //v.CanSet() ||
+	isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
 		return true
 	}
 	return false
@@ -198,7 +190,7 @@ func isExported(id string) bool {
 	return unicode.IsUpper(r)
 }
 
-//deep indirect ***X to X
+//deep indirect change ***X to X
 //func DeepIndirect(v reflect.Value) reflect.Value {
 //	for v.Kind() == reflect.Ptr {
 //		v = v.Elem()
@@ -208,15 +200,15 @@ func isExported(id string) bool {
 
 //size of bool array when encode
 func sizeofBoolArray(_len int) int {
-	return __cntSize + (_len+8-1)/8
+	return SizeofUvarint(uint64(_len)) + (_len+8-1)/8
 }
 
 //size of string when encode
 func sizeofString(_len int) int {
-	return __cntSize + _len
+	return SizeofUvarint(uint64(_len)) + _len
 }
 
 //size of fix array, like []int16, []int64
 func sizeofFixArray(_len, elemLen int) int {
-	return __cntSize + _len*elemLen
+	return SizeofUvarint(uint64(_len)) + _len*elemLen
 }

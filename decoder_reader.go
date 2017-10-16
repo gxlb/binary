@@ -106,10 +106,32 @@ func (this *decoderReader) Complex128() complex128 {
 }
 
 func (this *decoderReader) String() string {
-	var s __cntType = this.Uint32()
+	s, _ := this.Uvarint()
 	size := int(s)
 	b := this.reserve(size)
 	return string(b)
+}
+
+func (this *decoderReader) Varint() (int64, int) {
+	ux, n := this.Uvarint() // ok to continue in presence of error
+	return ToVarint(ux), n
+}
+
+func (this *decoderReader) Uvarint() (uint64, int) {
+	var x uint64 = 0
+	var bit uint = 0
+	for i := 0; i < MaxVarintLen64; i++ {
+		b := this.Uint8()
+		if b < 0x80 {
+			if i > 9 || i == 9 && b > 1 {
+				return 0, -(i + 1) // overflow
+			}
+			return x | uint64(b)<<bit, i + 1
+		}
+		x |= uint64(b&0x7f) << bit
+		bit += 7
+	}
+	return 0, 0
 }
 
 func (this *decoderReader) Value(x interface{}) error {
@@ -171,7 +193,7 @@ func (this *decoderReader) value(v reflect.Value) error {
 
 	case reflect.Slice, reflect.Array:
 		if this.boolArray(v) < 0 { //deal with bool array first
-			var s __cntType = this.Uint32()
+			s, _ := this.Uvarint()
 			size := int(s)
 			if k == reflect.Slice { //make a new slice
 				ns := reflect.MakeSlice(v.Type(), size, size)
@@ -188,7 +210,7 @@ func (this *decoderReader) value(v reflect.Value) error {
 			}
 		}
 	case reflect.Map:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		size := int(s)
 		newmap := reflect.MakeMap(v.Type())
 		v.Set(newmap)
@@ -287,7 +309,7 @@ func (this *decoderReader) fastValue(x interface{}) bool {
 		*d = this.String()
 
 	case *[]bool:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]bool, l)
 		var b []byte
@@ -302,91 +324,91 @@ func (this *decoderReader) fastValue(x interface{}) bool {
 		}
 
 	case *[]int8:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]int8, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Int8()
 		}
 	case *[]uint8:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]uint8, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Uint8()
 		}
 	case *[]int16:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]int16, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Int16()
 		}
 	case *[]uint16:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]uint16, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Uint16()
 		}
 	case *[]int32:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]int32, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Int32()
 		}
 	case *[]uint32:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]uint32, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Uint32()
 		}
 	case *[]int64:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]int64, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Int64()
 		}
 	case *[]uint64:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]uint64, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Uint64()
 		}
 	case *[]float32:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]float32, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Float32()
 		}
 	case *[]float64:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]float64, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Float64()
 		}
 	case *[]complex64:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]complex64, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Complex64()
 		}
 	case *[]complex128:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]complex128, l)
 		for i := 0; i < l; i++ {
 			(*d)[i] = this.Complex128()
 		}
 	case *[]string:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		l := int(s)
 		*d = make([]string, l)
 		for i := 0; i < l; i++ {
@@ -405,26 +427,27 @@ func (this *decoderReader) skipByType(t reflect.Type) int {
 	}
 	switch t.Kind() {
 	case reflect.String:
-		var s __cntType = this.Uint32()
+		s, _ := this.Uvarint()
 		size := int(s) //string length and data
 		this.Skip(size)
 		return size
 	case reflect.Slice, reflect.Array:
-		var s __cntType = this.Uint32()
+		s, sLen := this.Uvarint()
 		cnt := int(s)
 		e := t.Elem()
 		if s := _fixTypeSize(e); s > 0 {
 			if t.Elem().Kind() == reflect.Bool { //compressed bool array
-				size := sizeofBoolArray(cnt) - __cntSize //cnt has been read
+				totalSize := sizeofBoolArray(cnt)
+				size := totalSize - sLen //cnt has been read
 				this.Skip(size)
-				return size
+				return totalSize
 			} else {
 				size := cnt * s
 				this.Skip(size)
 				return size
 			}
 		} else {
-			sum := __cntSize //array size
+			sum := sLen //array size
 			for i, n := 0, cnt; i < n; i++ {
 				s := this.skipByType(e)
 				if s < 0 {
@@ -435,11 +458,11 @@ func (this *decoderReader) skipByType(t reflect.Type) int {
 			return sum
 		}
 	case reflect.Map:
-		var s __cntType = this.Uint32()
+		s, sLen := this.Uvarint()
 		cnt := int(s)
 		kt := t.Key()
 		vt := t.Elem()
-		sum := __cntSize //array size
+		sum := sLen //array size
 		for i, n := 0, cnt; i < n; i++ {
 			sum += this.skipByType(kt)
 			sum += this.skipByType(vt)
@@ -458,7 +481,6 @@ func (this *decoderReader) skipByType(t reflect.Type) int {
 		return sum
 	}
 	return -1
-
 }
 
 //get size of specific type from current buffer
@@ -513,7 +535,7 @@ func (this *decoderReader) skipByType(t reflect.Type) int {
 func (this *decoderReader) boolArray(v reflect.Value) int {
 	if k := v.Kind(); k == reflect.Slice || k == reflect.Array {
 		if v.Type().Elem().Kind() == reflect.Bool {
-			var _l __cntType = this.Uint32()
+			_l, _ := this.Uvarint()
 			l := int(_l)
 			if k == reflect.Slice && l > 0 { //make a new slice
 				v.Set(reflect.MakeSlice(v.Type(), l, l))

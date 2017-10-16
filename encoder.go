@@ -92,9 +92,23 @@ func (this *Encoder) Complex128(x complex128) {
 func (this *Encoder) String(x string) {
 	_b := []byte(x)
 	size := len(_b)
-	this.Uint32(uint32(size))
+	this.Uvarint(uint64(size))
 	buff := this.reserve(size)
 	copy(buff, _b)
+}
+
+func (this *Encoder) Varint(x int64) int {
+	return this.Uvarint(ToUvarint(x))
+}
+
+func (this *Encoder) Uvarint(x uint64) int {
+	i, _x := 0, x
+	for ; _x >= 0x80; _x >>= 7 {
+		this.Uint8(byte(x) | 0x80)
+		i++
+	}
+	this.Uint8(byte(_x))
+	return i + 1
 }
 
 func (this *Encoder) Value(x interface{}) error {
@@ -137,7 +151,7 @@ func (this *Encoder) fastValue(x interface{}) bool {
 		this.String(d)
 	case []bool:
 		l := len(d)
-		this.Uint32(__cntType(l))
+		this.Uvarint(uint64(l))
 		var b []byte
 		for i := 0; i < l; i++ {
 			bit := i % 8
@@ -153,80 +167,80 @@ func (this *Encoder) fastValue(x interface{}) bool {
 
 	case []int8:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Int8(d[i])
 		}
 	case []uint8:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Uint8(d[i])
 		}
 	case []int16:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Int16(d[i])
 		}
 	case []uint16:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Uint16(d[i])
 		}
 
 	case []int32:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Int32(d[i])
 		}
 	case []uint32:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Uint32(d[i])
 		}
 	case []int64:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Int64(d[i])
 		}
 	case []uint64:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Uint64(d[i])
 		}
 	case []float32:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Float32(d[i])
 		}
 	case []float64:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Float64(d[i])
 		}
 	case []complex64:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Complex64(d[i])
 		}
 	case []complex128:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.Complex128(d[i])
 		}
 	case []string:
 		l := len(d)
-		this.Uint32(__cntType(len(d)))
+		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
 			this.String(d[i])
 		}
@@ -311,7 +325,7 @@ func (this *Encoder) value(v reflect.Value) error {
 	case reflect.Slice, reflect.Array:
 		if this.boolArray(v) < 0 { //deal with bool array first
 			l := v.Len()
-			this.Uint32(__cntType(l))
+			this.Uvarint(uint64(l))
 			for i := 0; i < l; i++ {
 				this.value(v.Index(i))
 			}
@@ -319,7 +333,7 @@ func (this *Encoder) value(v reflect.Value) error {
 	case reflect.Map:
 		keys := v.MapKeys()
 		l := len(keys)
-		this.Uint32(__cntType(l))
+		this.Uvarint(uint64(l))
 		for i := 0; i < l; i++ {
 			key := keys[i]
 			this.value(key)
@@ -355,7 +369,7 @@ func (this *Encoder) boolArray(v reflect.Value) int {
 	if k := v.Kind(); k == reflect.Slice || k == reflect.Array {
 		if v.Type().Elem().Kind() == reflect.Bool {
 			l := v.Len()
-			this.Uint32(__cntType(l))
+			this.Uvarint(uint64(l))
 			var b []byte
 			for i := 0; i < l; i++ {
 				bit := i % 8
