@@ -18,10 +18,13 @@
 //
 //
 // Author: Ally Dale<vipally@gmail.com>
+//
 // Package binary is uesed to Pack/Unpack between go data and byte slice.
+//
 // The main purpose of this package is to replace package "std.binary".
 //
 // Support all serialize-able data types:
+//
 //	  bool, int8, int16, int32, int64,
 //    uint8, uint16, uint32, uint64,
 //    float32, float64, complex64, complex128,
