@@ -31,7 +31,7 @@ func (this *Decoder) Init(buffer []byte, endian Endian) {
 }
 
 // Bool decode a bool value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Bool() bool {
 	b := this.reserve(1)
 	x := b[0]
@@ -39,13 +39,13 @@ func (this *Decoder) Bool() bool {
 }
 
 // Int8 decode an int8 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Int8() int8 {
 	return int8(this.Uint8())
 }
 
 // Uint8 decode a uint8 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Uint8() uint8 {
 	b := this.reserve(1)
 	x := b[0]
@@ -53,13 +53,13 @@ func (this *Decoder) Uint8() uint8 {
 }
 
 // Int16 decode an int16 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Int16() int16 {
 	return int16(this.Uint16())
 }
 
 // Uint16 decode a uint16 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Uint16() uint16 {
 	b := this.reserve(2)
 	x := this.endian.Uint16(b)
@@ -67,13 +67,13 @@ func (this *Decoder) Uint16() uint16 {
 }
 
 // Int32 decode an int32 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Int32() int32 {
 	return int32(this.Uint32())
 }
 
 // Uint32 decode a uint32 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Uint32() uint32 {
 	b := this.reserve(4)
 	x := this.endian.Uint32(b)
@@ -81,13 +81,13 @@ func (this *Decoder) Uint32() uint32 {
 }
 
 // Int64 decode an int64 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Int64() int64 {
 	return int64(this.Uint64())
 }
 
 // Uint64 decode a uint64 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Uint64() uint64 {
 	b := this.reserve(8)
 	x := this.endian.Uint64(b)
@@ -95,35 +95,35 @@ func (this *Decoder) Uint64() uint64 {
 }
 
 // Float32 decode a float32 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Float32() float32 {
 	x := math.Float32frombits(this.Uint32())
 	return x
 }
 
 // Float64 decode a float64 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Float64() float64 {
 	x := math.Float64frombits(this.Uint64())
 	return x
 }
 
 // Complex64 decode a complex64 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Complex64() complex64 {
 	x := complex(this.Float32(), this.Float32())
 	return x
 }
 
 // Complex128 decode a complex128 value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Complex128() complex128 {
 	x := complex(this.Float64(), this.Float64())
 	return x
 }
 
 // String decode a string value from Decoder buffer.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) String() string {
 	s, _ := this.Uvarint()
 	size := int(s)
@@ -132,14 +132,14 @@ func (this *Decoder) String() string {
 }
 
 // Varint decode an int64 value from Decoder buffer with varint(1~10 bytes).
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 func (this *Decoder) Varint() (int64, int) {
 	ux, n := this.Uvarint() // ok to continue in presence of error
 	return ToVarint(ux), n
 }
 
 // Uvarint decode a uint64 value from Decoder buffer with varint(1~10 bytes).
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 // It will return n <= 0 if varint error
 func (this *Decoder) Uvarint() (uint64, int) {
 	var x uint64 = 0
@@ -160,7 +160,7 @@ func (this *Decoder) Uvarint() (uint64, int) {
 
 // Value decode an interface value from Encoder buffer.
 // x must be interface of pointer for modify.
-// It will panic if buffer is not enouth.
+// It will panic if buffer is not enough.
 // It will return none-nil error if x contains unsupported types.
 func (this *Decoder) Value(x interface{}) error {
 	if this.fastValue(x) { //fast value path
