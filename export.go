@@ -16,7 +16,7 @@
 // should look at more advanced solutions such as the encoding/gob
 // package or protocol buffers.
 //
-//
+
 // Author: Ally Dale<vipally@gmail.com>
 //
 // Package binary is uesed to Pack/Unpack between go data and byte slice.
@@ -25,11 +25,13 @@
 //
 // Support all serialize-able data types:
 //
-//    bool, int8, int16, int32, int64,
-//    uint8, uint16, uint32, uint64,
-//    float32, float64, complex64, complex128,
-//    string, struct, slice, array, map.
-//    And their direct pointers.
+//	int, int8, int16, int32, int64,
+//	uint, uint8, uint16, uint32, uint64,
+//	float32, float64, complex64, complex128,
+//	bool, string, slice, array, map, struct.
+//	int/uint will be encoded as varint(1~10 bytes).
+//	And their direct pointers.
+//	eg: *string, *struct, *map, *slice, *int32.
 package binary
 
 import (
@@ -64,41 +66,10 @@ func Size(data interface{}) int {
 // If an EOF happens after reading some but not all the bytes,
 // Read returns ErrUnexpectedEOF.
 func Read(r io.Reader, endian Endian, data interface{}) error {
-	//	size := Size(data)
-	//	if size < 0 {
-	//		return errors.New("binary.Read: invalid type " + reflect.TypeOf(data).String())
-	//	}
-	//	//	var b [16]byte
-	//	//	var bs []byte
-	//	//	if size > len(b) {
-	//	//		bs = make([]byte, size)
-	//	//	} else {
-	//	//		bs = b[:size]
-	//	//	}
-	//	//	if _, err := io.ReadFull(r, bs); err != nil {
-	//	//		return err
-	//	//	}
-	//	b, _ := readAll(r, size)
 	var decoder decoderReader
 	decoder.Init(r, endian)
 	return decoder.Value(data)
 }
-
-//func readAll(r io.Reader, size int) ([]byte, error) {
-//	var ret []byte = make([]byte, 0, size)
-//	var buff [512]byte
-//	for {
-//		if n, err := r.Read(buff[0:]); n > 0 {
-//			ret = append(ret, buff[:n]...)
-//			if err == io.EOF {
-//				break
-//			}
-//		} else {
-//			break
-//		}
-//	}
-//	return ret, nil
-//}
 
 // Write writes the binary representation of data into w.
 // Data must be a fixed-size value or a slice of fixed-size

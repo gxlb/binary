@@ -20,7 +20,8 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	uint, uint8, uint16, uint32, uint64,
 	float32, float64, complex64, complex128,
 	bool, string, slice, array, map, struct.
-	And their direct pointers. eg: *string, *struct, *map, *slice, *int32.
+	And their direct pointers. 
+	eg: *string, *struct, *map, *slice, *int32.
 
 # 2. store an extra length field(uvarint,1~10 bytes) for string, slice, array, map.
 	eg: 
