@@ -41,7 +41,7 @@ import (
 )
 
 // Size returns how many bytes Write would generate to encode the value v, which
-// must be a fixed-size value or a slice of fixed-size values, or a pointer to such data.
+// must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 func Size(data interface{}) int {
 	if p, ok := data.(Packer); ok {
@@ -112,7 +112,7 @@ type Packer interface {
 }
 
 // Pack encode go data to byte array.
-// Buffer is nil-aviable, it will create new buffer if necessary.
+// nil buffer is aviable, it will create new buffer if necessary.
 func Pack(data interface{}, buffer []byte) ([]byte, error) {
 	size := Size(data)
 	if size < 0 {
@@ -135,6 +135,8 @@ func Pack(data interface{}, buffer []byte) ([]byte, error) {
 }
 
 // Unpack decode go data from byte array.
+// data must be interface of pointer for modify.
+// It will make new pointer or slice/map for nil-field of data.
 func Unpack(buffer []byte, data interface{}) error {
 	if p, ok := data.(Packer); ok {
 		return p.Unpack(buffer)

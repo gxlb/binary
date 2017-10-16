@@ -1,4 +1,4 @@
-// TODO:to support map coder
+// TODO:
 // bench test with std.binary and gob
 // function test
 // field tag parse
@@ -27,7 +27,7 @@ func (this *coder) Buffer() []byte {
 	return this.buff[:this.pos]
 }
 
-// Len returns unmber of bytes this has been encoding/decoding.
+// Len returns unmber of bytes that has been encoding/decoding.
 func (this *coder) Len() int {
 	return this.pos
 }
@@ -47,7 +47,7 @@ func (this *coder) Skip(size int) int {
 	return -1
 }
 
-// Reset move the read/wite pointer to the beginning of buffer
+// Reset move the read/wite pointer to the beginning of buffer.
 func (this *coder) Reset() {
 	this.pos = 0
 }
@@ -56,6 +56,7 @@ type Sizer interface {
 	Size() int
 }
 
+// reserve returns next size bytes for encoding/decoding.
 func (this *coder) reserve(size int) []byte {
 	if this.pos+size > this.Cap() {
 		panic(fmt.Sprintf("Coder:buff overflow pos=%d size=%d, cap=%d\n", this.pos, size, this.Cap()))

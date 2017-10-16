@@ -6,26 +6,32 @@ import (
 	"reflect"
 )
 
+// NewEncoder make a new Encoder object with buffer size.
 func NewEncoder(size int) *Encoder {
 	return NewEncoderEndian(size, DefaultEndian)
 }
 
+// NewEncoderEndian make a new Encoder object with buffer size and endian.
 func NewEncoderEndian(size int, endian Endian) *Encoder {
 	p := &Encoder{}
 	p.Init(size, endian)
 	return p
 }
 
+// Encoder is used to encode go data to byte array.
 type Encoder struct {
 	coder
 }
 
+// Init initialize Encoder with buffer size and endian.
 func (this *Encoder) Init(size int, endian Endian) {
 	this.buff = make([]byte, size)
 	this.pos = 0
 	this.endian = endian
 }
 
+// Bool encode a bool value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Bool(x bool) {
 	b := this.reserve(1)
 	if x {
@@ -35,60 +41,86 @@ func (this *Encoder) Bool(x bool) {
 	}
 }
 
+// Int8 encode an int8 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Int8(x int8) {
 	this.Uint8(uint8(x))
 }
 
+// Uint8 encode a uint8 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Uint8(x uint8) {
 	b := this.reserve(1)
 	b[0] = x
 }
 
+// Int16 encode an int16 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Int16(x int16) {
 	this.Uint16(uint16(x))
 }
 
+// Uint16 encode a uint16 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Uint16(x uint16) {
 	b := this.reserve(2)
 	this.endian.PutUint16(b, x)
 }
 
+// Int32 encode an int32 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Int32(x int32) {
 	this.Uint32(uint32(x))
 }
 
+// Uint32 encode a uint32 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Uint32(x uint32) {
 	b := this.reserve(4)
 	this.endian.PutUint32(b, x)
 }
 
+// Int64 encode an int64 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Int64(x int64) {
 	this.Uint64(uint64(x))
 }
 
+// Uint64 encode a uint64 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Uint64(x uint64) {
 	b := this.reserve(8)
 	this.endian.PutUint64(b, x)
 }
 
+// Float32 encode a float32 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Float32(x float32) {
 	this.Uint32(math.Float32bits(x))
 }
 
+// Float64 encode a float64 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Float64(x float64) {
 	this.Uint64(math.Float64bits(x))
 }
 
+// Complex64 encode a complex64 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Complex64(x complex64) {
 	this.Uint32(math.Float32bits(real(x)))
 	this.Uint32(math.Float32bits(imag(x)))
 }
 
+// Complex128 encode a complex128 value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) Complex128(x complex128) {
 	this.Uint64(math.Float64bits(real(x)))
 	this.Uint64(math.Float64bits(imag(x)))
 }
 
+// String encode a string value to Encoder buffer.
+// It will panic if buffer is not enouth.
 func (this *Encoder) String(x string) {
 	_b := []byte(x)
 	size := len(_b)
@@ -97,10 +129,14 @@ func (this *Encoder) String(x string) {
 	copy(buff, _b)
 }
 
+// Varint encode an int64 value to Encoder buffer with varint(1~10 bytes).
+// It will panic if buffer is not enouth.
 func (this *Encoder) Varint(x int64) int {
 	return this.Uvarint(ToUvarint(x))
 }
 
+// Uvarint encode a uint64 value to Encoder buffer with varint(1~10 bytes).
+// It will panic if buffer is not enouth.
 func (this *Encoder) Uvarint(x uint64) int {
 	i, _x := 0, x
 	for ; _x >= 0x80; _x >>= 7 {
@@ -111,6 +147,9 @@ func (this *Encoder) Uvarint(x uint64) int {
 	return i + 1
 }
 
+// Value encode an interface value to Encoder buffer.
+// It will panic if buffer is not enouth.
+// It will return none-nil error if x contains unsupported types.
 func (this *Encoder) Value(x interface{}) error {
 	if this.fastValue(x) { //fast value path
 		return nil
