@@ -121,6 +121,11 @@ func (this *Encoder) Value(x interface{}) error {
 
 func (this *Encoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
+	case int:
+		this.Varint(int64(d))
+	case uint:
+		this.Uvarint(uint64(d))
+
 	case bool:
 		this.Bool(d)
 	case int8:
@@ -244,34 +249,6 @@ func (this *Encoder) fastValue(x interface{}) bool {
 		for i := 0; i < l; i++ {
 			this.String(d[i])
 		}
-		//	case *bool:
-		//		this.Bool(*d)
-		//	case *int8:
-		//		this.Int8(*d)
-		//	case *uint8:
-		//		this.Uint8(*d)
-		//	case *int16:
-		//		this.Int16(*d)
-		//	case *uint16:
-		//		this.Uint16(*d)
-		//	case *int32:
-		//		this.Int32(*d)
-		//	case *uint32:
-		//		this.Uint32(*d)
-		//	case *float32:
-		//		this.Float32(*d)
-		//	case *int64:
-		//		this.Int64(*d)
-		//	case *uint64:
-		//		this.Uint64(*d)
-		//	case *float64:
-		//		this.Float64(*d)
-		//	case *complex64:
-		//		this.Complex64(*d)
-		//	case *complex128:
-		//		this.Complex128(*d)
-		//	case *string:
-		//		this.String(*d)
 	default:
 		return false
 	}
@@ -284,6 +261,11 @@ func (this *Encoder) value(v reflect.Value) error {
 	//		fmt.Printf("Encoder:after value(%#v)=%d\n", v.Interface(), this.pos)
 	//	}()
 	switch k := v.Kind(); k {
+	case reflect.Int:
+		this.Varint(v.Int())
+	case reflect.Uint:
+		this.Uvarint(v.Uint())
+
 	case reflect.Bool:
 		this.Bool(v.Bool())
 
@@ -293,7 +275,7 @@ func (this *Encoder) value(v reflect.Value) error {
 		this.Int16(int16(v.Int()))
 	case reflect.Int32:
 		this.Int32(int32(v.Int()))
-	case reflect.Int, reflect.Int64:
+	case reflect.Int64:
 		this.Int64(v.Int())
 
 	case reflect.Uint8:
@@ -302,7 +284,7 @@ func (this *Encoder) value(v reflect.Value) error {
 		this.Uint16(uint16(v.Uint()))
 	case reflect.Uint32:
 		this.Uint32(uint32(v.Uint()))
-	case reflect.Uint, reflect.Uint64:
+	case reflect.Uint64:
 		this.Uint64(v.Uint())
 
 	case reflect.Float32:

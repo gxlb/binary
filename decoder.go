@@ -165,6 +165,13 @@ func (this *Decoder) value(v reflect.Value) error {
 	//		fmt.Printf("Decoder:after value(%#v)=%d\n", v.Interface(), this.pos)
 	//	}()
 	switch k := v.Kind(); k {
+	case reflect.Int:
+		d, _ := this.Varint()
+		v.SetInt(d)
+	case reflect.Uint:
+		d, _ := this.Uvarint()
+		v.SetUint(d)
+
 	case reflect.Bool:
 		v.SetBool(this.Bool())
 
@@ -174,7 +181,7 @@ func (this *Decoder) value(v reflect.Value) error {
 		v.SetInt(int64(this.Int16()))
 	case reflect.Int32:
 		v.SetInt(int64(this.Int32()))
-	case reflect.Int, reflect.Int64:
+	case reflect.Int64:
 		v.SetInt(this.Int64())
 
 	case reflect.Uint8:
@@ -183,7 +190,7 @@ func (this *Decoder) value(v reflect.Value) error {
 		v.SetUint(uint64(this.Uint16()))
 	case reflect.Uint32:
 		v.SetUint(uint64(this.Uint32()))
-	case reflect.Uint, reflect.Uint64:
+	case reflect.Uint64:
 		v.SetUint(this.Uint64())
 
 	case reflect.Float32:
@@ -267,6 +274,13 @@ func (this *Decoder) value(v reflect.Value) error {
 
 func (this *Decoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
+	case *int:
+		v, _ := this.Varint()
+		*d = int(v)
+	case *uint:
+		v, _ := this.Uvarint()
+		*d = uint(v)
+
 	case *bool:
 		*d = this.Bool()
 	case *int8:
@@ -419,11 +433,17 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 		return s
 	}
 	switch t.Kind() {
+	case reflect.Int:
+		_, n := this.Varint()
+		return n
+	case reflect.Uint:
+		_, n := this.Uvarint()
+		return n
 	case reflect.String:
-		s, _ := this.Uvarint()
+		s, n := this.Uvarint()
 		size := int(s) //string length and data
 		this.Skip(size)
-		return size
+		return size + n
 	case reflect.Slice, reflect.Array:
 		s, sLen := this.Uvarint()
 		cnt := int(s)

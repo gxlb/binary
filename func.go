@@ -58,6 +58,10 @@ func sizeofValue(v reflect.Value) (l int) {
 		return s
 	}
 	switch t := v.Type(); t.Kind() {
+	case reflect.Int:
+		return SizeofVarint(v.Int())
+	case reflect.Uint:
+		return SizeofUvarint(v.Uint())
 	case reflect.Slice, reflect.Array:
 		if s := _fixTypeSize(t.Elem()); s > 0 {
 			if t.Elem().Kind() == reflect.Bool {
@@ -124,6 +128,8 @@ func sizeofEmptyValue(v reflect.Value) (l int) {
 		return s
 	}
 	switch t := v.Type(); t.Kind() {
+	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
+		return 1
 	case reflect.Slice, reflect.Array, reflect.String:
 		return SizeofUvarint(uint64(0))
 
@@ -150,7 +156,7 @@ func _fixTypeSize(t reflect.Type) int {
 		return 2
 	case reflect.Int32, reflect.Uint32, reflect.Float32:
 		return 4
-	case reflect.Int64, reflect.Uint64, reflect.Float64, reflect.Complex64, reflect.Int, reflect.Uint:
+	case reflect.Int64, reflect.Uint64, reflect.Float64, reflect.Complex64:
 		return 8
 	case reflect.Complex128:
 		return 16
@@ -162,7 +168,7 @@ func newPtr(v reflect.Value) bool {
 	if v.Kind() == reflect.Ptr && v.IsNil() {
 		e := v.Type().Elem()
 		switch e.Kind() {
-		case reflect.Bool, reflect.Int8, reflect.Uint8, reflect.Int16,
+		case reflect.Bool, reflect.Int8, reflect.Uint8, reflect.Int16, reflect.Int, reflect.Uint,
 			reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64,
 			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
 			reflect.Complex128, reflect.String, reflect.Array, reflect.Struct, reflect.Slice, reflect.Map:
@@ -177,8 +183,7 @@ func newPtr(v reflect.Value) bool {
 
 func validField(v reflect.Value, f reflect.StructField) bool {
 	//println("validField", v.CanSet(), f.Name, f.Index)
-	if //v.CanSet() ||
-	isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
+	if isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
 		return true
 	}
 	return false
