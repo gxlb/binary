@@ -164,7 +164,12 @@ func (this *Encoder) Uvarint(x uint64) int {
 // Value encode an interface value to Encoder buffer.
 // It will panic if buffer is not enough.
 // It will return none-nil error if x contains unsupported types.
-func (this *Encoder) Value(x interface{}) error {
+func (this *Encoder) Value(x interface{}) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
 	if this.fastValue(x) { //fast value path
 		return nil
 	}

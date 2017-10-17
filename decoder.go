@@ -203,7 +203,12 @@ func (this *Decoder) Uvarint() (uint64, int) {
 // x must be interface of pointer for modify.
 // It will panic if buffer is not enough.
 // It will return none-nil error if x contains unsupported types.
-func (this *Decoder) Value(x interface{}) error {
+func (this *Decoder) Value(x interface{}) (err error) {
+	defer func() {
+		if recover() != nil {
+			err = io.ErrUnexpectedEOF
+		}
+	}()
 	if this.fastValue(x) { //fast value path
 		return nil
 	}
@@ -214,6 +219,7 @@ func (this *Decoder) Value(x interface{}) error {
 	} else {
 		return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
 	}
+	return nil
 }
 
 //func (this *Decoder) getIntValue(kind reflect.Kind) uint64 {

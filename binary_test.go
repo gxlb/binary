@@ -354,33 +354,33 @@ func TestReadErrorMsg(t *testing.T) {
 }
 
 func TestReadTruncated(t *testing.T) {
-	//	const data = "0123456789abcdef"
+	var data = []byte{0x4, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf}
 
-	//	//var b1 = make([]int32, 4)
-	//	var b2 struct {
-	//		A, B, C, D byte
-	//		E          int32
-	//		F          float64
-	//	}
+	var b1 = make([]int32, 4)
+	var b2 struct {
+		A0, A, B, C, D byte
+		E              int32
+		F              float64
+	}
 
-	//	for i := 0; i <= len(data); i++ {
-	//		var errWant error
-	//		switch i {
-	//		case 0:
-	//			errWant = io.EOF
-	//		case len(data):
-	//			errWant = nil
-	//		default:
-	//			errWant = io.ErrUnexpectedEOF
-	//		}
+	for i := 0; i <= len(data); i++ {
+		var errWant error
+		switch i {
+		case 0:
+			errWant = io.ErrUnexpectedEOF
+		case len(data):
+			errWant = nil
+		default:
+			errWant = io.ErrUnexpectedEOF
+		}
 
-	//		//		if err := Read(strings.NewReader(data[:i]), LittleEndian, &b1); err != errWant {
-	//		//			t.Errorf("Read(%d) with slice: got %v, want %v", i, err, errWant)
-	//		//		}
-	//		if err := Read(strings.NewReader(data[:i]), LittleEndian, &b2); err != errWant {
-	//			t.Errorf("Read(%d) with struct: got %v, want %v", i, err, errWant)
-	//		}
-	//	}
+		if err := Read(bytes.NewReader(data[:i]), LittleEndian, &b1); err != errWant {
+			t.Errorf("Read(%d) with slice: got %v, want %v", i, err, errWant)
+		}
+		if err := Read(bytes.NewReader(data[:i]), LittleEndian, &b2); err != errWant {
+			t.Errorf("Read(%d) with struct: got %v, want %v", i, err, errWant)
+		}
+	}
 }
 
 func testUint64SmallSliceLengthPanics() (panicked bool) {
