@@ -157,9 +157,9 @@ func (this *decoderReader) Value(x interface{}) error {
 
 	v := reflect.ValueOf(x)
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return this.value(reflect.Indirect(v))
+		return this.value(v)
 	} else {
-		return fmt.Errorf("binary.DecoderReader.Value: non-pointer type [%s]", v.Type().String())
+		return fmt.Errorf("binary.Read: non-pointer type %s", v.Type().String())
 	}
 }
 
@@ -265,32 +265,13 @@ func (this *decoderReader) value(v reflect.Value) error {
 			}
 		}
 	default:
-		if this.newPtr(v) {
+		if newPtr(v) {
 			return this.value(v.Elem())
 		} else {
-			return fmt.Errorf("binary.DecoderReader.Value: unsupported type [%s]", v.Type().String())
+			return fmt.Errorf("binary.Read: unsupported type %s", v.Type().String())
 		}
 	}
 	return nil
-}
-
-func (this *decoderReader) newPtr(v reflect.Value) bool {
-	if v.Kind() == reflect.Ptr && v.IsNil() {
-		e := v.Type().Elem()
-		switch e.Kind() {
-		case reflect.Bool, reflect.Int8, reflect.Uint8, reflect.Int16,
-			reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64,
-			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
-			reflect.Complex128, reflect.String, reflect.Array, reflect.Struct, reflect.Slice, reflect.Map:
-			v.Set(reflect.New(e))
-			//		case reflect.Slice:
-			//			v.Set(reflect.MakeSlice(e, 0, 0).Addr()) //make a default slice
-		default:
-			return false
-		}
-		return true
-	}
-	return false
 }
 
 func (this *decoderReader) fastValue(x interface{}) bool {

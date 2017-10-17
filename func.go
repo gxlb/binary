@@ -165,18 +165,18 @@ func _fixTypeSize(t reflect.Type) int {
 }
 
 func newPtr(v reflect.Value) bool {
-	if v.Kind() == reflect.Ptr && v.IsNil() {
+	if v.Kind() == reflect.Ptr {
 		e := v.Type().Elem()
 		switch e.Kind() {
-		case reflect.Bool, reflect.Int8, reflect.Uint8, reflect.Int16, reflect.Int, reflect.Uint,
+		case reflect.Int, reflect.Uint, reflect.Bool, reflect.Int8, reflect.Uint8, reflect.Int16,
 			reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64,
 			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
 			reflect.Complex128, reflect.String, reflect.Array, reflect.Struct, reflect.Slice, reflect.Map:
-			v.Set(reflect.New(e))
-		default:
-			return false
+			if v.IsNil() {
+				v.Set(reflect.New(e))
+			}
+			return true
 		}
-		return true
 	}
 	return false
 }

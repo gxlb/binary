@@ -185,9 +185,9 @@ func (this *Decoder) Value(x interface{}) error {
 
 	v := reflect.ValueOf(x)
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return this.value(reflect.Indirect(v))
+		return this.value(v)
 	} else {
-		return fmt.Errorf("binary.Decoder.Value: non-pointer type [%s]", v.Type().String())
+		return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
 	}
 }
 
@@ -321,7 +321,7 @@ func (this *Decoder) value(v reflect.Value) error {
 		if newPtr(v) {
 			return this.value(v.Elem())
 		} else {
-			return fmt.Errorf("binary.Decoder.Value: unsupported type [%s]", v.Type().String())
+			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 	}
 	return nil

@@ -2,9 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// this file is the test cases from std.binary
+
 package binary
 
-/*
+///*
 import (
 	"bytes"
 	"io"
@@ -12,6 +14,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"unsafe"
 )
 
 type Struct struct {
@@ -32,11 +35,13 @@ type Struct struct {
 	BoolArray  [4]bool
 }
 
-type T struct {
-	Int     int
-	Uint    uint
-	Uintptr uintptr
-	Array   [4]int
+type TDoNotSupport struct {
+	//Int     int
+	//Uint    uint
+	//Array   [4]int
+	Uintptr       uintptr
+	UnsafePointer unsafe.Pointer
+	Ch            chan bool
 }
 
 var s = Struct{
@@ -221,7 +226,7 @@ func TestSliceRoundTrip(t *testing.T) {
 
 func TestWriteT(t *testing.T) {
 	buf := new(bytes.Buffer)
-	ts := T{}
+	ts := TDoNotSupport{}
 	if err := Write(buf, BigEndian, ts); err == nil {
 		t.Errorf("WriteT: have err == nil, want non-nil")
 	}
@@ -254,14 +259,14 @@ type BlankFields struct {
 
 type BlankFieldsProbe struct {
 	A  uint32
-	P0 int32
+	P0 int32 `binary:"ignore"`
 	B  float64
-	P1 [4]int16
+	P1 [4]int16 `binary:"ignore"`
 	C  byte
-	P2 [7]byte
+	P2 [7]byte `binary:"ignore"`
 	P3 struct {
 		F [8]float32
-	}
+	} `binary:"ignore"`
 }
 
 func TestBlankFields(t *testing.T) {
@@ -299,49 +304,53 @@ func TestBlankFields(t *testing.T) {
 	}
 }
 
-// An attempt to read into a struct with an unexported field will
-// panic. This is probably not the best choice, but at this point
-// anything else would be an API change.
-
-type Unexported struct {
-	a int32
-}
-
-func TestUnexportedRead(t *testing.T) {
-	var buf bytes.Buffer
-	u1 := Unexported{a: 1}
-	if err := Write(&buf, LittleEndian, &u1); err != nil {
-		t.Fatal(err)
-	}
-
-	defer func() {
-		if recover() == nil {
-			t.Fatal("did not panic")
-		}
-	}()
-	var u2 Unexported
-	Read(&buf, LittleEndian, &u2)
-}
+//// An attempt to read into a struct with an unexported field will
+//// panic. This is probably not the best choice, but at this point
+//// anything else would be an API change.
+//
+//type Unexported struct {
+//	a int32
+//}
+//
+//func TestUnexportedRead(t *testing.T) {
+//	var buf bytes.Buffer
+//	u1 := Unexported{a: 1}
+//	if err := Write(&buf, LittleEndian, &u1); err != nil {
+//		t.Fatal(err)
+//	}
+//
+//	defer func() {
+//		if recover() == nil {
+//			t.Fatal("did not panic")
+//		}
+//	}()
+//	var u2 Unexported
+//	Read(&buf, LittleEndian, &u2)
+//}
 
 func TestReadErrorMsg(t *testing.T) {
-	//	var buf bytes.Buffer
-	//	read := func(data interface{}) {
-	//		err := Read(&buf, LittleEndian, data)
-	//		want := "binary.Read: invalid type " + reflect.TypeOf(data).String()
-	//		if err == nil {
-	//			t.Errorf("%T: got no error; want %q", data, want)
-	//			return
-	//		}
-	//		if got := err.Error(); got != want {
-	//			t.Errorf("%T: got %q; want %q", data, got, want)
-	//		}
-	//	}
-	//	i := 0
-	//	read(&i)
-	//	s := new(struct{})
-	//	read(&s)
-	//	p := &s
-	//	read(&p)
+	var buf bytes.Buffer
+	read := func(data interface{}, nonPointer bool) {
+		err := Read(&buf, LittleEndian, data)
+		want := "binary.Read: unsupported type " + reflect.TypeOf(data).String()
+		if nonPointer {
+			want = "binary.Read: non-pointer type " + reflect.TypeOf(data).String()
+		}
+		if err == nil {
+			t.Errorf("%T: got no error; want %q", data, want)
+			return
+		}
+		if got := err.Error(); got != want {
+			t.Errorf("%T: got %q; want %q", data, got, want)
+		}
+	}
+	i := uintptr(0)
+	read(&i, false)
+	s := new(struct{})
+	read(*s, true)
+	read(&s, false)
+	p := &s
+	read(&p, false)
 }
 
 func TestReadTruncated(t *testing.T) {
