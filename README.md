@@ -57,3 +57,20 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	}
 	It will new pointers for fields "A, B, C",
 	and make new slice for fields "*C, D" when decode.
+	
+# 5. use Pack/UnPack dierect read/write memory buffer.
+	eg:
+	if bytes, err:=binary.Pack(data,nil);err==nil{
+		//...
+	}
+
+	size := binary.Sizeof(data)
+	buffer := make([]byte, size)
+	if bytes, err:=binary.Pack(data,buffer);err==nil{
+		//...
+	}
+
+	if err:=binary.Unpack(bytes, &data);err==nil{
+		//...
+	}
+	
