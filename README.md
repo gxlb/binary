@@ -36,13 +36,13 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	will be encoded as:
 	[]byte{0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 
-# 3. pack bool array with bits.
+# 3. Pack bool array with bits.
 	eg: 
-	[]bool{true, true, true, false}
+	[]bool{true, true, true, false, true, true, false, false, true}
 	will be encoded as:
-	[]byte{0x4, 0x7}
+	[]byte{0x9, 0x37, 0x1}
 
-# 4. hide struct field when encode/decode.
+# 4. Hide struct field when encode/decode.
 	Only encode/decode exported fields.
 	Support field tag `binary:"ignore"` to disable encode/decode fields.
 	eg: 
@@ -52,9 +52,9 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 		_ uint32
 		C uint32 `binary:"ignore"`
 	}
-	only field "A" will be encode/decode.
+	Only field "A" will be encode/decode.
 
-# 5. auto alloc for slice, map and pointer.
+# 5. Auto allocate for slice, map and pointer.
 	eg: 
 	type S struct{
 	    A *uint32
@@ -65,22 +65,22 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	It will new pointers for fields "A, B, C",
 	and make new slice for fields "*C, D" when decode.
 	
-# 6. use Pack/UnPack direct read/write memory buffer.
+# 6. Use Pack/UnPack read/write memory buffer directly.
 	If data implement interface Packer, it will use data.Pack/data.Unpack 
 	to encode/decode data.
 	eg:
 	
-	if bytes, err := binary.Pack(data,nil);err==nil{
+	if bytes, err := binary.Pack(&data, nil); err==nil{
 		//...
 	}
 
 	size := binary.Sizeof(data)
 	buffer := make([]byte, size)
-	if bytes, err := binary.Pack(data,buffer);err==nil{
+	if bytes, err := binary.Pack(&data, buffer); err==nil{
 		//...
 	}
 
-	if err := binary.Unpack(bytes, &data);err==nil{
+	if err := binary.Unpack(bytes, &data); err==nil{
 		//...
 	}
 
