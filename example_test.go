@@ -144,29 +144,31 @@ func (this *S) Unpack(buffer []byte) error {
 	return nil
 }
 func ExamplePacker() {
-	//type S struct {
-	//	A uint32
-	//	B int
-	//	C string
-	//}
-	//func (this *S) Size() int {
-	//	size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
-	//	return size
-	//}
-	//func (this *S) Pack() ([]byte, error) {
-	//	encoder := binary.NewEncoder(this.Size())
-	//	encoder.Value(this.A)
-	//	encoder.Int16(int16(this.B))
-	//	encoder.Value(this.C)
-	//	return encoder.Buffer(), nil
-	//}
-	//func (this *S) Unpack(buffer []byte) error {
-	//	decoder := binary.NewDecoder(buffer)
-	//	decoder.Value(&this.A)
-	//	this.B = int(decoder.Int16())
-	//	decoder.Value(&this.C)
-	//	return nil
-	//}
+	/*
+		type S struct {
+			A uint32
+			B int
+			C string
+		}
+		func (this *S) Size() int {
+			size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
+			return size
+		}
+		func (this *S) Pack() ([]byte, error) {
+			encoder := binary.NewEncoder(this.Size())
+			encoder.Value(this.A)
+			encoder.Int16(int16(this.B))
+			encoder.Value(this.C)
+			return encoder.Buffer(), nil
+		}
+		func (this *S) Unpack(buffer []byte) error {
+			decoder := binary.NewDecoder(buffer)
+			decoder.Value(&this.A)
+			this.B = int(decoder.Int16())
+			decoder.Value(&this.C)
+			return nil
+		}
+	*/
 	var s, ss S
 	s.A = 0x11223344
 	s.B = -5
@@ -180,6 +182,8 @@ func ExamplePacker() {
 	if err != nil {
 		fmt.Println("binary.Unpack failed:", err)
 	}
-	fmt.Printf("[%v %#v %v]", s, b, ss)
-	// Output: [{287454020 -5 hello} []byte{0x44, 0x33, 0x22, 0x11, 0xfb, 0xff, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f} {287454020 -5 hello}]
+	fmt.Printf("[%v\n%#v\n%v]", s, b, ss)
+	// Output: [{287454020 -5 hello}
+	//[]byte{0x44, 0x33, 0x22, 0x11, 0xfb, 0xff, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
+	//{287454020 -5 hello}]
 }
