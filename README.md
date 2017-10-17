@@ -91,6 +91,6 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	encoder.String(str)
 	encodeResult := encoder.buffer
 	
-	decoder := binary.NewEncoder(buffer)
+	decoder := binary.NewDecoder(buffer)
 	u32 := decoder.Uint32()
 	str := decoder.String()
