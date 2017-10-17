@@ -58,19 +58,32 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	It will new pointers for fields "A, B, C",
 	and make new slice for fields "*C, D" when decode.
 	
-# 5. use Pack/UnPack dierect read/write memory buffer.
+# 6. use Pack/UnPack direct read/write memory buffer.
+	If data implement interface Packer, it will use data.Pack/data.Unpack 
+	to encode/decode data.
 	eg:
-	if bytes, err:=binary.Pack(data,nil);err==nil{
+	
+	if bytes, err := binary.Pack(data,nil);err==nil{
 		//...
 	}
 
 	size := binary.Sizeof(data)
 	buffer := make([]byte, size)
-	if bytes, err:=binary.Pack(data,buffer);err==nil{
+	if bytes, err := binary.Pack(data,buffer);err==nil{
 		//...
 	}
 
-	if err:=binary.Unpack(bytes, &data);err==nil{
+	if err := binary.Unpack(bytes, &data);err==nil{
 		//...
 	}
+
+# 6. Encoder/Decoder are exported types aviable for encoding/decoding.
+	eg:
+	encoder := binary.NewEncoder(bufferSize)
+	encoder.Uint32(u32)
+	encoder.String(str)
+	encodeResult := encoder.buffer
 	
+	decoder := binary.NewEncoder(buffer)
+	u32 := decoder.Uint32()
+	str := decoder.String()
