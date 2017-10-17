@@ -296,7 +296,7 @@ func (this *Decoder) value(v reflect.Value) error {
 			// but creating the StructField info for each field is
 			// costly (run "go test -bench=ReadStruct" and compare
 			// results when making changes to this code).
-			if f := v.Field(i); validField(f, t.Field(i)) {
+			if f := v.Field(i); validField(t.Field(i)) {
 				//fmt.Printf("field(%d) [%s] \n", i, t.Field(i).Name)
 				this.value(f)
 			} else {

@@ -101,7 +101,7 @@ func sizeofValue(v reflect.Value) (l int) {
 	case reflect.Struct:
 		sum := 0
 		for i, n := 0, v.NumField(); i < n; i++ {
-			if validField(v.Field(i), v.Type().Field(i)) {
+			if validField(v.Type().Field(i)) {
 				s := sizeofValue(v.Field(i))
 				if s < 0 {
 					return -1
@@ -181,7 +181,7 @@ func newPtr(v reflect.Value) bool {
 	return false
 }
 
-func validField(v reflect.Value, f reflect.StructField) bool {
+func validField(f reflect.StructField) bool {
 	//println("validField", v.CanSet(), f.Name, f.Index)
 	if isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
 		return true

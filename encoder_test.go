@@ -252,13 +252,33 @@ func TestPack(t *testing.T) {
 	//		fmt.Printf("int %d %x %d %#v\n", i, v, len(b), b)
 	//	}
 
-	b, err := Pack(full, nil)
-	if err != nil {
-		t.Error(err)
+	v := reflect.ValueOf(full)
+	vt := v.Type()
+	n := v.NumField()
+	check := littleFull
+	for i := 0; i < n; i++ {
+		if !validField(vt.Field(i)) {
+			continue
+		}
+		b, err := Pack(v.Field(i).Interface(), nil)
+		c := check[:len(b)]
+		check = check[len(b):]
+		if err != nil {
+			t.Error(err)
+		}
+		if vt.Field(i).Type.Kind() != reflect.Map && //map keys will be got as unspecified order, byte order may change but it doesn't matter
+			!reflect.DeepEqual(b, c) {
+			t.Errorf("field %d %s got %+v\nneed %+v\n", i, vt.Field(i).Name, b, c)
+		}
 	}
-	if !reflect.DeepEqual(b, littleFull) {
-		t.Errorf("got %+v\nneed %+v\n", b, littleFull)
-	}
+
+	//	b, err := Pack(full, nil)
+	//	if err != nil {
+	//		t.Error(err)
+	//	}
+	//	if !reflect.DeepEqual(b, littleFull) {
+	//		t.Errorf("got %+v\nneed %+v\n", b, littleFull)
+	//	}
 }
 
 func TestUnpack(t *testing.T) {

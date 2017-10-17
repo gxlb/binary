@@ -365,7 +365,7 @@ func (this *Encoder) value(v reflect.Value) error {
 		l := v.NumField()
 		for i := 0; i < l; i++ {
 			// see comment for corresponding code in decoder.value()
-			if f := v.Field(i); validField(f, t.Field(i)) {
+			if f := v.Field(i); validField(t.Field(i)) {
 				this.value(f)
 			} else {
 				//this.Skip(sizeofEmptyValue(f))
