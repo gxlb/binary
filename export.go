@@ -114,7 +114,7 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 
 // Packer is an interface to define go data Pack and UnPack method.
 type Packer interface {
-	Sizer
+	Size() int
 	Pack() ([]byte, error)
 	Unpack(buffer []byte) error
 }

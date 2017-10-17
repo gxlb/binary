@@ -52,10 +52,6 @@ func (this *coder) Reset() {
 	this.pos = 0
 }
 
-type Sizer interface {
-	Size() int
-}
-
 // reserve returns next size bytes for encoding/decoding.
 func (this *coder) reserve(size int) []byte {
 	if this.pos+size > this.Cap() {
