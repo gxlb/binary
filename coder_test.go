@@ -278,18 +278,34 @@ func TestPack(t *testing.T) {
 
 func TestPackEmptyPointer(t *testing.T) {
 	var s struct {
-		PString *string
-		PSlice  *[]int
-		PArray  *[2]bool
-		PInt    *int32
-		PStruct *struct{ A int }
-		//PStruct2 *struct{ B uintptr }
+		PString  *string
+		PSlice   *[]int
+		PArray   *[2]bool
+		PArray2  *[2]struct{ X *string }
+		PInt     *int32
+		PStruct  *struct{ A int }
+		PStruct2 *struct{ B *[]string }
 	}
 	b, err := Pack(&s, nil)
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Printf("%#v\n%#v\n", s, b)
+	ss := s
+
+	err = Unpack(b, &ss)
+	if err != nil {
+		t.Error(err)
+	}
+
+	b2, err2 := Pack(&ss, nil)
+	if err2 != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(b, b2) {
+		t.Errorf("%+v->%+v got %+v\nneed %+v\n", s, ss, b2, b)
+	}
+	//	fmt.Printf("%+v\n%#v\n", s, b)
+	//	fmt.Printf("%+v\n%#v\n", ss, b2)
 }
 
 func TestUnpack(t *testing.T) {
@@ -462,7 +478,7 @@ func __TestPack(t *testing.T) {
 	fmt.Printf("after unpack: %#v\n", tt)
 }
 
-func TestStruct(t *testing.T) {
+func TestHideStructField(t *testing.T) {
 	type T struct {
 		A uint32
 		b uint32

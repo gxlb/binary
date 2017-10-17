@@ -165,11 +165,11 @@ func (this *Encoder) Uvarint(x uint64) int {
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
 func (this *Encoder) Value(x interface{}) (err error) {
-	//	defer func() {
-	//		if e := recover(); e != nil {
-	//			err = e.(error)
-	//		}
-	//	}()
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
 	if this.fastValue(x) { //fast value path
 		return nil
 	}
@@ -346,9 +346,9 @@ func (this *Encoder) value(v reflect.Value) error {
 		this.Uint64(v.Uint())
 
 	case reflect.Float32:
-		this.Uint32(math.Float32bits(float32(v.Float())))
+		this.Float32(float32(v.Float()))
 	case reflect.Float64:
-		this.Uint64(math.Float64bits(v.Float()))
+		this.Float64(v.Float())
 
 	case reflect.Complex64:
 		x := v.Complex()
@@ -395,12 +395,56 @@ func (this *Encoder) value(v reflect.Value) error {
 				return this.value(e)
 			}
 		} else {
-			this.Skip(sizeofEmptyPointer(v.Type()))
+			this.emptyPointer(v.Type())
+			//this.Skip(sizeofEmptyPointer(v.Type()))
 		}
 	default:
 		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())
 	}
 	return nil
+}
+
+func (this *Encoder) emptyPointer(t reflect.Type) int {
+	tt := t
+	if tt.Kind() == reflect.Ptr {
+		tt = t.Elem()
+	}
+	if s := _fixTypeSize(tt); s > 0 { //fix size
+		return this.Skip(s)
+	}
+	switch tt.Kind() {
+	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
+		return this.Uvarint(0)
+	case reflect.Slice, reflect.String:
+		return this.Uvarint(0)
+	case reflect.Array:
+		l := tt.Len()
+		n := this.Uvarint(uint64(l))
+		if tt.Elem().Kind() == reflect.Bool { //bool array
+			n2 := sizeofBoolArray(n)
+			this.Skip(n2 - n)
+			n = n2
+		} else {
+			tte := tt.Elem()
+			for i := 0; i < l; i++ {
+				n += this.emptyPointer(tte)
+			}
+		}
+		return n
+
+	case reflect.Struct: //empty struct pointer has no byte encoded
+		sum := 0
+		for i, n := 0, tt.NumField(); i < n; i++ {
+			s := this.emptyPointer(tt.Field(i).Type)
+			if s < 0 {
+				return -1
+			}
+			sum += s
+		}
+		return sum
+	}
+
+	return -1
 }
 
 // encode bool array

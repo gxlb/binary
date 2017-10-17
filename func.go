@@ -120,29 +120,41 @@ func sizeofValue(v reflect.Value) (l int) {
 }
 
 func sizeofEmptyPointer(t reflect.Type) int {
-	//fmt.Println("sizeofEmptyPointer", t.Kind().String())
-	if t.Kind() != reflect.Ptr { //nil pointer only
-		return -1
+	tt := t
+	if tt.Kind() == reflect.Ptr {
+		tt = t.Elem()
 	}
-	tt := t.Elem()
 	if s := _fixTypeSize(tt); s > 0 { //fix size
 		return s
 	}
 	switch tt.Kind() {
 	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
 		return 1
-	case reflect.Slice, reflect.Array, reflect.String:
+	case reflect.Slice, reflect.String:
 		return SizeofUvarint(uint64(0))
+	case reflect.Array:
+		if s := _fixTypeSize(tt.Elem()); s > 0 {
+			if tt.Elem().Kind() == reflect.Bool {
+				return sizeofBoolArray(tt.Len())
+			}
+			return sizeofFixArray(tt.Len(), s)
+		} else {
+			size := sizeofEmptyPointer(tt.Elem())
+			if size < 0 {
+				return -1
+			}
+			return sizeofFixArray(tt.Len(), size)
+		}
 
 	case reflect.Struct: //empty struct pointer has no byte encoded
 		sum := 0
-		//		for i, n := 0, tt.NumField(); i < n; i++ {
-		//			s := sizeofEmptyPointer(tt.Field(i).Type)
-		//			if s < 0 {
-		//				return -1
-		//			}
-		//			sum += s
-		//		}
+		for i, n := 0, tt.NumField(); i < n; i++ {
+			s := sizeofEmptyPointer(tt.Field(i).Type)
+			if s < 0 {
+				return -1
+			}
+			sum += s
+		}
 		return sum
 	}
 
