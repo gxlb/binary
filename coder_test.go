@@ -491,3 +491,14 @@ func TestStruct(t *testing.T) {
 		t.Errorf("%T: got %q; want %q", s, ss, ssCheck)
 	}
 }
+
+func TestEndian(t *testing.T) {
+	if LittleEndian.String() != "LittleEndian" ||
+		LittleEndian.GoString() != "binary.LittleEndian" {
+		t.Error("LittleEndian")
+	}
+	if BigEndian.String() != "BigEndian" ||
+		BigEndian.GoString() != "binary.BigEndian" {
+		t.Error("BigEndian")
+	}
+}
