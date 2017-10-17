@@ -26,7 +26,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 # 2. store an extra length field(uvarint,1~10 bytes) for string, slice, array, map.
 	eg: 
 	var s string = "hello"
-	will be encode as:
+	will be encoded as:
 	[]byte{0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 
 # 3. pack bool array with bits.
@@ -77,7 +77,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 		//...
 	}
 
-# 6. Encoder/Decoder are exported types aviable for encoding/decoding.
+# 7. Encoder/Decoder are exported types aviable for encoding/decoding.
 	eg:
 	encoder := binary.NewEncoder(bufferSize)
 	encoder.Uint32(u32)
