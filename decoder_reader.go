@@ -112,6 +112,22 @@ func (this *decoderReader) String() string {
 	return string(b)
 }
 
+// Int decode an int value from Decoder buffer.
+// It will panic if buffer is not enough.
+// It use Varint() to decode as varint(1~10 bytes)
+func (this *decoderReader) Int() int {
+	n, _ := this.Varint()
+	return int(n)
+}
+
+// Uint decode a uint value from Decoder buffer.
+// It will panic if buffer is not enough.
+// It use Uvarint() to decode as uvarint(1~10 bytes)
+func (this *decoderReader) Uint() uint {
+	n, _ := this.Uvarint()
+	return uint(n)
+}
+
 func (this *decoderReader) Varint() (int64, int) {
 	ux, n := this.Uvarint() // ok to continue in presence of error
 	return ToVarint(ux), n
@@ -153,11 +169,9 @@ func (this *decoderReader) value(v reflect.Value) error {
 	//	}()
 	switch k := v.Kind(); k {
 	case reflect.Int:
-		d, _ := this.Varint()
-		v.SetInt(d)
+		v.SetInt(int64(this.Int()))
 	case reflect.Uint:
-		d, _ := this.Uvarint()
-		v.SetUint(d)
+		v.SetUint(uint64(this.Uint()))
 
 	case reflect.Bool:
 		v.SetBool(this.Bool())
@@ -282,11 +296,9 @@ func (this *decoderReader) newPtr(v reflect.Value) bool {
 func (this *decoderReader) fastValue(x interface{}) bool {
 	switch d := x.(type) {
 	case *int:
-		v, _ := this.Varint()
-		*d = int(v)
+		*d = this.Int()
 	case *uint:
-		v, _ := this.Uvarint()
-		*d = uint(v)
+		*d = this.Uint()
 
 	case *bool:
 		*d = this.Bool()

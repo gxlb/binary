@@ -129,6 +129,20 @@ func (this *Encoder) String(x string) {
 	copy(buff, _b)
 }
 
+// Int encode an int value to Encoder buffer.
+// It will panic if buffer is not enough.
+// It use Varint() to encode as varint(1~10 bytes)
+func (this *Encoder) Int(x int) {
+	this.Varint(int64(x))
+}
+
+// Uint encode a uint value to Encoder buffer.
+// It will panic if buffer is not enough.
+// It use Uvarint() to encode as uvarint(1~10 bytes)
+func (this *Encoder) Uint(x uint) {
+	this.Uvarint(uint64(x))
+}
+
 // Varint encode an int64 value to Encoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
 func (this *Encoder) Varint(x int64) int {
@@ -161,9 +175,9 @@ func (this *Encoder) Value(x interface{}) error {
 func (this *Encoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
 	case int:
-		this.Varint(int64(d))
+		this.Int(d)
 	case uint:
-		this.Uvarint(uint64(d))
+		this.Uint(d)
 
 	case bool:
 		this.Bool(d)
@@ -301,9 +315,9 @@ func (this *Encoder) value(v reflect.Value) error {
 	//	}()
 	switch k := v.Kind(); k {
 	case reflect.Int:
-		this.Varint(v.Int())
+		this.Int(int(v.Int()))
 	case reflect.Uint:
-		this.Uvarint(v.Uint())
+		this.Uint(uint(v.Uint()))
 
 	case reflect.Bool:
 		this.Bool(v.Bool())

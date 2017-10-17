@@ -22,7 +22,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 
 ****
 
-# 1. support all serialize-able basic types:
+# 1. Support all serialize-able basic types:
 	int, int8, int16, int32, int64,
 	uint, uint8, uint16, uint32, uint64,
 	float32, float64, complex64, complex128,
@@ -30,7 +30,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	And their direct pointers. 
 	eg: *string, *struct, *map, *slice, *int32.
 
-# 2. store an extra length field(uvarint,1~10 bytes) for string, slice, array, map.
+# 2. Store an extra length field(uvarint,1~10 bytes) for string, slice, array, map.
 	eg: 
 	var s string = "hello"
 	will be encoded as:
