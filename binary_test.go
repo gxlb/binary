@@ -6,7 +6,6 @@
 
 package binary
 
-///*
 import (
 	"bytes"
 	"io"
@@ -212,8 +211,6 @@ func TestSliceRoundTrip(t *testing.T) {
 			t.Fatal(err)
 		}
 		dst := reflect.New(src.Type())
-		//		dstSlice := dst.Slice(0, dst.Len())
-		//		dstAddr := dstSlice.Addr()
 		err = Read(buf, BigEndian, dst.Interface())
 		if err != nil {
 			t.Fatal(err)
@@ -275,7 +272,6 @@ func TestBlankFields(t *testing.T) {
 	if err := Write(buf, LittleEndian, &b1); err != nil {
 		t.Error(err)
 	}
-	//fmt.Printf("%+v\n%+v\n", b1, buf.Bytes())
 
 	// zero values must have been written for blank fields
 	var p BlankFieldsProbe
@@ -298,7 +294,6 @@ func TestBlankFields(t *testing.T) {
 	if err := Read(buf, LittleEndian, &b2); err != nil {
 		t.Error(err)
 	}
-	//fmt.Printf("%+v\n%+v\n", b1, b2)
 	if b1.A != b2.A || b1.B != b2.B || b1.C != b2.C {
 		t.Errorf("%#v != %#v", b1, b2)
 	}
@@ -514,5 +509,3 @@ func BenchmarkWriteSlice1000Int32s(b *testing.B) {
 	}
 	b.StopTimer()
 }
-
-//*/

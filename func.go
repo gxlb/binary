@@ -67,7 +67,7 @@ func sizeofValue(v reflect.Value) (l int) {
 			if t.Elem().Kind() == reflect.Bool {
 				return sizeofBoolArray(v.Len())
 			}
-			return SizeofUvarint(uint64(v.Len())) + s*v.Len()
+			return sizeofFixArray(v.Len(), s)
 		} else {
 			sum := SizeofUvarint(uint64(v.Len())) //array size
 			for i, n := 0, v.Len(); i < n; i++ {

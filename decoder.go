@@ -285,15 +285,11 @@ func (this *Decoder) value(v reflect.Value) error {
 		v.SetFloat(this.Float64())
 
 	case reflect.Complex64:
-		v.SetComplex(complex(
-			float64(this.Float32()),
-			float64(this.Float32()),
-		))
+		v.SetComplex(complex128(this.Complex64()))
+
 	case reflect.Complex128:
-		v.SetComplex(complex(
-			this.Float64(),
-			this.Float64(),
-		))
+		v.SetComplex(this.Complex128())
+
 	case reflect.String:
 		v.SetString(this.String())
 

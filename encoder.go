@@ -352,12 +352,11 @@ func (this *Encoder) value(v reflect.Value) error {
 
 	case reflect.Complex64:
 		x := v.Complex()
-		this.Uint32(math.Float32bits(float32(real(x))))
-		this.Uint32(math.Float32bits(float32(imag(x))))
+		this.Complex64(complex64(x))
+
 	case reflect.Complex128:
 		x := v.Complex()
-		this.Uint64(math.Float64bits(real(x)))
-		this.Uint64(math.Float64bits(imag(x)))
+		this.Complex128(x)
 
 	case reflect.String:
 		this.String(v.String())
