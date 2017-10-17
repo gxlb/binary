@@ -23,6 +23,11 @@
 //
 // The main purpose of this package is to replace package "std.binary".
 //
+// Compare with other serialization package, this package is with full-feature as
+// gob and protocol buffers, and with high-performance and lightweight as std.binary.
+// It is designed as a common solution to easily encode/decode between go data and byte slice.
+// It is recommended to use in net protocol serialization and go memory data serialization such as DB.
+//
 // Support all serialize-able data types:
 //
 //	int, int8, int16, int32, int64,
