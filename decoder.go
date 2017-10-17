@@ -201,8 +201,8 @@ func (this *Decoder) Uvarint() (uint64, int) {
 
 // Value decode an interface value from Encoder buffer.
 // x must be interface of pointer for modify.
-// It will panic if buffer is not enough.
-// It will return none-nil error if x contains unsupported types.
+// It will return none-nil error if x contains unsupported types
+// or buffer is not enough.
 func (this *Decoder) Value(x interface{}) (err error) {
 	defer func() {
 		if recover() != nil {
