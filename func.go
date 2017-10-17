@@ -50,7 +50,7 @@ func sizeofValue(v reflect.Value) (l int) {
 	//		fmt.Printf("sizeof(%s)=%d\n", v.Type().String(), l)
 	//	}()
 	if v.Kind() == reflect.Ptr && v.IsNil() { //nil is not aviable
-		return -1
+		return sizeofEmptyPointer(v.Type())
 	}
 
 	v = reflect.Indirect(v)                 //redrect pointer to it's value
@@ -104,6 +104,7 @@ func sizeofValue(v reflect.Value) (l int) {
 			if validField(v.Type().Field(i)) {
 				s := sizeofValue(v.Field(i))
 				if s < 0 {
+					//fmt.Println("sizeofValue field error ", v.Type().Field(i).Name)
 					return -1
 				}
 				sum += s
@@ -118,35 +119,65 @@ func sizeofValue(v reflect.Value) (l int) {
 	return -1
 }
 
-func sizeofEmptyValue(v reflect.Value) (l int) {
-	if v.Kind() == reflect.Ptr && v.IsNil() { //nil is not aviable
+func sizeofEmptyPointer(t reflect.Type) int {
+	//fmt.Println("sizeofEmptyPointer", t.Kind().String())
+	if t.Kind() != reflect.Ptr { //nil pointer only
 		return -1
 	}
-
-	v = reflect.Indirect(v)                 //redrect fointer to it's value
-	if s := _fixTypeSize(v.Type()); s > 0 { //fix size
+	tt := t.Elem()
+	if s := _fixTypeSize(tt); s > 0 { //fix size
 		return s
 	}
-	switch t := v.Type(); t.Kind() {
+	switch tt.Kind() {
 	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
 		return 1
 	case reflect.Slice, reflect.Array, reflect.String:
 		return SizeofUvarint(uint64(0))
 
-	case reflect.Struct:
+	case reflect.Struct: //empty struct pointer has no byte encoded
 		sum := 0
-		for i, n := 0, v.NumField(); i < n; i++ {
-			s := sizeofEmptyValue(v.Field(i))
-			if s < 0 {
-				return -1
-			}
-			sum += s
-		}
+		//		for i, n := 0, tt.NumField(); i < n; i++ {
+		//			s := sizeofEmptyPointer(tt.Field(i).Type)
+		//			if s < 0 {
+		//				return -1
+		//			}
+		//			sum += s
+		//		}
 		return sum
 	}
 
 	return -1
 }
+
+//func sizeofEmptyValue(v reflect.Value) (l int) {
+//	if !(v.Kind() == reflect.Ptr && v.IsNil()) { //nil pointer only
+//		return -1
+//	}
+//	t := v.Type().Elem()
+
+//	if s := _fixTypeSize(t); s > 0 { //fix size
+//		return s
+//	}
+//	switch t.Kind() {
+//	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
+//		return 1
+//	case reflect.Slice, reflect.Array, reflect.String:
+//		return SizeofUvarint(uint64(0))
+
+//	case reflect.Struct:
+//		sum := 0
+//		for i, n := 0, v.NumField(); i < n; i++ {
+//			s := sizeofEmptyValue(v.Field(i))
+//			if s < 0 {
+//				return -1
+//			}
+//			sum += s
+//		}
+//		return sum
+//	}
+
+//	return -1
+//}
 
 func _fixTypeSize(t reflect.Type) int {
 	switch t.Kind() {

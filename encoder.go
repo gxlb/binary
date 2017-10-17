@@ -165,11 +165,11 @@ func (this *Encoder) Uvarint(x uint64) int {
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
 func (this *Encoder) Value(x interface{}) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			err = e.(error)
-		}
-	}()
+	//	defer func() {
+	//		if e := recover(); e != nil {
+	//			err = e.(error)
+	//		}
+	//	}()
 	if this.fastValue(x) { //fast value path
 		return nil
 	}
@@ -395,7 +395,7 @@ func (this *Encoder) value(v reflect.Value) error {
 				return this.value(e)
 			}
 		} else {
-			this.Skip(sizeofEmptyValue(v))
+			this.Skip(sizeofEmptyPointer(v.Type()))
 		}
 	default:
 		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())

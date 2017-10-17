@@ -219,14 +219,7 @@ var littleFull = []byte{
 	0x13, 0x0, 0x1, 0x2, 0x7f, 0x80, 0x1, 0xfd, 0xff, 0x1, 0xfe, 0xff, 0x1, 0xff, 0xff, 0x1, 0x80, 0x80, 0x2, 0xfd, 0xff, 0x3, 0xfe, 0xff, 0x3, 0xff, 0xff, 0x3, 0x80, 0x80, 0x4, 0xfd, 0xff, 0xff, 0x7, 0xfe, 0xff, 0xff, 0x7, 0xff, 0xff, 0xff, 0x7, 0xfd, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1,
 }
 
-//func init() {
-//	b, _ := Pack(full.Map, nil)
-//	fmt.Printf("little:\n%#v\n%d\n", b, len(b))
-//	b2, _ := Pack(full.Map2, nil)
-//	fmt.Printf("little:\n%#v\n%d\n", b2, len(b2))
-//}
-
-func TestPack(t *testing.T) {
+func TestGenerate(t *testing.T) {
 	//	var a, b int = -32767, 0
 	//	var c, d int = 32767, 0
 	//	var e, f uint = 0xfffffe, 0
@@ -251,7 +244,9 @@ func TestPack(t *testing.T) {
 	//		b, _ := Pack(v, nil)
 	//		fmt.Printf("int %d %x %d %#v\n", i, v, len(b), b)
 	//	}
+}
 
+func TestPack(t *testing.T) {
 	v := reflect.ValueOf(full)
 	vt := v.Type()
 	n := v.NumField()
@@ -279,6 +274,22 @@ func TestPack(t *testing.T) {
 	//	if !reflect.DeepEqual(b, littleFull) {
 	//		t.Errorf("got %+v\nneed %+v\n", b, littleFull)
 	//	}
+}
+
+func TestPackEmptyPointer(t *testing.T) {
+	var s struct {
+		PString *string
+		PSlice  *[]int
+		PArray  *[2]bool
+		PInt    *int32
+		PStruct *struct{ A int }
+		//PStruct2 *struct{ B uintptr }
+	}
+	b, err := Pack(&s, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Printf("%#v\n%#v\n", s, b)
 }
 
 func TestUnpack(t *testing.T) {

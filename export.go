@@ -128,7 +128,7 @@ type Packer interface {
 // Pack encode go data to byte array.
 // nil buffer is aviable, it will create new buffer if necessary.
 func Pack(data interface{}, buffer []byte) ([]byte, error) {
-	size := Size(data)
+	size := Sizeof(data)
 	if size < 0 {
 		return nil, errors.New("binary.Pack: invalid type " + reflect.TypeOf(data).String())
 	}
