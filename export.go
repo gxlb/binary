@@ -40,10 +40,18 @@ import (
 	"reflect"
 )
 
+// Size is same to Sizeof.
 // Size returns how many bytes Write would generate to encode the value v, which
 // must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 func Size(data interface{}) int {
+	return Sizeof(data)
+}
+
+// Sizeof returns how many bytes Write would generate to encode the value v, which
+// must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
+// If v is neither of these, Size returns -1.
+func Sizeof(data interface{}) int {
 	if p, ok := data.(Packer); ok {
 		return p.Size()
 	}

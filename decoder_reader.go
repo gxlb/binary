@@ -152,6 +152,13 @@ func (this *decoderReader) value(v reflect.Value) error {
 	//		fmt.Printf("DecoderReader:after value(%#v)=%d\n", v.Interface(), this.pos)
 	//	}()
 	switch k := v.Kind(); k {
+	case reflect.Int:
+		d, _ := this.Varint()
+		v.SetInt(d)
+	case reflect.Uint:
+		d, _ := this.Uvarint()
+		v.SetUint(d)
+
 	case reflect.Bool:
 		v.SetBool(this.Bool())
 
@@ -274,6 +281,13 @@ func (this *decoderReader) newPtr(v reflect.Value) bool {
 
 func (this *decoderReader) fastValue(x interface{}) bool {
 	switch d := x.(type) {
+	case *int:
+		v, _ := this.Varint()
+		*d = int(v)
+	case *uint:
+		v, _ := this.Uvarint()
+		*d = uint(v)
+
 	case *bool:
 		*d = this.Bool()
 	case *int8:
@@ -426,6 +440,12 @@ func (this *decoderReader) skipByType(t reflect.Type) int {
 		return s
 	}
 	switch t.Kind() {
+	case reflect.Int:
+		_, n := this.Varint()
+		return n
+	case reflect.Uint:
+		_, n := this.Uvarint()
+		return n
 	case reflect.String:
 		s, _ := this.Uvarint()
 		size := int(s) //string length and data

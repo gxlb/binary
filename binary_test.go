@@ -81,10 +81,10 @@ var big = []byte{
 	43, 44, 45, 46, 47, 48, 49, 50, //Complex64
 	51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, //Complex128
 
-	0, 0, 0, 4, 67, 68, 69, 70, //Array
+	4, 67, 68, 69, 70, //Array
 
-	1,             //Bool
-	0, 0, 0, 4, 5, //BoolArray
+	1,    //Bool
+	4, 5, //BoolArray
 }
 
 var little = []byte{
@@ -102,13 +102,13 @@ var little = []byte{
 	46, 45, 44, 43, 50, 49, 48, 47,
 	58, 57, 56, 55, 54, 53, 52, 51, 66, 65, 64, 63, 62, 61, 60, 59,
 
-	4, 0, 0, 0, 67, 68, 69, 70,
+	4, 67, 68, 69, 70,
 
 	1,
-	4, 0, 0, 0, 5,
+	4, 5,
 }
 
-var src = []byte{0, 0, 0, 2, 1, 2, 3, 4, 5, 6, 7, 8}
+var src = []byte{2, 1, 2, 3, 4, 5, 6, 7, 8}
 var res = []int32{0x01020304, 0x05060708}
 
 func checkResult(t *testing.T, dir string, order Endian, err error, have, want interface{}) {
@@ -168,7 +168,7 @@ func TestReadBool(t *testing.T) {
 
 func TestReadBoolSlice(t *testing.T) {
 	slice := make([]bool, 4)
-	err := Read(bytes.NewReader([]byte{0, 0, 0, 4, 14}), BigEndian, &slice)
+	err := Read(bytes.NewReader([]byte{4, 14}), BigEndian, &slice)
 	checkResult(t, "ReadBoolSlice", BigEndian, err, slice, []bool{false, true, true, true})
 }
 
@@ -505,4 +505,5 @@ func BenchmarkWriteSlice1000Int32s(b *testing.B) {
 	}
 	b.StopTimer()
 }
-*/
+
+//*/
