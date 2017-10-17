@@ -2,6 +2,7 @@ package binary
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"reflect"
 )
@@ -21,6 +22,30 @@ func NewDecoderEndian(buffer []byte, endian Endian) *Decoder {
 // Decoder is used to decode byte array to go data.
 type Decoder struct {
 	coder
+	reader io.Reader //for decode from reader only
+}
+
+func (this *Decoder) Skip(size int) int {
+	if nil == this.reserve(size) {
+		return -1
+	}
+	return size
+}
+
+func (this *Decoder) reserve(size int) []byte {
+	if this.reader != nil { //decode from reader
+		if size > len(this.buff) {
+			this.buff = make([]byte, size)
+		}
+		buff := this.buff[:size]
+		if n, _ := this.reader.Read(buff); n < size {
+			//return nil, io.ErrUnexpectedEOF
+			panic(io.ErrUnexpectedEOF)
+		}
+		return buff
+	} else { //decode from bytes buffer
+		return this.coder.reserve(size)
+	}
 }
 
 // Init initialize Encoder with buffer and endian.

@@ -54,11 +54,13 @@ func (this *coder) Reset() {
 
 // reserve returns next size bytes for encoding/decoding.
 func (this *coder) reserve(size int) []byte {
-	if this.pos+size > this.Cap() {
+	newPos := this.pos + size
+	if newPos > this.Cap() {
 		panic(fmt.Sprintf("Coder:buff overflow pos=%d size=%d, cap=%d\n", this.pos, size, this.Cap()))
 	}
-	b := this.buff[this.pos : this.pos+size]
-	if this.Skip(size) >= 0 {
+	if size >= 0 && newPos <= this.Cap() {
+		b := this.buff[this.pos:newPos]
+		this.pos = newPos
 		return b
 	}
 	return nil

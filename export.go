@@ -79,8 +79,9 @@ func Sizeof(data interface{}) int {
 // If an EOF happens after reading some but not all the bytes,
 // Read returns ErrUnexpectedEOF.
 func Read(r io.Reader, endian Endian, data interface{}) error {
-	var decoder decoderReader
-	decoder.Init(r, endian)
+	var decoder Decoder
+	decoder.Init(nil, endian)
+	decoder.reader = r
 	return decoder.Value(data)
 }
 

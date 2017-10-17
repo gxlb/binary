@@ -1,5 +1,6 @@
 package binary
 
+/*
 import (
 	"fmt"
 	"io"
@@ -568,3 +569,4 @@ func (this *decoderReader) boolArray(v reflect.Value) int {
 	}
 	return -1
 }
+//*/

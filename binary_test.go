@@ -332,9 +332,9 @@ func TestReadErrorMsg(t *testing.T) {
 	var buf bytes.Buffer
 	read := func(data interface{}, nonPointer bool) {
 		err := Read(&buf, LittleEndian, data)
-		want := "binary.Read: unsupported type " + reflect.TypeOf(data).String()
+		want := "binary.Decoder.Value: unsupported type " + reflect.TypeOf(data).String()
 		if nonPointer {
-			want = "binary.Read: non-pointer type " + reflect.TypeOf(data).String()
+			want = "binary.Decoder.Value: non-pointer type " + reflect.TypeOf(data).String()
 		}
 		if err == nil {
 			t.Errorf("%T: got no error; want %q", data, want)
