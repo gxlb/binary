@@ -86,7 +86,7 @@ func ExamplePack_withbuffer() {
 	fmt.Printf("%#v", b)
 	// Output: []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
-func ExampleUnack() {
+func ExampleUnpack() {
 	var s struct {
 		A uint32
 		B int
