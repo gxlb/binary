@@ -124,8 +124,8 @@ func ReadVarint(r io.ByteReader) (int64, error) {
 
 // ToUvarint convert an int64 value to uint64 for encoding.
 // Different from uint64(x), it will move sign bit to bit 0.
-// To help to cost less bytes for little negative numbers.
-// eg: -5 will be encoded as 0x5.
+// To help to cost fewer bytes for little negative numbers.
+// eg: -5 will be encoded as 0x9.
 func ToUvarint(x int64) uint64 {
 	ux := uint64(x) << 1 // move sign bit to bit0
 	if x < 0 {
