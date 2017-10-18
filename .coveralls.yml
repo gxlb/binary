@@ -1,0 +1,10 @@
+language: go
+go:
+  - tip
+before_install:
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/vipally/binary
+script:
+  - go vet
+  - $HOME/gopath/bin/goveralls -repotoken X9dt3MTIoRZ1nTCVh5ueEJeGrPFDQr23z
