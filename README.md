@@ -30,21 +30,29 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	And their direct pointers. 
 	eg: *string, *struct, *map, *slice, *int32.
 
-# 2. [recommended usage] Use Pack/UnPack read/write memory buffer directly.
+# 2. [recommended usage] Use Pack/UnPack to read/write memory buffer directly.
 	If data implement interface Packer, it will use data.Pack/data.Unpack 
 	to encode/decode data.
+	NOTE that data.Unpack must implement on pointer receiever to enable modifying
+	receiever.Even though Size/Pack of data can implement on non-pointer receiever,
+	binary.Pack(&data, nil) is required if data has implement interface Packer.
+	binary.Pack(data, nil) will probably NEVER use Packer methods to Pack/Unpack
+	data.
 	eg:
 	
+	//1.Pack with default buffer
 	if bytes, err := binary.Pack(&data, nil); err==nil{
 		//...
 	}
 
+	//2.Pack with existing buffer
 	size := binary.Sizeof(data)
 	buffer := make([]byte, size)
 	if bytes, err := binary.Pack(&data, buffer); err==nil{
 		//...
 	}
 
+	//3.Unpack from buffer
 	if err := binary.Unpack(bytes, &data); err==nil{
 		//...
 	}
@@ -97,11 +105,11 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	
 # 8. int/uint values will be encoded as varint/uvarint(1~10 bytes).
 	eg: 
-	uint(1)     will be encoded as []byte{0x1}
-	uint(128)   will be encoded as []byte{0x80, 0x1}
-	uint(32765) will be encoded as []byte{0xfd, 0xff, 0x1}
-	int(-5)     will be encoded as []byte{0x9}
-	int(-65)    will be encoded as []byte{0x81, 0x1}
+	uint(1)     will be encoded as: []byte{0x1}
+	uint(128)   will be encoded as: []byte{0x80, 0x1}
+	uint(32765) will be encoded as: []byte{0xfd, 0xff, 0x1}
+	int(-5)     will be encoded as: []byte{0x9}
+	int(-65)    will be encoded as: []byte{0x81, 0x1}
 	
 	
 
