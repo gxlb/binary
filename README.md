@@ -30,42 +30,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	And their direct pointers. 
 	eg: *string, *struct, *map, *slice, *int32.
 
-# 2. Store an extra length field(uvarint,1~10 bytes) for string, slice, array, map.
-	eg: 
-	var s string = "hello"
-	will be encoded as:
-	[]byte{0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
-
-# 3. Pack bool array with bits.
-	eg: 
-	[]bool{true, true, true, false, true, true, false, false, true}
-	will be encoded as:
-	[]byte{0x9, 0x37, 0x1}
-
-# 4. Hide struct field when encode/decode.
-	Only encode/decode exported fields.
-	Support field tag `binary:"ignore"` to disable encode/decode fields.
-	eg: 
-	type S struct{
-	    A uint32
-		b uint32
-		_ uint32
-		C uint32 `binary:"ignore"`
-	}
-	Only field "A" will be encode/decode.
-
-# 5. Auto allocate for slice, map and pointer.
-	eg: 
-	type S struct{
-	    A *uint32
-		B *string
-		C *[]uint8
-		D []uint32
-	}
-	It will new pointers for fields "A, B, C",
-	and make new slice for fields "*C, D" when decode.
-	
-# 6. Use Pack/UnPack read/write memory buffer directly.
+# 2. [recommended usage] Use Pack/UnPack read/write memory buffer directly.
 	If data implement interface Packer, it will use data.Pack/data.Unpack 
 	to encode/decode data.
 	eg:
@@ -84,7 +49,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 		//...
 	}
 
-# 7. Encoder/Decoder are exported types aviable for encoding/decoding.
+# 3. [advanced usage] Encoder/Decoder are exported types aviable for encoding/decoding.
 	eg:
 	encoder := binary.NewEncoder(bufferSize)
 	encoder.Uint32(u32)
@@ -94,3 +59,49 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	decoder := binary.NewDecoder(buffer)
 	u32 := decoder.Uint32()
 	str := decoder.String()
+
+# 4. Put an extra length field(uvarint,1~10 bytes) before string, slice, array, map.
+	eg: 
+	var s string = "hello"
+	will be encoded as:
+	[]byte{0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
+
+# 5. Pack bool array with bits.
+	eg: 
+	[]bool{true, true, true, false, true, true, false, false, true}
+	will be encoded as:
+	[]byte{0x9, 0x37, 0x1}
+
+# 6. Hide struct field when encoding/decoding.
+	Only encode/decode exported fields.
+	Support field tag `binary:"ignore"` to disable encode/decode fields.
+	eg: 
+	type S struct{
+	    A uint32
+		b uint32
+		_ uint32
+		C uint32 `binary:"ignore"`
+	}
+	Only field "A" will be encode/decode.
+
+# 7. Auto allocate for slice, map and pointer.
+	eg: 
+	type S struct{
+	    A *uint32
+		B *string
+		C *[]uint8
+		D []uint32
+	}
+	It will new pointers for fields "A, B, C",
+	and make new slice for fields "*C, D" when decode.
+	
+# 8. int/uint values will be encoded as varint/uvarint(1~10 bytes).
+	eg: 
+	uint(1)     will be encoded as []byte{0x1}
+	uint(128)   will be encoded as []byte{0x80, 0x1}
+	uint(32765) will be encoded as []byte{0xfd, 0xff, 0x1}
+	int(-5)     will be encoded as []byte{0x9}
+	int(-65)    will be encoded as []byte{0x81, 0x1}
+	
+	
+
