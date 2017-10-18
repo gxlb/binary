@@ -35,9 +35,6 @@ type Struct struct {
 }
 
 type TDoNotSupport struct {
-	//Int     int
-	//Uint    uint
-	//Array   [4]int
 	Uintptr       uintptr
 	UnsafePointer unsafe.Pointer
 	Ch            chan bool
@@ -312,6 +309,11 @@ func TestBlankFields(t *testing.T) {
 		t.Errorf("%#v != %#v", b1, b2)
 	}
 }
+
+//*********************************
+// Different form std.binary, Unexported filed will be ignored when encoding/decoding.
+// So TestUnexportedRead is not suitable for this package.
+//*********************************
 
 //// An attempt to read into a struct with an unexported field will
 //// panic. This is probably not the best choice, but at this point

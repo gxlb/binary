@@ -618,6 +618,15 @@ func TestPackDonotSupportedType(t *testing.T) {
 	}
 }
 
+func TestDecoder(t *testing.T) {
+	buffer := []byte{}
+	decoder := NewDecoder(buffer)
+	got := decoder.Skip(0)
+	if got != -1 {
+		t.Errorf("Decoder: have %d, want %d", got, -1)
+	}
+}
+
 func TestAssert(t *testing.T) {
 	defer func() {
 		if msg := recover(); msg == nil {

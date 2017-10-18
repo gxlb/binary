@@ -185,18 +185,17 @@ func (this *Decoder) Varint() (int64, int) {
 func (this *Decoder) Uvarint() (uint64, int) {
 	var x uint64 = 0
 	var bit uint = 0
-	for i := 0; i < MaxVarintLen64; i++ {
+	i := 0
+	for i = 0; i < MaxVarintLen64; i++ {
 		b := this.Uint8()
 		x |= uint64(b&0x7f) << bit
 		if b < 0x80 {
-			if i > 9 || i == 9 && b > 1 {
-				return 0, -(i + 1) // overflow
-			}
-			return x, i + 1
+			assert(i < 9 || i == 9 && b <= 1, "binary.Decoder.Uvarint") //bytes num verify
+			break
 		}
 		bit += 7
 	}
-	return 0, 0
+	return x, i + 1
 }
 
 // Value decode an interface value from Encoder buffer.
