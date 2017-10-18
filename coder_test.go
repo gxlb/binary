@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"io"
 	"reflect"
 	"testing"
 )
@@ -327,6 +328,19 @@ func TestReset(t *testing.T) {
 	if s := encoder.Skip(encoder.Cap()); s >= 0 {
 		t.Errorf("got %#v\nneed %#v\n", s, -1)
 	}
+	r := encoder.reserve(0)
+	if r != nil {
+		t.Errorf("got %#v\nneed %#v\n", r, nil)
+	}
+	defer func() {
+		if e := recover(); e == nil {
+			t.Error("need panic but not")
+		}
+	}()
+	r2 := encoder.reserve(100)
+	if r2 != nil {
+		t.Errorf("got %#v\nneed %#v\n", r2, nil)
+	}
 }
 
 func TestPackEmptyPointer(t *testing.T) {
@@ -365,8 +379,84 @@ func TestPackEmptyPointer(t *testing.T) {
 	//	fmt.Printf("%+v\n%#v\n", ss, b2)
 }
 
-func BenchmarkEncoder(b *testing.B) {
+func TestHideStructField(t *testing.T) {
+	type T struct {
+		A uint32
+		b uint32
+		_ uint32
+		C uint32 `binary:"ignore"`
+	}
+	var s T
+	s.A = 0x11223344
+	s.b = 0x22334455
+	s.C = 0x33445566
+	check := []byte{0x44, 0x33, 0x22, 0x11}
+	b, err := Pack(s, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(b, check) {
+		t.Errorf("%T: got %x; want %x", s, b, check)
+	}
+	var ss, ssCheck T
+	ssCheck.A = s.A
+	err = Unpack(b, &ss)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(ss, ssCheck) {
+		t.Errorf("%T: got %q; want %q", s, ss, ssCheck)
+	}
+}
 
+func TestEndian(t *testing.T) {
+	if LittleEndian.String() != "LittleEndian" ||
+		LittleEndian.GoString() != "binary.LittleEndian" {
+		t.Error("LittleEndian")
+	}
+	if BigEndian.String() != "BigEndian" ||
+		BigEndian.GoString() != "binary.BigEndian" {
+		t.Error("BigEndian")
+	}
+}
+
+func TestByteReaderWriter(t *testing.T) {
+	buff := [10]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	reader := BytesReader(buff[:])
+	r := make([]byte, len(buff)-1)
+	n, err := reader.Read(r)
+	if err != nil {
+		t.Error(err)
+	}
+	if n != len(r) {
+		t.Errorf("got %+v\nneed %+v\n", n, len(r))
+	}
+	if check := buff[:len(r)]; !reflect.DeepEqual(r, check) {
+		t.Errorf("got %+v\nneed %+v\n", r, check)
+	}
+	n2, err2 := reader.Read(r)
+	if n2 != 1 || err2 == nil {
+		t.Errorf("got %d %+v\nneed %d %+v\n", n2, err2, 1, io.EOF)
+	}
+
+	wBuff := make([]byte, len(buff)+1)
+	writer := BytesWriter(wBuff)
+	w := buff[:]
+	n3, err3 := writer.Write(w)
+	if err3 != nil {
+		t.Error(err3)
+	}
+	if n3 != len(w) {
+		t.Errorf("got %+v\nneed %+v\n", n3, len(w))
+	}
+	n4, err4 := writer.Write(w)
+	if n4 != 1 || err4 == nil {
+		t.Errorf("got %d %+v\nneed %d %+v\n", n4, err4, 1, ErrNotEnoughSpace)
+	}
+	wCheck := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
+	if c := wBuff; !reflect.DeepEqual(c, wCheck) {
+		t.Errorf("got %+v\nneed %+v\n", c, wCheck)
+	}
 }
 
 func _TestGob(t *testing.T) {
@@ -522,45 +612,4 @@ func __TestPack(t *testing.T) {
 	//fmt.Println("err:", err2)
 
 	fmt.Printf("after unpack: %#v\n", tt)
-}
-
-func TestHideStructField(t *testing.T) {
-	type T struct {
-		A uint32
-		b uint32
-		_ uint32
-		C uint32 `binary:"ignore"`
-	}
-	var s T
-	s.A = 0x11223344
-	s.b = 0x22334455
-	s.C = 0x33445566
-	check := []byte{0x44, 0x33, 0x22, 0x11}
-	b, err := Pack(s, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	if !reflect.DeepEqual(b, check) {
-		t.Errorf("%T: got %x; want %x", s, b, check)
-	}
-	var ss, ssCheck T
-	ssCheck.A = s.A
-	err = Unpack(b, &ss)
-	if err != nil {
-		t.Error(err)
-	}
-	if !reflect.DeepEqual(ss, ssCheck) {
-		t.Errorf("%T: got %q; want %q", s, ss, ssCheck)
-	}
-}
-
-func TestEndian(t *testing.T) {
-	if LittleEndian.String() != "LittleEndian" ||
-		LittleEndian.GoString() != "binary.LittleEndian" {
-		t.Error("LittleEndian")
-	}
-	if BigEndian.String() != "BigEndian" ||
-		BigEndian.GoString() != "binary.BigEndian" {
-		t.Error("BigEndian")
-	}
 }

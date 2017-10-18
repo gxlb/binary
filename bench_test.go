@@ -121,4 +121,8 @@ func testBenchWriteStd(b *testing.B, data interface{}, caseName string) {}
 func testBenchWrite(b *testing.B, data interface{}, caseName string)    {}
 func testBenchPack(b *testing.B, data interface{}, caseName string)     {}
 
+func BenchmarkEncoder(b *testing.B) {
+
+}
+
 //*/

@@ -65,7 +65,7 @@ func (this *coder) reserve(size int) []byte {
 	if newPos > this.Cap() {
 		panic(fmt.Errorf("Coder:buff overflow pos=%d size=%d, cap=%d, not enough space!", this.pos, size, this.Cap()))
 	}
-	if size >= 0 && newPos <= this.Cap() {
+	if size > 0 && newPos <= this.Cap() {
 		b := this.buff[this.pos:newPos]
 		this.pos = newPos
 		return b
