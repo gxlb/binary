@@ -219,7 +219,6 @@ func (this *Decoder) Value(x interface{}) (err error) {
 	} else {
 		return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
 	}
-	return nil
 }
 
 //func (this *Decoder) getIntValue(kind reflect.Kind) uint64 {
