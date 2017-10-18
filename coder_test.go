@@ -459,6 +459,46 @@ func TestByteReaderWriter(t *testing.T) {
 	}
 }
 
+func TestDecoderSkip(t *testing.T) {
+	type s struct {
+		S         string
+		I         int
+		U         uint
+		Map       map[uint32]uint32
+		BoolArray [5]bool
+		U16Array  [5]uint16
+		Struct    struct{ A uint8 }
+	}
+	var w [5]s
+	for i := len(w) - 1; i >= 0; i-- {
+		w[i].S = fmt.Sprintf("%d", i)
+		w[i].I = i
+		w[i].U = uint(i)
+		w[i].Map = map[uint32]uint32{uint32(i): uint32(i), uint32(i + 1): uint32(i + 1)}
+		w[i].Struct.A = uint8(i)
+		w[i].U16Array[i] = uint16(i)
+		w[i].BoolArray[i] = true
+	}
+	w[4].Map = map[uint32]uint32{1: 1, 2: 2, 3: 3}
+	var r [4]s
+	b, err := Pack(&w, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	//fmt.Printf("%#v\n", b)
+	err2 := Unpack(b, &r)
+	if err2 != nil {
+		t.Error(err2)
+	}
+	for i := len(r) - 1; i >= 0; i-- {
+		if !reflect.DeepEqual(w[i], r[i]) {
+			t.Errorf("%d got %+v\nneed %+v\n", i, w[i], r[i])
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 func _TestGob(t *testing.T) {
 	var s struct {
 		P *int32
