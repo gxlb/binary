@@ -480,6 +480,7 @@ func TestDecoderSkip(t *testing.T) {
 	}
 
 	var r [4]s
+	//println("Sizeof(w)", Sizeof(w))
 	b, err := Pack(&w, nil)
 	if err != nil {
 		t.Error(err)
@@ -582,9 +583,12 @@ func TestFastValue(t *testing.T) {
 	decoder := NewDecoder(buffer)
 	for i := vr.NumField() - 1; i >= 0; i-- {
 		f := vr.Field(i).Addr()
+		oldSize := decoder.Len()
 		if err := decoder.Value(f.Interface()); err != nil {
 			t.Error(err)
 		}
+		size := decoder.Len() - oldSize
+		assert(size == Sizeof(f.Interface()), "")
 	}
 	if !reflect.DeepEqual(r, s) {
 		t.Errorf("got %+v\nneed %+v\n", r, s)
@@ -592,7 +596,7 @@ func TestFastValue(t *testing.T) {
 }
 
 func TestPackDonotSupportedType(t *testing.T) {
-	ts := TDoNotSupport{}
+	ts := doNotSupportTypes
 	if _, err := Pack(ts, nil); err == nil {
 		t.Errorf("PackDonotSupportedType: have err == nil, want non-nil")
 	}

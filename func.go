@@ -34,7 +34,7 @@ func sizeof(i interface{}) int {
 		return 4
 	case int64, uint64, *int64, *uint64, float64, *float64, complex64, *complex64:
 		return 8
-	case complex128:
+	case complex128, *complex128:
 		return 16
 	case string:
 		return sizeofString(len(d))
@@ -60,7 +60,7 @@ func sizeofValue(v reflect.Value) (l int) {
 	}
 
 	v = reflect.Indirect(v)                 //redrect pointer to it's value
-	if s := _fixTypeSize(v.Type()); s > 0 { //fix size
+	if s := _fixTypeSize(v.Type()); s > 0 { //fixed size
 		return s
 	}
 	switch t := v.Type(); t.Kind() {
@@ -69,38 +69,45 @@ func sizeofValue(v reflect.Value) (l int) {
 	case reflect.Uint:
 		return SizeofUvarint(v.Uint())
 	case reflect.Slice, reflect.Array:
+		arrayLen := v.Len()
 		if s := _fixTypeSize(t.Elem()); s > 0 {
 			if t.Elem().Kind() == reflect.Bool {
-				return sizeofBoolArray(v.Len())
+				return sizeofBoolArray(arrayLen)
 			}
-			return sizeofFixArray(v.Len(), s)
+			return sizeofFixArray(arrayLen, s)
 		} else {
-			sum := SizeofUvarint(uint64(v.Len())) //array size
-			for i, n := 0, v.Len(); i < n; i++ {
+			sum := SizeofUvarint(uint64(arrayLen)) //array size bytes num
+			if sizeofEmptyPointer(t.Elem()) < 0 {  //check if array element type valid
+				return -1
+			}
+			for i, n := 0, arrayLen; i < n; i++ {
 				s := sizeofValue(v.Index(i))
-				if s < 0 {
-					return -1
-				}
+				assert(s >= 0, v.Type().Kind().String()) //element size must not error
 				sum += s
 			}
 			return sum
 		}
 	case reflect.Map:
-		sum := SizeofUvarint(uint64(v.Len())) //array size
+		mapLen := v.Len()
+		sum := SizeofUvarint(uint64(mapLen)) //array size
 		keys := v.MapKeys()
-		l := len(keys)
-		for i := 0; i < l; i++ {
+
+		if sizeofEmptyPointer(t.Key()) < 0 ||
+			sizeofEmptyPointer(t.Elem()) < 0 { //check if map key and value type valid
+			return -1
+		}
+
+		for i := 0; i < mapLen; i++ {
 			key := keys[i]
-			s := sizeofValue(key)
-			if s < 0 {
-				return -1
-			}
-			sum += s
-			s2 := sizeofValue(v.MapIndex(key))
-			if s < 0 {
-				return -1
-			}
-			sum += s2
+			sizeKey := sizeofValue(key)
+			assert(sizeKey >= 0, key.Type().Kind().String()) //key size must not error
+
+			sum += sizeKey
+			value := v.MapIndex(key)
+			sizeValue := sizeofValue(value)
+			assert(sizeValue >= 0, value.Type().Kind().String()) //key size must not error
+
+			sum += sizeValue
 		}
 		return sum
 
@@ -110,7 +117,6 @@ func sizeofValue(v reflect.Value) (l int) {
 			if validField(v.Type().Field(i)) {
 				s := sizeofValue(v.Field(i))
 				if s < 0 {
-					//fmt.Println("sizeofValue field error ", v.Type().Field(i).Name)
 					return -1
 				}
 				sum += s
@@ -121,7 +127,6 @@ func sizeofValue(v reflect.Value) (l int) {
 	case reflect.String:
 		return sizeofString(v.Len()) //string length and data
 	}
-
 	return -1
 }
 
@@ -136,8 +141,8 @@ func sizeofEmptyPointer(t reflect.Type) int {
 	switch tt.Kind() {
 	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
 		return 1
-	case reflect.Slice, reflect.String:
-		return SizeofUvarint(uint64(0))
+	case reflect.Slice, reflect.String, reflect.Map:
+		return SizeofUvarint(0)
 	case reflect.Array:
 		if s := _fixTypeSize(tt.Elem()); s > 0 {
 			if tt.Elem().Kind() == reflect.Bool {

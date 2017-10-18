@@ -41,6 +41,20 @@ type TDoNotSupport struct {
 	Uintptr       uintptr
 	UnsafePointer unsafe.Pointer
 	Ch            chan bool
+	Map           map[uintptr]uintptr
+	Map2          map[int]uintptr
+	Map3          map[uintptr]int
+	Slice         []uintptr
+	Array         [2]uintptr
+	Array2        [2][2]uintptr
+	Array3        [2]struct{ A uintptr }
+	Func          func()
+	Struct        struct{ A uintptr }
+}
+
+var doNotSupportTypes = TDoNotSupport{
+	Map2: map[int]uintptr{1: 1},
+	Map3: map[uintptr]int{2: 2},
 }
 
 var s = Struct{
@@ -223,7 +237,7 @@ func TestSliceRoundTrip(t *testing.T) {
 
 func TestWriteDonotSupportedType(t *testing.T) {
 	buf := new(bytes.Buffer)
-	ts := TDoNotSupport{}
+	ts := doNotSupportTypes
 	if err := Write(buf, BigEndian, ts); err == nil {
 		t.Errorf("WriteDonotSupportedType: have err == nil, want non-nil")
 	}
