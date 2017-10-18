@@ -7,4 +7,5 @@ before_install:
   - go get github.com/vipally/binary
 script:
   - go vet
+  - go test
   - $HOME/gopath/bin/goveralls -repotoken X9dt3MTIoRZ1nTCVh5ueEJeGrPFDQr23z
