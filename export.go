@@ -142,10 +142,9 @@ func Pack(data interface{}, buffer []byte) ([]byte, error) {
 	encoder.buff = buffer
 	encoder.endian = DefaultEndian
 	encoder.pos = 0
-	if err := encoder.Value(data); err != nil {
-		return nil, err
-	}
-	return encoder.Buffer(), nil
+
+	err := encoder.Value(data)
+	return encoder.Buffer(), err
 }
 
 // Unpack decode go data from byte array.

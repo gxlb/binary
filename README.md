@@ -39,6 +39,8 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	binary.Pack(data, nil) will probably NEVER use Packer methods to Pack/Unpack
 	data.
 	eg:
+
+	import "github.com/vipally/binary"
 	
 	//1.Pack with default buffer
 	if bytes, err := binary.Pack(&data, nil); err==nil{

@@ -221,11 +221,11 @@ func TestSliceRoundTrip(t *testing.T) {
 	}
 }
 
-func TestWriteT(t *testing.T) {
+func TestWriteDonotSupportedType(t *testing.T) {
 	buf := new(bytes.Buffer)
 	ts := TDoNotSupport{}
 	if err := Write(buf, BigEndian, ts); err == nil {
-		t.Errorf("WriteT: have err == nil, want non-nil")
+		t.Errorf("WriteDonotSupportedType: have err == nil, want non-nil")
 	}
 
 	tv := reflect.Indirect(reflect.ValueOf(ts))
@@ -235,9 +235,9 @@ func TestWriteT(t *testing.T) {
 			typ = "int" // the problem is int, not the [4]
 		}
 		if err := Write(buf, BigEndian, tv.Field(i).Interface()); err == nil {
-			t.Errorf("WriteT.%v: have err == nil, want non-nil", tv.Field(i).Type())
+			t.Errorf("WriteDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else if !strings.Contains(err.Error(), typ) {
-			t.Errorf("WriteT: have err == %q, want it to mention %s", err, typ)
+			t.Errorf("WriteDonotSupportedType: have err == %q, want it to mention %s", err, typ)
 		}
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -587,6 +588,30 @@ func TestFastValue(t *testing.T) {
 	}
 	if !reflect.DeepEqual(r, s) {
 		t.Errorf("got %+v\nneed %+v\n", r, s)
+	}
+}
+
+func TestPackDonotSupportedType(t *testing.T) {
+	ts := TDoNotSupport{}
+	if _, err := Pack(ts, nil); err == nil {
+		t.Errorf("PackDonotSupportedType: have err == nil, want non-nil")
+	}
+
+	tv := reflect.Indirect(reflect.ValueOf(ts))
+	for i, n := 0, tv.NumField(); i < n; i++ {
+		typ := tv.Field(i).Type().String()
+		if typ == "[4]int" {
+			typ = "int" // the problem is int, not the [4]
+		}
+		if _, err := Pack(tv.Field(i).Interface(), nil); err == nil {
+			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+		} else {
+			//fmt.Println(err)
+			if !strings.Contains(err.Error(), typ) {
+				t.Errorf("PackDonotSupportedType: have err == %q, want it to mention %s", err, typ)
+			}
+		}
+
 	}
 }
 
