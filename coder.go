@@ -40,8 +40,12 @@ func (this *coder) Cap() int {
 // Skip ignore size bytes for encoding/decoding.
 // If with errors, it will return -1
 func (this *coder) Skip(size int) int {
-	if size >= 0 && this.pos+size <= this.Cap() {
-		this.pos += size
+	newPos := this.pos + size
+	if size >= 0 && newPos <= this.Cap() {
+		for i, b := int(size-1), this.buff[this.pos:newPos]; i >= 0; i-- { //zero skiped bytes
+			b[i] = 0
+		}
+		this.pos = newPos
 		return size
 	}
 	return -1
@@ -49,6 +53,9 @@ func (this *coder) Skip(size int) int {
 
 // Reset move the read/write pointer to the beginning of buffer.
 func (this *coder) Reset() {
+	for i := int(this.pos - 1); i >= 0; i-- { //zero encoded bytes
+		this.buff[i] = 0
+	}
 	this.pos = 0
 }
 

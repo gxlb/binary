@@ -396,7 +396,6 @@ func (this *Encoder) value(v reflect.Value) error {
 			}
 		} else {
 			this.emptyPointer(v.Type())
-			//this.Skip(sizeofEmptyPointer(v.Type()))
 		}
 	default:
 		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())

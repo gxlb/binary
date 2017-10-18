@@ -276,6 +276,59 @@ func TestPack(t *testing.T) {
 	//	}
 }
 
+func TestUnpack(t *testing.T) {
+	var v fullStruct
+	err := Unpack(littleFull, &v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(v, full) {
+		t.Errorf("got %#v\nneed %#v\n", v, full)
+	}
+}
+
+func TestReset(t *testing.T) {
+	encoder := NewEncoder(100)
+	encoder.Uint64(0x1122334455667788)
+	encoder.String("0123456789abcdef")
+	oldCheck := []byte{0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x10, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66}
+	old := encoder.Buffer()
+	l := encoder.Len()
+	if len(old) != l {
+		t.Errorf("encode len error: got %#v\nneed %#v\n", old, l)
+	}
+	//fmt.Printf("%#v\n", old)
+	if !reflect.DeepEqual(old, oldCheck) {
+		t.Errorf("got %#v\nneed %#v\n", old, oldCheck)
+	}
+	encoder.Reset()
+	var s struct {
+		PString  *string
+		PSlice   *[]int
+		PArray   *[2]bool
+		PArray2  *[2]struct{ X *string }
+		PInt     *int32
+		PStruct  *struct{ A int }
+		PStruct2 *struct{ B *[]string }
+	}
+	err := encoder.Value(&s)
+	if err != nil {
+		t.Error(err)
+	}
+	_new := encoder.Buffer()
+	l2 := encoder.Len()
+	newCheck := []byte{0x0, 0x0, 0x2, 0x0, 0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
+	if len(_new) != l2 {
+		t.Errorf("encode len error: got %#v\nneed %#v\n", _new, l2)
+	}
+	if !reflect.DeepEqual(_new, newCheck) {
+		t.Errorf("got %#v\nneed %#v\n", _new, newCheck)
+	}
+	if s := encoder.Skip(encoder.Cap()); s >= 0 {
+		t.Errorf("got %#v\nneed %#v\n", s, -1)
+	}
+}
+
 func TestPackEmptyPointer(t *testing.T) {
 	var s struct {
 		PString  *string
@@ -304,19 +357,12 @@ func TestPackEmptyPointer(t *testing.T) {
 	if !reflect.DeepEqual(b, b2) {
 		t.Errorf("%+v->%+v got %+v\nneed %+v\n", s, ss, b2, b)
 	}
-	//	fmt.Printf("%+v\n%#v\n", s, b)
+	check := []byte{0x0, 0x0, 0x2, 0x0, 0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
+	if !reflect.DeepEqual(b2, check) {
+		t.Errorf("got %+v\nneed %+v\n", b2, check)
+	}
+	//fmt.Printf("%+v\n%#v\n", s, b)
 	//	fmt.Printf("%+v\n%#v\n", ss, b2)
-}
-
-func TestUnpack(t *testing.T) {
-	var v fullStruct
-	err := Unpack(littleFull, &v)
-	if err != nil {
-		t.Error(err)
-	}
-	if !reflect.DeepEqual(v, full) {
-		t.Errorf("got %#v\nneed %#v\n", v, full)
-	}
 }
 
 func BenchmarkEncoder(b *testing.B) {
