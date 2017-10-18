@@ -330,15 +330,26 @@ func TestReset(t *testing.T) {
 	if r != nil {
 		t.Errorf("got %#v\nneed %#v\n", r, nil)
 	}
+
 	defer func() {
 		if e := recover(); e == nil {
 			t.Error("need panic but not")
 		}
 	}()
+
+	large := [100]complex128{}
+	err2 := encoder.Value(&large)
+	if err2 == nil {
+		t.Errorf("got err=nil, need err=none-nil")
+	} else {
+		//println("info******", err2.Error())
+	}
+
 	r2 := encoder.reserve(100)
 	if r2 != nil {
 		t.Errorf("got %#v\nneed %#v\n", r2, nil)
 	}
+
 }
 
 func TestPackEmptyPointer(t *testing.T) {
@@ -602,10 +613,18 @@ func TestPackDonotSupportedType(t *testing.T) {
 	}
 
 	buff := make([]byte, 0)
+	ecoder := NewEncoder(100)
 
 	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
 		if _, err := Pack(tv.Field(i).Interface(), nil); err == nil {
+			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+		} else {
+			//fmt.Println(err)
+		}
+
+		//println("test unsupport:", i, tv.Type().Field(i).Name, tv.Type().Field(i).Type.String())
+		if err := ecoder.Value(tv.Field(i).Interface()); err == nil {
 			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
@@ -616,6 +635,7 @@ func TestPackDonotSupportedType(t *testing.T) {
 		} else {
 			//println(err.Error())
 		}
+
 	}
 }
 

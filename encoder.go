@@ -174,6 +174,7 @@ func (this *Encoder) Value(x interface{}) (err error) {
 	if this.fastValue(x) { //fast value path
 		return nil
 	}
+
 	v := reflect.ValueOf(x)
 	return this.value(reflect.Indirect(v))
 }
@@ -375,6 +376,9 @@ func (this *Encoder) value(v reflect.Value) error {
 		this.String(v.String())
 
 	case reflect.Slice, reflect.Array:
+		if sizeofEmptyPointer(v.Type().Elem()) < 0 { //verify array element is valid
+			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
+		}
 		if this.boolArray(v) < 0 { //deal with bool array first
 			l := v.Len()
 			this.Uvarint(uint64(l))
@@ -383,6 +387,14 @@ func (this *Encoder) value(v reflect.Value) error {
 			}
 		}
 	case reflect.Map:
+		t := v.Type()
+		kt := t.Key()
+		vt := t.Elem()
+		if sizeofEmptyPointer(kt) < 0 ||
+			sizeofEmptyPointer(vt) < 0 { //verify map key and value type are both valid
+			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
+		}
+
 		keys := v.MapKeys()
 		l := len(keys)
 		this.Uvarint(uint64(l))
@@ -393,11 +405,13 @@ func (this *Encoder) value(v reflect.Value) error {
 		}
 	case reflect.Struct:
 		t := v.Type()
-		l := v.NumField()
-		for i := 0; i < l; i++ {
+		n := v.NumField()
+		for i := 0; i < n; i++ {
 			// see comment for corresponding code in decoder.value()
 			if f := v.Field(i); validField(t.Field(i)) {
-				this.value(f)
+				if err := this.value(f); err != nil {
+					return err
+				}
 			} else {
 				//this.Skip(sizeofEmptyValue(f))
 			}
@@ -408,18 +422,25 @@ func (this *Encoder) value(v reflect.Value) error {
 				return this.value(e)
 			}
 		} else {
-			this.emptyPointer(v.Type())
+			if this.nilPointer(v.Type()) < 0 {
+				return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())
+			}
 		}
+		//	case reflect.Invalid://BUG: it will panic to get zero.Type
+		//		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Kind().String())
 	default:
 		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())
 	}
 	return nil
 }
 
-func (this *Encoder) emptyPointer(t reflect.Type) int {
+func (this *Encoder) nilPointer(t reflect.Type) int {
 	tt := t
 	if tt.Kind() == reflect.Ptr {
 		tt = t.Elem()
+		if tt.Kind() == reflect.Ptr {
+			return -1
+		}
 	}
 	if s := _fixTypeSize(tt); s > 0 { //fix size
 		return this.Skip(s)
@@ -439,7 +460,7 @@ func (this *Encoder) emptyPointer(t reflect.Type) int {
 		} else {
 			tte := tt.Elem()
 			for i := 0; i < l; i++ {
-				n += this.emptyPointer(tte)
+				n += this.nilPointer(tte)
 			}
 		}
 		return n
@@ -447,7 +468,7 @@ func (this *Encoder) emptyPointer(t reflect.Type) int {
 	case reflect.Struct: //empty struct pointer has no byte encoded
 		sum := 0
 		for i, n := 0, tt.NumField(); i < n; i++ {
-			s := this.emptyPointer(tt.Field(i).Type)
+			s := this.nilPointer(tt.Field(i).Type)
 			if s < 0 {
 				return -1
 			}
@@ -455,7 +476,6 @@ func (this *Encoder) emptyPointer(t reflect.Type) int {
 		}
 		return sum
 	}
-
 	return -1
 }
 

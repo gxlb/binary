@@ -63,7 +63,7 @@ func (this *coder) Reset() {
 func (this *coder) reserve(size int) []byte {
 	newPos := this.pos + size
 	if newPos > this.Cap() {
-		panic(fmt.Errorf("Coder:buff overflow pos=%d size=%d, cap=%d, not enough space!", this.pos, size, this.Cap()))
+		panic(fmt.Errorf("binary.Coder:buffer overflow pos=%d cap=%d require=%d, not enough space!", this.pos, this.Cap(), size))
 	}
 	if size > 0 && newPos <= this.Cap() {
 		b := this.buff[this.pos:newPos]

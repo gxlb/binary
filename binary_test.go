@@ -45,7 +45,22 @@ type TDoNotSupport struct {
 	Array2        [2][2]uintptr
 	Array3        [2]struct{ A uintptr }
 	Func          func()
-	Struct        struct{ A uintptr }
+	Struct        struct {
+		PStruct *struct {
+			//PUintptr  *uintptr
+			PPUintptr **uintptr
+		}
+	}
+	Struct2 struct {
+		PStruct *struct {
+			PUintptr  *uintptr
+			PPUintptr **uintptr
+		}
+	}
+	PStruct *struct {
+		PUintptr  *uintptr
+		PPUintptr **uintptr
+	}
 }
 
 var doNotSupportTypes = TDoNotSupport{
