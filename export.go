@@ -94,7 +94,7 @@ func Read(r io.Reader, endian Endian, data interface{}) error {
 // When writing structs, zero values are written for fields
 // with blank (_) field names.
 func Write(w io.Writer, endian Endian, data interface{}) error {
-	size := Size(data)
+	size := Sizeof(data)
 	if size < 0 {
 		return errors.New("binary.Write: invalid type " + reflect.TypeOf(data).String())
 	}
@@ -105,17 +105,17 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 	} else {
 		bs = b[:size]
 	}
+
 	var encoder Encoder
 	encoder.buff = bs
 	encoder.endian = endian
 	encoder.pos = 0
-	if err := encoder.Value(data); err != nil {
-		return err
-	}
-	if _, err := w.Write(encoder.Buffer()); err != nil {
-		return err
-	}
-	return nil
+
+	err := encoder.Value(data)
+	assert(err == nil, err) //Value will never return error, because Sizeof(data) < 0 has blocked the error data
+
+	_, err = w.Write(encoder.Buffer())
+	return err
 }
 
 // Packer is an interface to define go data Pack and UnPack method.

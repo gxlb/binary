@@ -478,7 +478,7 @@ func TestDecoderSkip(t *testing.T) {
 		w[i].U16Array[i] = uint16(i)
 		w[i].BoolArray[i] = true
 	}
-	w[4].Map = map[uint32]uint32{1: 1, 2: 2, 3: 3}
+
 	var r [4]s
 	b, err := Pack(&w, nil)
 	if err != nil {
@@ -566,7 +566,7 @@ func TestFastValue(t *testing.T) {
 		StringSlice:     []string{"abc", "bcd"},
 	}
 	v := reflect.ValueOf(s)
-	encoder := NewEncoder(Sizeof(s))
+	encoder := NewEncoder(Size(s))
 	for i := v.NumField() - 1; i >= 0; i-- {
 		f := v.Field(i)
 		if err := encoder.Value(f.Interface()); err != nil {
@@ -611,8 +611,18 @@ func TestPackDonotSupportedType(t *testing.T) {
 				t.Errorf("PackDonotSupportedType: have err == %q, want it to mention %s", err, typ)
 			}
 		}
-
 	}
+}
+
+func TestAssert(t *testing.T) {
+	defer func() {
+		if msg := recover(); msg == nil {
+			t.Fatal("did not panic")
+		}
+	}()
+
+	message := "it will panic"
+	assert(false, message)
 }
 
 ////////////////////////////////////////////////////////////////////////////////

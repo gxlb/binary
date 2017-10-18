@@ -170,6 +170,7 @@ func (this *Encoder) Value(x interface{}) (err error) {
 			err = e.(error)
 		}
 	}()
+
 	if this.fastValue(x) { //fast value path
 		return nil
 	}

@@ -44,6 +44,12 @@ func sizeof(i interface{}) int {
 	return s
 }
 
+func assert(b bool, msg interface{}) {
+	if !b {
+		panic(msg)
+	}
+}
+
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
 func sizeofValue(v reflect.Value) (l int) {
 	//	defer func() {
