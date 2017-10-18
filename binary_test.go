@@ -11,7 +11,6 @@ import (
 	"io"
 	"math"
 	"reflect"
-	"strings"
 	"testing"
 	"unsafe"
 )
@@ -232,23 +231,26 @@ func TestSliceRoundTrip(t *testing.T) {
 	}
 }
 
-func TestWriteDonotSupportedType(t *testing.T) {
+func TestDonotSupportedType(t *testing.T) {
 	buf := new(bytes.Buffer)
 	ts := doNotSupportTypes
 	if err := Write(buf, BigEndian, ts); err == nil {
 		t.Errorf("WriteDonotSupportedType: have err == nil, want non-nil")
 	}
 
-	tv := reflect.Indirect(reflect.ValueOf(ts))
+	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
-		typ := tv.Field(i).Type().String()
-		if typ == "[4]int" {
-			typ = "int" // the problem is int, not the [4]
-		}
 		if err := Write(buf, BigEndian, tv.Field(i).Interface()); err == nil {
-			t.Errorf("WriteDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
-		} else if !strings.Contains(err.Error(), typ) {
-			t.Errorf("WriteDonotSupportedType: have err == %q, want it to mention %s", err, typ)
+			t.Errorf("Write DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+		} else {
+			//println(err.Error())
+		}
+
+		//println(i, tv.Field(i).Kind().String())
+		if err := Read(buf, BigEndian, tv.Field(i).Addr().Interface()); err == nil {
+			t.Errorf("Read DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+		} else {
+			//println(err.Error())
 		}
 	}
 }

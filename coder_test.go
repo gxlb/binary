@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"strings"
 	"testing"
 )
 
@@ -466,6 +465,7 @@ func TestDecoderSkip(t *testing.T) {
 		Map       map[uint32]uint32
 		BoolArray [5]bool
 		U16Array  [5]uint16
+		StrArray  [5]string
 		Struct    struct{ A uint8 }
 	}
 	var w [5]s
@@ -601,19 +601,20 @@ func TestPackDonotSupportedType(t *testing.T) {
 		t.Errorf("PackDonotSupportedType: have err == nil, want non-nil")
 	}
 
-	tv := reflect.Indirect(reflect.ValueOf(ts))
+	buff := make([]byte, 0)
+
+	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
-		typ := tv.Field(i).Type().String()
-		if typ == "[4]int" {
-			typ = "int" // the problem is int, not the [4]
-		}
 		if _, err := Pack(tv.Field(i).Interface(), nil); err == nil {
 			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
-			if !strings.Contains(err.Error(), typ) {
-				t.Errorf("PackDonotSupportedType: have err == %q, want it to mention %s", err, typ)
-			}
+		}
+
+		if err := Unpack(buff, tv.Field(i).Addr().Interface()); err == nil {
+			t.Errorf("Read DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+		} else {
+			//println(err.Error())
 		}
 	}
 }
@@ -624,6 +625,10 @@ func TestDecoder(t *testing.T) {
 	got := decoder.Skip(0)
 	if got != -1 {
 		t.Errorf("Decoder: have %d, want %d", got, -1)
+	}
+	n := decoder.skipByType(reflect.TypeOf(uintptr(0)))
+	if n != -1 {
+		t.Errorf("Decoder: have %d, want %d", n, -1)
 	}
 }
 

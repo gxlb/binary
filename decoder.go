@@ -292,10 +292,13 @@ func (this *Decoder) value(v reflect.Value) error {
 		v.SetString(this.String())
 
 	case reflect.Slice, reflect.Array:
+		if sizeofEmptyPointer(v.Type().Elem()) < 0 { //verify array element is valid
+			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
+		}
 		if this.boolArray(v) < 0 { //deal with bool array first
 			s, _ := this.Uvarint()
 			size := int(s)
-			if k == reflect.Slice { //make a new slice
+			if size > 0 && k == reflect.Slice { //make a new slice
 				ns := reflect.MakeSlice(v.Type(), size, size)
 				v.Set(ns)
 			}
@@ -310,14 +313,21 @@ func (this *Decoder) value(v reflect.Value) error {
 			}
 		}
 	case reflect.Map:
-		s, _ := this.Uvarint()
-		size := int(s)
-		newmap := reflect.MakeMap(v.Type())
-		v.Set(newmap)
 		t := v.Type()
 		kt := t.Key()
 		vt := t.Elem()
+		if sizeofEmptyPointer(kt) < 0 ||
+			sizeofEmptyPointer(vt) < 0 { //verify map key and value type are both valid
+			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
+		}
 
+		if v.IsNil() {
+			newmap := reflect.MakeMap(v.Type())
+			v.Set(newmap)
+		}
+
+		s, _ := this.Uvarint()
+		size := int(s)
 		for i := 0; i < size; i++ {
 			//fmt.Printf("key:%#v value:%#v\n", key.Elem().Interface(), value.Elem().Interface())
 			key := reflect.New(kt).Elem()
@@ -337,7 +347,9 @@ func (this *Decoder) value(v reflect.Value) error {
 			// results when making changes to this code).
 			if f := v.Field(i); validField(t.Field(i)) {
 				//fmt.Printf("field(%d) [%s] \n", i, t.Field(i).Name)
-				this.value(f)
+				if err := this.value(f); err != nil {
+					return err
+				}
 			} else {
 				//this.Skip(this.sizeofType(f.Type()))
 			}
@@ -556,9 +568,7 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 			sum := sLen //array size
 			for i, n := 0, cnt; i < n; i++ {
 				s := this.skipByType(e)
-				if s < 0 {
-					return -1
-				}
+				assert(s >= 0, e.String()) //I'm sure here cannot find unsupported type
 				sum += s
 			}
 			return sum
@@ -578,10 +588,9 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 	case reflect.Struct:
 		sum := 0
 		for i, n := 0, t.NumField(); i < n; i++ {
-			s := this.skipByType(t.Field(i).Type)
-			if s < 0 {
-				return -1
-			}
+			ft := t.Field(i).Type
+			s := this.skipByType(ft)
+			assert(s >= 0, ft.String()) //I'm sure here cannot find unsupported type
 			sum += s
 		}
 		return sum
