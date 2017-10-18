@@ -422,8 +422,7 @@ func (this *Decoder) fastValue(x interface{}) bool {
 		l := int(s)
 		*d = make([]uint, l)
 		for i := 0; i < l; i++ {
-			n, _ := this.Uvarint()
-			(*d)[i] = uint(n)
+			(*d)[i] = this.Uint()
 		}
 
 	case *[]int8:

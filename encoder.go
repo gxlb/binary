@@ -307,6 +307,18 @@ func (this *Encoder) fastValue(x interface{}) bool {
 		for i := 0; i < l; i++ {
 			this.String(d[i])
 		}
+	case []int:
+		l := len(d)
+		this.Uvarint(uint64(len(d)))
+		for i := 0; i < l; i++ {
+			this.Int(d[i])
+		}
+	case []uint:
+		l := len(d)
+		this.Uvarint(uint64(len(d)))
+		for i := 0; i < l; i++ {
+			this.Uint(d[i])
+		}
 	default:
 		return false
 	}
