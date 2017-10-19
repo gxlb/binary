@@ -673,6 +673,10 @@ func TestRegistStruct(t *testing.T) {
 			A int
 			B string
 		}
+		S2 struct {
+			A int
+			B string
+		}
 		PS *struct {
 			A int32
 			B string
