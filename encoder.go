@@ -176,7 +176,7 @@ func (this *Encoder) Value(x interface{}) (err error) {
 	}
 
 	v := reflect.ValueOf(x)
-	return this.value(reflect.Indirect(v))
+	return this.value(v)
 }
 
 func (this *Encoder) fastValue(x interface{}) bool {

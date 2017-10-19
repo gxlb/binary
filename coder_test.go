@@ -349,7 +349,6 @@ func TestReset(t *testing.T) {
 	if r2 != nil {
 		t.Errorf("got %#v\nneed %#v\n", r2, nil)
 	}
-
 }
 
 func TestPackEmptyPointer(t *testing.T) {
