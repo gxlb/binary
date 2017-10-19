@@ -48,7 +48,7 @@ type TDoNotSupport struct {
 	Struct        struct {
 		PStruct *struct {
 			PPUintptr **uintptr
-		} `PStruct`
+		} `binary:"PStruct"`
 	}
 	Struct2 struct {
 		PStruct *struct {

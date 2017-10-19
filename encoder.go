@@ -406,18 +406,8 @@ func (this *Encoder) value(v reflect.Value) error {
 			this.value(v.MapIndex(key))
 		}
 	case reflect.Struct:
-		t := v.Type()
-		n := v.NumField()
-		for i := 0; i < n; i++ {
-			// see comment for corresponding code in decoder.value()
-			if f := v.Field(i); validField(t.Field(i)) {
-				if err := this.value(f); err != nil {
-					return err
-				}
-			} else {
-				//this.Skip(sizeofEmptyValue(f))
-			}
-		}
+		return queryStruct(v.Type()).encode(this, v)
+
 	case reflect.Ptr:
 		if !v.IsNil() {
 			if e := v.Elem(); e.Kind() != reflect.Ptr {
@@ -435,6 +425,22 @@ func (this *Encoder) value(v reflect.Value) error {
 	}
 	return nil
 }
+
+//func (this *Encoder) fstruct(v reflect.Value) error {
+//	assert(v.Kind() == reflect.Struct, v.Type().String())
+//	t := v.Type()
+//	for i, n := 0, v.NumField(); i < n; i++ {
+//		// see comment for corresponding code in decoder.value()
+//		if f := v.Field(i); validField(t.Field(i)) {
+//			if err := this.value(f); err != nil {
+//				return err
+//			}
+//		} else {
+//			//this.Skip(sizeofEmptyValue(f))
+//		}
+//	}
+//	return nil
+//}
 
 func (this *Encoder) nilPointer(t reflect.Type) int {
 	tt := t
@@ -467,16 +473,8 @@ func (this *Encoder) nilPointer(t reflect.Type) int {
 		}
 		return n
 
-	case reflect.Struct: //empty struct pointer has no byte encoded
-		sum := 0
-		for i, n := 0, tt.NumField(); i < n; i++ {
-			s := this.nilPointer(tt.Field(i).Type)
-			if s < 0 {
-				return -1
-			}
-			sum += s
-		}
-		return sum
+	case reflect.Struct:
+		return queryStruct(tt).encodeNilPointer(this, tt)
 	}
 	return -1
 }

@@ -94,17 +94,7 @@ func sizeofValue(v reflect.Value) (l int) {
 		return sum
 
 	case reflect.Struct:
-		sum := 0
-		for i, n := 0, v.NumField(); i < n; i++ {
-			if validField(v.Type().Field(i)) {
-				s := sizeofValue(v.Field(i))
-				if s < 0 {
-					return -1
-				}
-				sum += s
-			}
-		}
-		return sum
+		return queryStruct(v.Type()).sizeofValue(v)
 
 	case reflect.String:
 		return sizeofString(v.Len()) //string length and data
@@ -139,16 +129,8 @@ func sizeofEmptyPointer(t reflect.Type) int {
 			return sizeofFixArray(tt.Len(), size)
 		}
 
-	case reflect.Struct: //empty struct pointer has no byte encoded
-		sum := 0
-		for i, n := 0, tt.NumField(); i < n; i++ {
-			s := sizeofEmptyPointer(tt.Field(i).Type)
-			if s < 0 {
-				return -1
-			}
-			sum += s
-		}
-		return sum
+	case reflect.Struct:
+		return queryStruct(tt).sizeofEmptyPointer(tt)
 	}
 
 	return -1

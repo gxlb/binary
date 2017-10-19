@@ -1,15 +1,14 @@
-//cache struct info to improve encoding/decoding efficiency
+// cache struct info to improve encoding/decoding efficiency.
 
 package binary
-
-/*
 
 import (
 	"fmt"
 	"reflect"
 )
 
-// RegsterStruct regist struct info to improve encoding/decoding efficiency
+// RegsterStruct regist struct info to improve encoding/decoding efficiency.
+// Regist by nil pointer is aviable.
 func RegistStruct(data interface{}) error {
 	return _structInfoMgr.regist(reflect.TypeOf(data))
 }
@@ -39,8 +38,8 @@ func getIntKind(kind string) reflect.Kind {
 	if k, ok := intNameToType[kind]; ok {
 		return k
 	}
-	panic("binary: unsupported int kind " + kind)
-	//return reflect.Invalid
+	//panic("binary: unsupported int kind " + kind)
+	return reflect.Invalid
 }
 
 type structInfoMgr struct {
@@ -56,6 +55,7 @@ func (this *structInfoMgr) regist(t reflect.Type) error {
 			p := &structInfo{}
 			if p.parse(_t) {
 				this.reg[p.identify] = p
+				//fmt.Printf("%#v\n", p)
 			}
 		} else {
 			return fmt.Errorf("binary: regist duplicate type %s", _t.String())
@@ -96,10 +96,118 @@ type structInfo struct {
 }
 
 func (this *structInfo) encode(encoder *Encoder, v reflect.Value) error {
+	assert(v.Kind() == reflect.Struct, v.Type().String())
+	t := v.Type()
+	for i, n := 0, v.NumField(); i < n; i++ {
+		// see comment for corresponding code in decoder.value()
+		if f := v.Field(i); this.fieldValid(i, t) {
+			if err := encoder.value(f); err != nil {
+				return err
+			}
+		} else {
+			//this.Skip(sizeofEmptyValue(f))
+		}
+	}
 	return nil
 }
+
+//func (this *structInfo) encodeField(encoder *Encoder, i int, v reflect.Value) error {}
+//func (this *structInfo) decodeField(decoder *Decoder, i int, v reflect.Value) error {}
+
+func (this *structInfo) encodeNilPointer(encoder *Encoder, t reflect.Type) int {
+	sum := 0
+	for i, n := 0, this.fieldNum(t); i < n; i++ {
+		s := encoder.nilPointer(this.fieldType(i, t))
+		if s < 0 {
+			return -1
+		}
+		sum += s
+	}
+	return sum
+}
+
 func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
+	assert(v.Kind() == reflect.Struct, v.Type().String())
+	t := v.Type()
+	for i, n := 0, v.NumField(); i < n; i++ {
+		// Note: Calling v.CanSet() below is an optimization.
+		// It would be sufficient to check the field name,
+		// but creating the StructField info for each field is
+		// costly (run "go test -bench=ReadStruct" and compare
+		// results when making changes to this code).
+		if f := v.Field(i); this.fieldValid(i, t) {
+			//fmt.Printf("field(%d) [%s] \n", i, t.Field(i).Name)
+			if err := decoder.value(f); err != nil {
+				return err
+			}
+		} else {
+			//this.Skip(this.sizeofType(f.Type()))
+		}
+	}
 	return nil
+}
+
+func (this *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type) int {
+	sum := 0
+	for i, n := 0, t.NumField(); i < n; i++ {
+		ft := this.fieldType(i, t)
+		s := decoder.skipByType(ft)
+		assert(s >= 0, ft.String()) //I'm sure here cannot find unsupported type
+		sum += s
+	}
+	return sum
+}
+
+func (this *structInfo) sizeofValue(v reflect.Value) int {
+	assert(v.Kind() == reflect.Struct, v.Type().String())
+	t := v.Type()
+	sum := 0
+	for i, n := 0, v.NumField(); i < n; i++ {
+		if this.fieldValid(i, t) {
+			s := sizeofValue(v.Field(i))
+			if s < 0 {
+				return -1
+			}
+			sum += s
+		}
+	}
+	return sum
+}
+
+func (this *structInfo) sizeofEmptyPointer(t reflect.Type) int {
+	sum := 0
+	for i, n := 0, this.fieldNum(t); i < n; i++ {
+		s := sizeofEmptyPointer(this.fieldType(i, t))
+		if s < 0 {
+			return -1
+		}
+		sum += s
+	}
+	return sum
+}
+
+//check if
+func (this *structInfo) fieldValid(i int, t reflect.Type) bool {
+	if this == nil {
+		return validField(t.Field(i))
+	} else {
+		return this.field(i).valid()
+	}
+}
+
+func (this *structInfo) fieldType(i int, t reflect.Type) reflect.Type {
+	if this == nil {
+		return t.Field(i).Type
+	} else {
+		return this.field(i).field.Type
+	}
+}
+func (this *structInfo) fieldNum(t reflect.Type) int {
+	if this == nil {
+		return t.NumField()
+	} else {
+		return this.numField()
+	}
 }
 
 func (this *structInfo) parse(t reflect.Type) bool {
@@ -114,6 +222,8 @@ func (this *structInfo) parse(t reflect.Type) bool {
 		field.ignore = !isExported(f.Name) || tag == "ignore"
 		field.encodeKind = getIntKind(tag)
 
+		//fmt.Printf("%d %+v %s \n", i, field, field.field.Type.String())
+
 		this.fields = append(this.fields, field)
 
 		//deep register if field is a struct
@@ -127,14 +237,17 @@ func (this *structInfo) parse(t reflect.Type) bool {
 }
 
 func (this *structInfo) field(i int) *fieldInfo {
-	if i >= 0 && i < this.numField() {
+	if this != nil && i >= 0 && i < this.numField() {
 		return this.fields[i]
 	}
 	return nil
 }
 
 func (this *structInfo) numField() int {
-	return len(this.fields)
+	if nil != this {
+		return len(this.fields)
+	}
+	return 0
 }
 
 //informatin of a struct field
@@ -151,5 +264,3 @@ func (this *fieldInfo) valid() bool {
 func queryStruct(t reflect.Type) *structInfo {
 	return _structInfoMgr.query(t)
 }
-
-//*/

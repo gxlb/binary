@@ -337,23 +337,8 @@ func (this *Decoder) value(v reflect.Value) error {
 			v.SetMapIndex(key, value)
 		}
 	case reflect.Struct:
-		t := v.Type()
-		l := v.NumField()
-		for i := 0; i < l; i++ {
-			// Note: Calling v.CanSet() below is an optimization.
-			// It would be sufficient to check the field name,
-			// but creating the StructField info for each field is
-			// costly (run "go test -bench=ReadStruct" and compare
-			// results when making changes to this code).
-			if f := v.Field(i); validField(t.Field(i)) {
-				//fmt.Printf("field(%d) [%s] \n", i, t.Field(i).Name)
-				if err := this.value(f); err != nil {
-					return err
-				}
-			} else {
-				//this.Skip(this.sizeofType(f.Type()))
-			}
-		}
+		return queryStruct(v.Type()).decode(this, v)
+
 	default:
 		if newPtr(v) {
 			return this.value(v.Elem())
@@ -363,6 +348,27 @@ func (this *Decoder) value(v reflect.Value) error {
 	}
 	return nil
 }
+
+//func (this *Decoder) fstruct(v reflect.Value) error {
+//	assert(v.Kind() == reflect.Struct, v.Type().String())
+//	t := v.Type()
+//	for i, n := 0, v.NumField(); i < n; i++ {
+//		// Note: Calling v.CanSet() below is an optimization.
+//		// It would be sufficient to check the field name,
+//		// but creating the StructField info for each field is
+//		// costly (run "go test -bench=ReadStruct" and compare
+//		// results when making changes to this code).
+//		if f := v.Field(i); validField(t.Field(i)) {
+//			//fmt.Printf("field(%d) [%s] \n", i, t.Field(i).Name)
+//			if err := this.value(f); err != nil {
+//				return err
+//			}
+//		} else {
+//			//this.Skip(this.sizeofType(f.Type()))
+//		}
+//	}
+//	return nil
+//}
 
 func (this *Decoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
@@ -586,14 +592,7 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 		return sum
 
 	case reflect.Struct:
-		sum := 0
-		for i, n := 0, t.NumField(); i < n; i++ {
-			ft := t.Field(i).Type
-			s := this.skipByType(ft)
-			assert(s >= 0, ft.String()) //I'm sure here cannot find unsupported type
-			sum += s
-		}
-		return sum
+		return queryStruct(t).decodeSkipByType(this, t)
 	}
 	return -1
 }

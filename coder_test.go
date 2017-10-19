@@ -634,7 +634,6 @@ func TestPackDonotSupportedType(t *testing.T) {
 		} else {
 			//println(err.Error())
 		}
-
 	}
 }
 
@@ -660,6 +659,49 @@ func TestAssert(t *testing.T) {
 
 	message := "it will panic"
 	assert(false, message)
+}
+
+func TestRegistStruct(t *testing.T) {
+	type StructForReg struct {
+		A int
+		B uint `binary:"ignore"`
+		C int  `binary:"int32"`
+		d string
+		_ int32
+		F float32
+		S struct {
+			A int
+			B string
+		}
+	}
+	RegistStruct((*StructForReg)(nil))
+	var a = StructForReg{
+		A: -5,
+		B: 6,
+		C: 7,
+		d: "hello",
+		F: 3.14,
+	}
+	a.S.A = 9
+	a.S.B = "abc"
+	b, err := Pack(&a, nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	//fmt.Printf("%#v\n", b)
+
+	var r StructForReg
+	err = Unpack(b, &r)
+	if err != nil {
+		t.Error(err)
+	}
+	c := a
+	c.B = 0
+	c.d = ""
+	if !reflect.DeepEqual(r, c) {
+		t.Errorf("got %+v\nneed %+v\n", r, c)
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
