@@ -19,8 +19,9 @@ func ExampleWrite() {
 	if err != nil {
 		fmt.Println("binary.Write failed:", err)
 	}
-	fmt.Printf("% x", buf.Bytes())
-	// Output: 18 2d 44 54 fb 21 09 40
+	fmt.Printf("%#v", buf.Bytes())
+	// Output:
+	// []byte{0x18, 0x2d, 0x44, 0x54, 0xfb, 0x21, 0x9, 0x40}
 }
 
 func ExampleWrite_multi() {
@@ -36,8 +37,9 @@ func ExampleWrite_multi() {
 			fmt.Println("binary.Write failed:", err)
 		}
 	}
-	fmt.Printf("%x", buf.Bytes())
-	// Output: beefcafe
+	fmt.Printf("%#v", buf.Bytes())
+	// Output:
+	// []byte{0xbe, 0xef, 0xca, 0xfe}
 }
 
 func ExampleRead() {
@@ -49,7 +51,8 @@ func ExampleRead() {
 		fmt.Println("binary.Read failed:", err)
 	}
 	fmt.Print(pi)
-	// Output: 3.141592653589793
+	// Output:
+	// 3.141592653589793
 }
 
 func ExamplePack() {
@@ -66,7 +69,8 @@ func ExamplePack() {
 		fmt.Println("binary.Pack failed:", err)
 	}
 	fmt.Printf("%#v", b)
-	// Output: []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
+	// Output:
+	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
 func ExamplePack_withbuffer() {
 	var s struct {
@@ -84,7 +88,8 @@ func ExamplePack_withbuffer() {
 		fmt.Println("binary.Pack failed:", err)
 	}
 	fmt.Printf("%#v", b)
-	// Output: []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
+	// Output:
+	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
 func ExampleUnpack() {
 	var s struct {
@@ -97,8 +102,9 @@ func ExampleUnpack() {
 	if err != nil {
 		fmt.Println("binary.Unpack failed:", err)
 	}
-	fmt.Printf("%#v", s)
-	// Output: struct { A uint32; B int; C string }{A:0x11223344, B:-5, C:"hello"}
+	fmt.Printf("%+v", s)
+	// Output:
+	// {A:287454020 B:-5 C:hello}
 }
 func ExampleEncoder() {
 	encoder := binary.NewEncoder(100)
@@ -107,7 +113,8 @@ func ExampleEncoder() {
 	encoder.String("hello")
 	encodeResult := encoder.Buffer()
 	fmt.Printf("%#v", encodeResult)
-	// Output: []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
+	// Output:
+	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
 func ExampleDecoder() {
 	buffer := []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
@@ -115,8 +122,9 @@ func ExampleDecoder() {
 	u32 := decoder.Uint32()
 	i, _ := decoder.Varint()
 	str := decoder.String()
-	fmt.Printf("[%#v %#v %#v]", u32, i, str)
-	// Output: [0x11223344 -5 "hello"]
+	fmt.Printf("%#v %#v %#v", u32, i, str)
+	// Output:
+	// 0x11223344 -5 "hello"
 }
 
 type S struct {
@@ -182,8 +190,9 @@ func ExamplePacker() {
 	if err != nil {
 		fmt.Println("binary.Unpack failed:", err)
 	}
-	fmt.Printf("[%v\n%#v\n%v]", s, b, ss)
-	// Output: [{287454020 -5 hello}
-	//[]byte{0x44, 0x33, 0x22, 0x11, 0xfb, 0xff, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
-	//{287454020 -5 hello}]
+	fmt.Printf("[%+v\n%#v\n%+v]", s, b, ss)
+	// Output:
+	// [{A:287454020 B:-5 C:hello}
+	// []byte{0x44, 0x33, 0x22, 0x11, 0xfb, 0xff, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
+	// {A:287454020 B:-5 C:hello}]
 }
