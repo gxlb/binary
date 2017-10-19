@@ -5,7 +5,42 @@ import (
 	"io"
 	"reflect"
 	"testing"
+	"unsafe"
 )
+
+type TDoNotSupport struct {
+	Uintptr       uintptr
+	UnsafePointer unsafe.Pointer
+	Ch            chan bool
+	Map           map[uintptr]uintptr
+	Map2          map[int]uintptr
+	Map3          map[uintptr]int
+	Slice         []uintptr
+	Array         [2]uintptr
+	Array2        [2][2]uintptr
+	Array3        [2]struct{ A uintptr }
+	Func          func()
+	Struct        struct {
+		PStruct *struct {
+			PPUintptr **uintptr
+		} `binary:"PStruct"`
+	}
+	Struct2 struct {
+		PStruct *struct {
+			PUintptr  *uintptr
+			PPUintptr **uintptr
+		}
+	}
+	PStruct *struct {
+		PUintptr  *uintptr
+		PPUintptr **uintptr
+	}
+}
+
+var doNotSupportTypes = TDoNotSupport{
+	Map2: map[int]uintptr{1: 1},
+	Map3: map[uintptr]int{2: 2},
+}
 
 type baseStruct struct {
 	Int8       int8
