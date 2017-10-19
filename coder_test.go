@@ -42,6 +42,76 @@ var doNotSupportTypes = TDoNotSupport{
 	Map3: map[uintptr]int{2: 2},
 }
 
+type fastValues struct {
+	Int             int
+	Uint            uint
+	Bool            bool
+	Int8            int8
+	Int16           int16
+	Int32           int32
+	Int64           int64
+	Uint8           uint8
+	Uint16          uint16
+	Uint32          uint32
+	Uint64          uint64
+	Float32         float32
+	Float64         float64
+	Complex64       complex64
+	Complex128      complex128
+	String          string
+	IntSlice        []int
+	UintSlice       []uint
+	BoolSlice       []bool
+	Int8Slice       []int8
+	Int16Slice      []int16
+	Int32Slice      []int32
+	Int64Slice      []int64
+	Uint8Slice      []uint8
+	Uint16Slice     []uint16
+	Uint32Slice     []uint32
+	Uint64Slice     []uint64
+	Float32Slice    []float32
+	Float64Slice    []float64
+	Complex64Slice  []complex64
+	Complex128Slice []complex128
+	StringSlice     []string
+}
+
+var _fastValues = fastValues{
+	Int:             -2,
+	Uint:            2,
+	Bool:            true,
+	Int8:            -3,
+	Int16:           -4,
+	Int32:           -5,
+	Int64:           -6,
+	Uint8:           3,
+	Uint16:          4,
+	Uint32:          5,
+	Uint64:          6,
+	Float32:         -7,
+	Float64:         7,
+	Complex64:       8,
+	Complex128:      9,
+	String:          "hello",
+	IntSlice:        []int{-1, 2},
+	UintSlice:       []uint{1, 3},
+	BoolSlice:       []bool{false, true},
+	Int8Slice:       []int8{-1, 2},
+	Int16Slice:      []int16{-1, 3},
+	Int32Slice:      []int32{-1, 4},
+	Int64Slice:      []int64{-1, 5},
+	Uint8Slice:      []uint8{1, 6},
+	Uint16Slice:     []uint16{1, 7},
+	Uint32Slice:     []uint32{1, 8},
+	Uint64Slice:     []uint64{1, 9},
+	Float32Slice:    []float32{1, 10.1},
+	Float64Slice:    []float64{1, 11.2},
+	Complex64Slice:  []complex64{1, 2.2},
+	Complex128Slice: []complex128{1, 12.9},
+	StringSlice:     []string{"abc", "bcd"},
+}
+
 type baseStruct struct {
 	Int8       int8
 	Int16      int16
@@ -543,74 +613,7 @@ func TestDecoderSkip(t *testing.T) {
 }
 
 func TestFastValue(t *testing.T) {
-	type fastValues struct {
-		Int             int
-		Uint            uint
-		Bool            bool
-		Int8            int8
-		Int16           int16
-		Int32           int32
-		Int64           int64
-		Uint8           uint8
-		Uint16          uint16
-		Uint32          uint32
-		Uint64          uint64
-		Float32         float32
-		Float64         float64
-		Complex64       complex64
-		Complex128      complex128
-		String          string
-		IntSlice        []int
-		UintSlice       []uint
-		BoolSlice       []bool
-		Int8Slice       []int8
-		Int16Slice      []int16
-		Int32Slice      []int32
-		Int64Slice      []int64
-		Uint8Slice      []uint8
-		Uint16Slice     []uint16
-		Uint32Slice     []uint32
-		Uint64Slice     []uint64
-		Float32Slice    []float32
-		Float64Slice    []float64
-		Complex64Slice  []complex64
-		Complex128Slice []complex128
-		StringSlice     []string
-	}
-	s := fastValues{
-		Int:             -2,
-		Uint:            2,
-		Bool:            true,
-		Int8:            -3,
-		Int16:           -4,
-		Int32:           -5,
-		Int64:           -6,
-		Uint8:           3,
-		Uint16:          4,
-		Uint32:          5,
-		Uint64:          6,
-		Float32:         -7,
-		Float64:         7,
-		Complex64:       8,
-		Complex128:      9,
-		String:          "hello",
-		IntSlice:        []int{-1, 2},
-		UintSlice:       []uint{1, 3},
-		BoolSlice:       []bool{false, true},
-		Int8Slice:       []int8{-1, 2},
-		Int16Slice:      []int16{-1, 3},
-		Int32Slice:      []int32{-1, 4},
-		Int64Slice:      []int64{-1, 5},
-		Uint8Slice:      []uint8{1, 6},
-		Uint16Slice:     []uint16{1, 7},
-		Uint32Slice:     []uint32{1, 8},
-		Uint64Slice:     []uint64{1, 9},
-		Float32Slice:    []float32{1, 10.1},
-		Float64Slice:    []float64{1, 11.2},
-		Complex64Slice:  []complex64{1, 2.2},
-		Complex128Slice: []complex128{1, 12.9},
-		StringSlice:     []string{"abc", "bcd"},
-	}
+	s := _fastValues
 	v := reflect.ValueOf(s)
 	encoder := NewEncoder(Size(s))
 	for i := v.NumField() - 1; i >= 0; i-- {

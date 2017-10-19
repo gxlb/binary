@@ -32,7 +32,7 @@ type Struct struct {
 	BoolArray  [4]bool
 }
 
-var s = Struct{
+var _struct = Struct{
 	0x01,               //Int8
 	0x0203,             //Int16
 	0x04050607,         //Int32
@@ -126,13 +126,13 @@ func testWrite(t *testing.T, order Endian, b []byte, s1 interface{}) {
 	checkResult(t, "Write", order, err, buf.Bytes(), b)
 }
 
-func TestLittleEndianRead(t *testing.T)     { testRead(t, LittleEndian, little, s) }
-func TestLittleEndianWrite(t *testing.T)    { testWrite(t, LittleEndian, little, s) }
-func TestLittleEndianPtrWrite(t *testing.T) { testWrite(t, LittleEndian, little, &s) }
+func TestLittleEndianRead(t *testing.T)     { testRead(t, LittleEndian, little, _struct) }
+func TestLittleEndianWrite(t *testing.T)    { testWrite(t, LittleEndian, little, _struct) }
+func TestLittleEndianPtrWrite(t *testing.T) { testWrite(t, LittleEndian, little, &_struct) }
 
-func TestBigEndianRead(t *testing.T)     { testRead(t, BigEndian, big, s) }
-func TestBigEndianWrite(t *testing.T)    { testWrite(t, BigEndian, big, s) }
-func TestBigEndianPtrWrite(t *testing.T) { testWrite(t, BigEndian, big, &s) }
+func TestBigEndianRead(t *testing.T)     { testRead(t, BigEndian, big, _struct) }
+func TestBigEndianWrite(t *testing.T)    { testWrite(t, BigEndian, big, _struct) }
+func TestBigEndianPtrWrite(t *testing.T) { testWrite(t, BigEndian, big, &_struct) }
 
 func TestReadSlice(t *testing.T) {
 	slice := make([]int32, 2)
@@ -412,97 +412,97 @@ func (br *byteSliceReader) Read(p []byte) (int, error) {
 	return n, nil
 }
 
-func BenchmarkReadSlice1000Int32s(b *testing.B) {
-	bsr := &byteSliceReader{}
-	slice := make([]int32, 1000)
-	buf := make([]byte, len(slice)*4)
-	b.SetBytes(int64(len(buf)))
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		bsr.remain = buf
-		Read(bsr, BigEndian, slice)
-	}
-}
+//func BenchmarkReadSlice1000Int32s(b *testing.B) {
+//	bsr := &byteSliceReader{}
+//	slice := make([]int32, 1000)
+//	buf := make([]byte, len(slice)*4)
+//	b.SetBytes(int64(len(buf)))
+//	b.ResetTimer()
+//	for i := 0; i < b.N; i++ {
+//		bsr.remain = buf
+//		Read(bsr, BigEndian, slice)
+//	}
+//}
 
-func BenchmarkReadStruct(b *testing.B) {
-	bsr := &byteSliceReader{}
-	var buf bytes.Buffer
-	Write(&buf, BigEndian, &s)
-	b.SetBytes(int64(sizeofValue(reflect.ValueOf(s))))
-	t := s
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		bsr.remain = buf.Bytes()
-		Read(bsr, BigEndian, &t)
-	}
-	b.StopTimer()
-	if b.N > 0 && !reflect.DeepEqual(s, t) {
-		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, s)
-	}
-}
+//func BenchmarkReadStruct(b *testing.B) {
+//	bsr := &byteSliceReader{}
+//	var buf bytes.Buffer
+//	Write(&buf, BigEndian, &s)
+//	b.SetBytes(int64(sizeofValue(reflect.ValueOf(s))))
+//	t := s
+//	b.ResetTimer()
+//	for i := 0; i < b.N; i++ {
+//		bsr.remain = buf.Bytes()
+//		Read(bsr, BigEndian, &t)
+//	}
+//	b.StopTimer()
+//	if b.N > 0 && !reflect.DeepEqual(s, t) {
+//		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, s)
+//	}
+//}
 
-func BenchmarkReadInts(b *testing.B) {
-	var ls Struct
-	bsr := &byteSliceReader{}
-	var r io.Reader = bsr
-	b.SetBytes(2 * (1 + 2 + 4 + 8))
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		bsr.remain = big
-		Read(r, BigEndian, &ls.Int8)
-		Read(r, BigEndian, &ls.Int16)
-		Read(r, BigEndian, &ls.Int32)
-		Read(r, BigEndian, &ls.Int64)
-		Read(r, BigEndian, &ls.Uint8)
-		Read(r, BigEndian, &ls.Uint16)
-		Read(r, BigEndian, &ls.Uint32)
-		Read(r, BigEndian, &ls.Uint64)
-	}
-	b.StopTimer()
-	want := s
-	want.Float32 = 0
-	want.Float64 = 0
-	want.Complex64 = 0
-	want.Complex128 = 0
-	want.Array = [4]uint8{0, 0, 0, 0}
-	want.Bool = false
-	want.BoolArray = [4]bool{false, false, false, false}
-	if b.N > 0 && !reflect.DeepEqual(ls, want) {
-		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", ls, want)
-	}
-}
+//func BenchmarkReadInts(b *testing.B) {
+//	var ls Struct
+//	bsr := &byteSliceReader{}
+//	var r io.Reader = bsr
+//	b.SetBytes(2 * (1 + 2 + 4 + 8))
+//	b.ResetTimer()
+//	for i := 0; i < b.N; i++ {
+//		bsr.remain = big
+//		Read(r, BigEndian, &ls.Int8)
+//		Read(r, BigEndian, &ls.Int16)
+//		Read(r, BigEndian, &ls.Int32)
+//		Read(r, BigEndian, &ls.Int64)
+//		Read(r, BigEndian, &ls.Uint8)
+//		Read(r, BigEndian, &ls.Uint16)
+//		Read(r, BigEndian, &ls.Uint32)
+//		Read(r, BigEndian, &ls.Uint64)
+//	}
+//	b.StopTimer()
+//	want := s
+//	want.Float32 = 0
+//	want.Float64 = 0
+//	want.Complex64 = 0
+//	want.Complex128 = 0
+//	want.Array = [4]uint8{0, 0, 0, 0}
+//	want.Bool = false
+//	want.BoolArray = [4]bool{false, false, false, false}
+//	if b.N > 0 && !reflect.DeepEqual(ls, want) {
+//		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", ls, want)
+//	}
+//}
 
-func BenchmarkWriteInts(b *testing.B) {
-	buf := new(bytes.Buffer)
-	var w io.Writer = buf
-	b.SetBytes(2 * (1 + 2 + 4 + 8))
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		Write(w, BigEndian, s.Int8)
-		Write(w, BigEndian, s.Int16)
-		Write(w, BigEndian, s.Int32)
-		Write(w, BigEndian, s.Int64)
-		Write(w, BigEndian, s.Uint8)
-		Write(w, BigEndian, s.Uint16)
-		Write(w, BigEndian, s.Uint32)
-		Write(w, BigEndian, s.Uint64)
-	}
-	b.StopTimer()
-	if b.N > 0 && !bytes.Equal(buf.Bytes(), big[:30]) {
-		b.Fatalf("first half doesn't match: %x %x", buf.Bytes(), big[:30])
-	}
-}
+//func BenchmarkWriteInts(b *testing.B) {
+//	buf := new(bytes.Buffer)
+//	var w io.Writer = buf
+//	b.SetBytes(2 * (1 + 2 + 4 + 8))
+//	b.ResetTimer()
+//	for i := 0; i < b.N; i++ {
+//		buf.Reset()
+//		Write(w, BigEndian, s.Int8)
+//		Write(w, BigEndian, s.Int16)
+//		Write(w, BigEndian, s.Int32)
+//		Write(w, BigEndian, s.Int64)
+//		Write(w, BigEndian, s.Uint8)
+//		Write(w, BigEndian, s.Uint16)
+//		Write(w, BigEndian, s.Uint32)
+//		Write(w, BigEndian, s.Uint64)
+//	}
+//	b.StopTimer()
+//	if b.N > 0 && !bytes.Equal(buf.Bytes(), big[:30]) {
+//		b.Fatalf("first half doesn't match: %x %x", buf.Bytes(), big[:30])
+//	}
+//}
 
-func BenchmarkWriteSlice1000Int32s(b *testing.B) {
-	slice := make([]int32, 1000)
-	buf := new(bytes.Buffer)
-	var w io.Writer = buf
-	b.SetBytes(4 * 1000)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		Write(w, BigEndian, slice)
-	}
-	b.StopTimer()
-}
+//func BenchmarkWriteSlice1000Int32s(b *testing.B) {
+//	slice := make([]int32, 1000)
+//	buf := new(bytes.Buffer)
+//	var w io.Writer = buf
+//	b.SetBytes(4 * 1000)
+//	b.ResetTimer()
+//	for i := 0; i < b.N; i++ {
+//		buf.Reset()
+//		Write(w, BigEndian, slice)
+//	}
+//	b.StopTimer()
+//}

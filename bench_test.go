@@ -1,28 +1,106 @@
 package binary
 
-/*
+///*
 import (
 	"bytes"
-	//"fmt"
+	std "encoding/binary"
+	"encoding/gob"
 	"reflect"
 	"testing"
 )
 
+type regStruct Struct
+
+func init() {
+	RegistStruct((*regStruct)(nil))
+}
+
+func BenchmarkGobEncode(b *testing.B) {
+	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+	coder := gob.NewEncoder(buffer)
+	err := coder.Encode(_struct)
+	b.SetBytes(int64(buffer.Len()))
+	if err != nil {
+		b.Error(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buffer.Reset()
+		coder.Encode(_struct)
+	}
+	b.StopTimer()
+	//println(len(buffer.Bytes()))
+}
+func BenchmarkStdWriteStruct(b *testing.B) {
+	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+	b.SetBytes(int64(std.Size(_struct)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buffer.Reset()
+		std.Write(buffer, std.LittleEndian, _struct)
+	}
+	b.StopTimer()
+}
+func BenchmarkWriteStruct(b *testing.B) {
+	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+	b.SetBytes(int64(Sizeof(_struct)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buffer.Reset()
+		Write(buffer, std.LittleEndian, _struct)
+	}
+	b.StopTimer()
+}
+func BenchmarkWriteRegedStruct(b *testing.B) {
+	data := regStruct(_struct)
+	buffer := bytes.NewBuffer(make([]byte, 0, 1024))
+	b.SetBytes(int64(Sizeof(data)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buffer.Reset()
+		Write(buffer, std.LittleEndian, data)
+	}
+	b.StopTimer()
+}
+
+func BenchmarkPackStruct(b *testing.B) {
+	buffer := make([]byte, 0, 2048)
+	b.SetBytes(int64(Sizeof(_struct)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Pack(_struct, buffer)
+	}
+	b.StopTimer()
+	//fmt.Println(err, len(buffer.Bytes()))
+}
+
+func BenchmarkPackRegedStruct(b *testing.B) {
+	data := regStruct(_struct)
+	buffer := make([]byte, 0, 2048)
+	b.SetBytes(int64(Sizeof(data)))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		Pack(data, buffer)
+	}
+	b.StopTimer()
+	//fmt.Println(err, len(buffer.Bytes()))
+}
+
 func BenchmarkReadStruct1(b *testing.B) {
-	testBenchRead(b, &s, "struct")
+	testBenchRead(b, &_struct, "struct")
 }
 
 func BenchmarkUnpackStruct1(b *testing.B) {
-	buff, _ := Pack(s, nil)
-	b.SetBytes(int64(sizeofValue(reflect.ValueOf(s))))
+	buff, _ := Pack(_struct, nil)
+	b.SetBytes(int64(sizeofValue(reflect.ValueOf(_struct))))
 	var t Struct
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Unpack(buff, &t)
 	}
 	b.StopTimer()
-	if b.N > 0 && !reflect.DeepEqual(s, t) {
-		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, s)
+	if b.N > 0 && !reflect.DeepEqual(_struct, t) {
+		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
 	}
 }
 
@@ -44,7 +122,7 @@ func BenchmarkReadString(b *testing.B) {
 	}
 	b.StopTimer()
 	if b.N > 0 && !reflect.DeepEqual(str, t) {
-		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, s)
+		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
 	}
 }
 func BenchmarkUnpackString(b *testing.B) {
@@ -57,7 +135,7 @@ func BenchmarkUnpackString(b *testing.B) {
 	}
 	b.StopTimer()
 	if b.N > 0 && !reflect.DeepEqual(str, t) {
-		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, s)
+		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
 	}
 }
 
@@ -65,7 +143,7 @@ func testBenchReadStd(b *testing.B, data interface{}, caseName string) {
 	bsr := &byteSliceReader{}
 	var buf bytes.Buffer
 	Write(&buf, BigEndian, data)
-	b.SetBytes(int64(sizeofValue(reflect.ValueOf(s))))
+	b.SetBytes(int64(sizeofValue(reflect.ValueOf(_struct))))
 	t := reflect.New(reflect.Indirect(reflect.ValueOf(data)).Type())
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -73,8 +151,8 @@ func testBenchReadStd(b *testing.B, data interface{}, caseName string) {
 		Read(bsr, BigEndian, &t)
 	}
 	b.StopTimer()
-	if b.N > 0 && !reflect.DeepEqual(s, t) {
-		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, s)
+	if b.N > 0 && !reflect.DeepEqual(_struct, t) {
+		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
 	}
 }
 
