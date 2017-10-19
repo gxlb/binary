@@ -673,8 +673,15 @@ func TestRegistStruct(t *testing.T) {
 			A int
 			B string
 		}
+		PS *struct {
+			A int32
+			B string
+		}
 	}
 	RegistStruct((*StructForReg)(nil))
+	if err := RegistStruct((*StructForReg)(nil)); err == nil { //duplicate regist
+		t.Errorf("RegistStruct: have err == nil, want non-nil")
+	}
 	var a = StructForReg{
 		A: -5,
 		B: 6,
@@ -699,8 +706,29 @@ func TestRegistStruct(t *testing.T) {
 	c := a
 	c.B = 0
 	c.d = ""
+	r.PS = nil //bug:encode nil pointer 1 byte?
 	if !reflect.DeepEqual(r, c) {
 		t.Errorf("got %+v\nneed %+v\n", r, c)
+	}
+}
+
+func TestRegistStructUnsupported(t *testing.T) {
+	err := RegistStruct(int(0))
+	if err == nil {
+		t.Errorf("RegistStructUnsupported: have err == nil, want non-nil")
+	}
+
+	info := queryStruct(reflect.TypeOf(doNotSupportTypes))
+	if info != nil {
+		t.Errorf("RegistStructUnsupported: have info == %v, want nil", info)
+	}
+	numField := info.numField()
+	if numField != 0 {
+		t.Errorf("RegistStructUnsupported: have numField == %v, want 0", numField)
+	}
+	field := info.field(0)
+	if field != nil {
+		t.Errorf("RegistStructUnsupported: have info == %v, want nil", field)
 	}
 }
 

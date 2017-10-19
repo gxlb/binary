@@ -19,28 +19,28 @@ func init() {
 	_structInfoMgr.init()
 }
 
-var intNameToType = map[string]reflect.Kind{
-	"uint8":   reflect.Uint8,
-	"uint16":  reflect.Uint16,
-	"uint32":  reflect.Uint32,
-	"uint64":  reflect.Uint64,
-	"int8":    reflect.Int8,
-	"int16":   reflect.Int16,
-	"int32":   reflect.Int32,
-	"int64":   reflect.Int64,
-	"int":     reflect.Int,
-	"uint":    reflect.Uint,
-	"varint":  reflect.Int,
-	"uvarint": reflect.Uint,
-}
+//var intNameToType = map[string]reflect.Kind{
+//	"uint8":   reflect.Uint8,
+//	"uint16":  reflect.Uint16,
+//	"uint32":  reflect.Uint32,
+//	"uint64":  reflect.Uint64,
+//	"int8":    reflect.Int8,
+//	"int16":   reflect.Int16,
+//	"int32":   reflect.Int32,
+//	"int64":   reflect.Int64,
+//	"int":     reflect.Int,
+//	"uint":    reflect.Uint,
+//	"varint":  reflect.Int,
+//	"uvarint": reflect.Uint,
+//}
 
-func getIntKind(kind string) reflect.Kind {
-	if k, ok := intNameToType[kind]; ok {
-		return k
-	}
-	//panic("binary: unsupported int kind " + kind)
-	return reflect.Invalid
-}
+//func getIntKind(kind string) reflect.Kind {
+//	if k, ok := intNameToType[kind]; ok {
+//		return k
+//	}
+//	//panic("binary: unsupported int kind " + kind)
+//	return reflect.Invalid
+//}
 
 type structInfoMgr struct {
 	reg map[string]*structInfo
@@ -220,7 +220,7 @@ func (this *structInfo) parse(t reflect.Type) bool {
 		field.field = f
 		tag := f.Tag.Get("binary")
 		field.ignore = !isExported(f.Name) || tag == "ignore"
-		field.encodeKind = getIntKind(tag)
+		//field.encodeKind = getIntKind(tag)
 
 		//fmt.Printf("%d %+v %s \n", i, field, field.field.Type.String())
 
@@ -237,7 +237,7 @@ func (this *structInfo) parse(t reflect.Type) bool {
 }
 
 func (this *structInfo) field(i int) *fieldInfo {
-	if this != nil && i >= 0 && i < this.numField() {
+	if nil != this && i >= 0 && i < this.numField() {
 		return this.fields[i]
 	}
 	return nil
@@ -252,9 +252,9 @@ func (this *structInfo) numField() int {
 
 //informatin of a struct field
 type fieldInfo struct {
-	field      reflect.StructField
-	ignore     bool         //if this field is ignored
-	encodeKind reflect.Kind //what this field will be encoded
+	field  reflect.StructField
+	ignore bool //if this field is ignored
+	//encodeKind reflect.Kind //enable encode integers as other size
 }
 
 func (this *fieldInfo) valid() bool {
