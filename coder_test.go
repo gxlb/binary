@@ -9,6 +9,7 @@ import (
 )
 
 type TDoNotSupport struct {
+	DeepPointer   **uint32
 	Uintptr       uintptr
 	UnsafePointer unsafe.Pointer
 	Ch            chan bool

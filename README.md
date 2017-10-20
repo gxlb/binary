@@ -224,6 +224,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	Followed struct TDoNotSupport is an invalid type that every field is invalid.
 
 	type TDoNotSupport struct {
+		DeepPointer   **uint32
 		Uintptr       uintptr
 		UnsafePointer unsafe.Pointer
 		Ch            chan bool
@@ -241,4 +242,12 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 			}
 		}
 	}
+
+# Lisense.
+	Under MIT license.
+
+	Copyright (c) 2017 Ally Dale<vipally@gmail.com>
+	Author  : Ally Dale<vipally@gmail.com>
+	Site    : https://github.com/vipally
+	Origin  : https://github.com/vipally/binary
 

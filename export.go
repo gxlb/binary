@@ -17,11 +17,13 @@
 // package or protocol buffers.
 //
 
-// Author: Ally Dale<vipally@gmail.com>
 //
 // Package binary is uesed to Pack/Unpack between go data and byte slice.
 //
 // The main purpose of this package is to replace package "std.binary".
+// The design goal is to take both advantages of std.binary(encoding/binary) and gob.
+//
+// Upgraded from std.binary(encoding/binary).
 //
 // Compare with other serialization package, this package is with full-feature as
 // gob and protocol buffers, and with high-performance and lightweight as std.binary.
@@ -37,6 +39,21 @@
 //	int/uint will be encoded as varint(1~10 bytes).
 //	And their direct pointers.
 //	eg: *string, *struct, *map, *slice, *int32.
+//
+// Here is the main feature of this package.
+//  1. as light-weight as std.binary
+//  2. with full-type support like gob.
+//  3. as high-performance as std.binary and gob.
+//  4. encoding with fewer bytes than std.binary and gob.
+//  5. use RegStruct to improve performance of struct encoding/decoding
+//  6. recommended using in net protocol serialization and DB serialization
+//
+// Under MIT license.
+//
+//	Copyright (c) 2017 Ally Dale<vipally@gmail.com>
+//	Author  : Ally Dale<vipally@gmail.com>
+//	Site    : https://github.com/vipally
+//	Origin  : https://github.com/vipally/binary
 package binary
 
 import (
