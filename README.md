@@ -147,7 +147,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	Output:
 	Sizeof(s)  = 133
 	std.Size(s)= 217
-	gob.Size(s)= 415
+	gob.Size(s)= 412
 	
 ## Benchmark test result.
 	Pack/Unpack unregisted struct is a little slower(80%) than std.binary.Read/std.binary.Write
