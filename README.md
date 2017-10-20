@@ -121,7 +121,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	int(-5)     will be encoded as: []byte{0x9}
 	int(-65)    will be encoded as: []byte{0x81, 0x1}
 	
-# 9. Test reults.
+# 9. Test results.
 ## Enncoding size(see example of Sizeof).
 	Encoding bytes is much shorter than std.binary and gob.
 
