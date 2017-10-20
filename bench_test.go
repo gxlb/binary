@@ -15,9 +15,16 @@ var (
 	buff   = make([]byte, 8192)
 	buffer = bytes.NewBuffer(buff[:0])
 
-	u32Array1000 [1000]uint32
+	wStruct Struct
 
-//	str               = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	u32Array1000  [1000]uint32
+	u32Array1000W [1000]uint32
+
+	caseStdReadWrite string
+
+	str  = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	strW string
+
 //	cpx128 complex128 = complex(111.5, 555.5)
 )
 
@@ -28,6 +35,7 @@ func init() {
 	}
 }
 
+//////////////////////////////////////////////////////////////////Struct
 func BenchmarkGobEncodeStruct(b *testing.B) {
 	data := _struct
 	testBenchGobEncode(b, data, "BenchmarkGobEncodeStruct")
@@ -54,30 +62,32 @@ func BenchmarkPackRegedStruct(b *testing.B) {
 }
 func BenchmarkGobDecodeStruct(b *testing.B) {
 	data := _struct
-	testBenchGobDecode(b, &data, "BenchmarkGobDecodeStruct")
+	testBenchGobDecode(b, &data, &wStruct, "BenchmarkGobDecodeStruct")
 }
 func BenchmarkStdReadStruct(b *testing.B) {
 	data := _struct
-	testBenchStdRead(b, &data, "BenchmarkStdReadStruct")
+	testBenchStdRead(b, &data, &wStruct, "BenchmarkStdReadStruct")
 }
 func BenchmarkReadStruct(b *testing.B) {
 	data := _struct
-	testBenchRead(b, &data, "BenchmarkReadStruct")
+	testBenchRead(b, &data, &wStruct, "BenchmarkReadStruct")
 }
 func BenchmarkReadRegedStruct(b *testing.B) {
 	data := regedStruct(_struct)
-	testBenchRead(b, &data, "BenchmarkReadRegedStruct")
+	dataC := regedStruct(wStruct)
+	testBenchRead(b, &data, &dataC, "BenchmarkReadRegedStruct")
 }
 func BenchmarkUnackStruct(b *testing.B) {
 	data := _struct
-	testBenchUnpack(b, &data, "BenchmarkUnackStruct")
+	testBenchUnpack(b, &data, &wStruct, "BenchmarkUnackStruct")
 }
 func BenchmarkUnpackRegedStruct(b *testing.B) {
 	data := regedStruct(_struct)
-	testBenchUnpack(b, &data, "BenchmarkUnpackRegedStruct")
+	dataC := regedStruct(wStruct)
+	testBenchUnpack(b, &data, &dataC, "BenchmarkUnpackRegedStruct")
 }
 
-/////////////////////////////////
+//////////////////////////////////////////////////////////////////Int1000
 func BenchmarkGobEncodeInt1000(b *testing.B) {
 	data := u32Array1000
 	testBenchGobEncode(b, data, "BenchmarkGobEncodeInt1000")
@@ -93,23 +103,56 @@ func BenchmarkWriteInt1000(b *testing.B) {
 func BenchmarkPackInt1000(b *testing.B) {
 	data := u32Array1000
 	testBenchPack(b, data, "BenchmarkPackInt1000")
-}
-
+} //
 //func BenchmarkGobDecodeInt1000(b *testing.B) {
 //	data := u32Array1000
-//	testBenchGobDecode(b, &data, "BenchmarkGobDecodeInt1000")
+//	testBenchGobDecode(b, &data, &u32Array1000W, "BenchmarkGobDecodeInt1000")
 //}
 func BenchmarkStdReadInt1000(b *testing.B) {
 	data := u32Array1000
-	testBenchStdRead(b, &data, "BenchmarkStdReadInt1000")
+	testBenchStdRead(b, &data, &u32Array1000W, "BenchmarkStdReadInt1000")
 }
 func BenchmarkReadInt1000(b *testing.B) {
 	data := u32Array1000
-	testBenchRead(b, &data, "BenchmarkReadInt1000")
+	testBenchRead(b, &data, &u32Array1000W, "BenchmarkReadInt1000")
 }
 func BenchmarkUnackInt1000(b *testing.B) {
 	data := u32Array1000
-	testBenchUnpack(b, &data, "BenchmarkUnackInt1000")
+	testBenchUnpack(b, &data, &u32Array1000W, "BenchmarkUnackInt1000")
+}
+
+//////////////////////////////////////////////////////////////////String
+func BenchmarkGobEncodeString(b *testing.B) {
+	data := str
+	testBenchGobEncode(b, data, "BenchmarkGobEncodeString")
+}
+func BenchmarkStdWriteString(b *testing.B) {
+	data := str
+	testBenchStdWrite(b, data, "BenchmarkStdWriteString")
+}
+func BenchmarkWriteString(b *testing.B) {
+	data := str
+	testBenchWrite(b, data, "BenchmarkWriteString")
+}
+func BenchmarkPackString(b *testing.B) {
+	data := str
+	testBenchPack(b, data, "BenchmarkPackString")
+}
+func BenchmarkGobDecodeString(b *testing.B) {
+	data := str
+	testBenchGobDecode(b, &data, &strW, "BenchmarkGobDecodeString")
+}
+func BenchmarkStdReadString(b *testing.B) {
+	data := str
+	testBenchStdRead(b, &data, &strW, "BenchmarkStdReadString")
+}
+func BenchmarkReadString(b *testing.B) {
+	data := str
+	testBenchRead(b, &data, &strW, "BenchmarkReadString")
+}
+func BenchmarkUnackString(b *testing.B) {
+	data := str
+	testBenchUnpack(b, &data, &strW, "BenchmarkUnackString")
 }
 
 ////////////////
@@ -209,8 +252,16 @@ func testBenchGobEncode(b *testing.B, data interface{}, caseName string) {
 	b.StopTimer()
 }
 func testBenchStdWrite(b *testing.B, data interface{}, caseName string) {
+	s := std.Size(data)
+	if s <= 0 {
+		if caseStdReadWrite != caseName {
+			caseStdReadWrite = caseName
+			println(caseName, "unsupported ")
+		}
+		return
+	}
 	buffer.Reset()
-	b.SetBytes(int64(std.Size(data)))
+	b.SetBytes(int64(s))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		buffer.Reset()
@@ -237,7 +288,7 @@ func testBenchPack(b *testing.B, data interface{}, caseName string) {
 	b.StopTimer()
 }
 
-func testBenchGobDecode(b *testing.B, data interface{}, caseName string) {
+func testBenchGobDecode(b *testing.B, data, w interface{}, caseName string) {
 	bsr := &byteSliceReader{}
 	buffer.Reset()
 	encoder := gob.NewEncoder(buffer)
@@ -246,22 +297,31 @@ func testBenchGobDecode(b *testing.B, data interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(buffer.Len()))
-	newValue := newSame(reflect.ValueOf(data))
-	t := newValue.Interface()
+	//	newValue := newSame(reflect.ValueOf(data))
+	//	t := newValue.Interface()
 	b.ResetTimer()
-	bsr.remain = buffer.Bytes()
+	buf := buffer.Bytes()
+	bsr.remain = buf
 	decoder := gob.NewDecoder(bsr)
-	decoder.Decode(t)
+	decoder.Decode(w)
 	for i := 0; i < b.N; i++ {
-		bsr.remain = buffer.Bytes()
-		decoder.Decode(t)
+		bsr.remain = buf
+		decoder.Decode(w)
 	}
 	b.StopTimer()
-	if b.N > 0 && !reflect.DeepEqual(data, t) {
-		//b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, t, data)
+	if b.N > 0 && !reflect.DeepEqual(data, w) {
+		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, w, data)
 	}
 }
-func testBenchStdRead(b *testing.B, data interface{}, caseName string) {
+func testBenchStdRead(b *testing.B, data, w interface{}, caseName string) {
+	s := std.Size(data)
+	if s <= 0 {
+		if caseStdReadWrite != caseName {
+			caseStdReadWrite = caseName
+			println(caseName, "unsupported ")
+		}
+		return
+	}
 	bsr := &byteSliceReader{}
 	buffer.Reset()
 	err := std.Write(buffer, std.LittleEndian, data)
@@ -269,21 +329,21 @@ func testBenchStdRead(b *testing.B, data interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(len(buffer.Bytes())))
-	newValue := newSame(reflect.ValueOf(data))
-	t := newValue.Interface()
+	//	newValue := newSame(reflect.ValueOf(data))
+	//	t := newValue.Interface()
 	b.ResetTimer()
 	bsr.remain = buffer.Bytes()
-	std.Read(bsr, std.LittleEndian, t)
+	std.Read(bsr, std.LittleEndian, w)
 	for i := 0; i < b.N; i++ {
 		bsr.remain = buffer.Bytes()
-		std.Read(bsr, std.LittleEndian, t)
+		std.Read(bsr, std.LittleEndian, w)
 	}
 	b.StopTimer()
-	if b.N > 0 && !reflect.DeepEqual(data, t) {
-		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, t, data)
+	if b.N > 0 && !reflect.DeepEqual(data, w) {
+		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, w, data)
 	}
 }
-func testBenchRead(b *testing.B, data interface{}, caseName string) {
+func testBenchRead(b *testing.B, data, w interface{}, caseName string) {
 	bsr := &byteSliceReader{}
 	buffer.Reset()
 	err := Write(buffer, DefaultEndian, data)
@@ -291,35 +351,35 @@ func testBenchRead(b *testing.B, data interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(len(buffer.Bytes())))
-	newValue := newSame(reflect.ValueOf(data))
-	t := newValue.Interface()
+	//	newValue := newSame(reflect.ValueOf(data))
+	//	t := newValue.Interface()
 	b.ResetTimer()
 	bsr.remain = buffer.Bytes()
-	Read(bsr, DefaultEndian, t)
+	Read(bsr, DefaultEndian, w)
 	for i := 0; i < b.N; i++ {
 		bsr.remain = buffer.Bytes()
-		Read(bsr, DefaultEndian, t)
+		Read(bsr, DefaultEndian, w)
 	}
 	b.StopTimer()
-	if b.N > 0 && !reflect.DeepEqual(data, t) {
-		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, t, data)
+	if b.N > 0 && !reflect.DeepEqual(data, w) {
+		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, w, data)
 	}
 }
-func testBenchUnpack(b *testing.B, data interface{}, caseName string) {
+func testBenchUnpack(b *testing.B, data, w interface{}, caseName string) {
 	buf, err := Pack(data, buff)
 	if err != nil {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(len(buf)))
-	newValue := newSame(reflect.ValueOf(data))
-	t := newValue.Interface()
+	//	newValue := newSame(reflect.ValueOf(data))
+	//	t := newValue.Interface()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Unpack(buf, t)
+		Unpack(buf, w)
 	}
 	b.StopTimer()
-	if b.N > 0 && !reflect.DeepEqual(data, t) {
-		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, t, data)
+	if b.N > 0 && !reflect.DeepEqual(data, w) {
+		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, w, data)
 	}
 }
 
