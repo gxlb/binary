@@ -631,7 +631,6 @@ func TestPackDonotSupportedType(t *testing.T) {
 			//fmt.Println(err)
 		}
 
-		//println("test unsupport:", i, tv.Type().Field(i).Name, tv.Type().Field(i).Type.String())
 		if err := ecoder.Value(tv.Field(i).Interface()); err == nil {
 			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {

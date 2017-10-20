@@ -225,7 +225,6 @@ func TestDonotSupportedType(t *testing.T) {
 			//println(err.Error())
 		}
 
-		//println(i, tv.Field(i).Kind().String())
 		if err := Read(buf, BigEndian, tv.Field(i).Addr().Interface()); err == nil {
 			t.Errorf("Read DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
