@@ -234,3 +234,13 @@ func ExampleSizeof() {
 	// std.Size(s)= 217
 	// gob.Size(s)= 412
 }
+
+func ExampleRegistStruct() {
+	type registedStruct struct {
+		A int `binary:"ignore"`
+		B string
+		C uint
+	}
+	binary.RegistStruct((*registedStruct)(nil))
+	// Output:
+}

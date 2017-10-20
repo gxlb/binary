@@ -31,6 +31,14 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	eg: *string, *struct, *map, *slice, *int32.
 
 # 2. [recommended usage] Use Pack/UnPack to read/write memory buffer directly.
+## 	Use RegistStruct to improving struct encoding/decoding efficiency.
+	type registedStruct struct {
+		A int `binary:"ignore"`
+		B string
+		C uint
+	}
+	binary.RegistStruct((*registedStruct)(nil))
+
 	If data implement interface Packer, it will use data.Pack/data.Unpack 
 	to encode/decode data.
 	NOTE that data.Unpack must implement on pointer receiever to enable modifying
