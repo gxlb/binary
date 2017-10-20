@@ -129,11 +129,6 @@ func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
-		// Note: Calling v.CanSet() below is an optimization.
-		// It would be sufficient to check the field name,
-		// but creating the StructField info for each field is
-		// costly (run "go test -bench=ReadStruct" and compare
-		// results when making changes to this code).
 		if f := v.Field(i); this.fieldValid(i, t) {
 			if err := decoder.value(f); err != nil {
 				return err
@@ -187,9 +182,10 @@ func (this *structInfo) sizeofEmptyPointer(t reflect.Type) int {
 //check if
 func (this *structInfo) fieldValid(i int, t reflect.Type) bool {
 	if this == nil {
-		return validField(t.Field(i))
+		//Note: creating the StructField info for each field is costly
+		return validField(t.Field(i)) // slow way to access field info
 	} else {
-		return this.field(i).valid()
+		return this.field(i).valid() //fast way to access field info
 	}
 }
 
