@@ -220,32 +220,6 @@ func (this *Decoder) Value(x interface{}) (err error) {
 	}
 }
 
-//func (this *Decoder) getIntValue(kind reflect.Kind) uint64 {
-//	v := uint64(0)
-//	switch kind {
-//	case reflect.Int8:
-//		v = uint64(this.Int8())
-//	case reflect.Int16:
-//		v = uint64(this.Int16())
-//	case reflect.Int32:
-//		v = uint64(this.Int32())
-//	case reflect.Int64:
-//		v = uint64(this.Int64())
-
-//	case reflect.Uint8:
-//		v = uint64(this.Uint8())
-//	case reflect.Uint16:
-//		v = uint64(this.Uint16())
-//	case reflect.Uint32:
-//		v = uint64(this.Uint32())
-//	case reflect.Uint64:
-//		v = this.Uint64()
-//	default:
-//		panic(kind)
-//	}
-//	return v
-//}
-
 func (this *Decoder) value(v reflect.Value) error {
 	//	defer func() {
 	//		fmt.Printf("Decoder:after value(%#v)=%d\n", v.Interface(), this.pos)
@@ -292,7 +266,7 @@ func (this *Decoder) value(v reflect.Value) error {
 		v.SetString(this.String())
 
 	case reflect.Slice, reflect.Array:
-		if sizeofEmptyPointer(v.Type().Elem()) < 0 { //verify array element is valid
+		if sizeofNilPointer(v.Type().Elem()) < 0 { //verify array element is valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 		if this.boolArray(v) < 0 { //deal with bool array first
@@ -316,8 +290,8 @@ func (this *Decoder) value(v reflect.Value) error {
 		t := v.Type()
 		kt := t.Key()
 		vt := t.Elem()
-		if sizeofEmptyPointer(kt) < 0 ||
-			sizeofEmptyPointer(vt) < 0 { //verify map key and value type are both valid
+		if sizeofNilPointer(kt) < 0 ||
+			sizeofNilPointer(vt) < 0 { //verify map key and value type are both valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 
@@ -348,27 +322,6 @@ func (this *Decoder) value(v reflect.Value) error {
 	}
 	return nil
 }
-
-//func (this *Decoder) fstruct(v reflect.Value) error {
-//	assert(v.Kind() == reflect.Struct, v.Type().String())
-//	t := v.Type()
-//	for i, n := 0, v.NumField(); i < n; i++ {
-//		// Note: Calling v.CanSet() below is an optimization.
-//		// It would be sufficient to check the field name,
-//		// but creating the StructField info for each field is
-//		// costly (run "go test -bench=ReadStruct" and compare
-//		// results when making changes to this code).
-//		if f := v.Field(i); validField(t.Field(i)) {
-//			//fmt.Printf("field(%d) [%s] \n", i, t.Field(i).Name)
-//			if err := this.value(f); err != nil {
-//				return err
-//			}
-//		} else {
-//			//this.Skip(this.sizeofType(f.Type()))
-//		}
-//	}
-//	return nil
-//}
 
 func (this *Decoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
@@ -596,66 +549,6 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 	}
 	return -1
 }
-
-//get size of specific type from current buffer
-//func (this *Decoder) sizeofType(t reflect.Type) int {
-//	if s := _fixTypeSize(t); s > 0 {
-//		return s
-//	}
-//	var d Decoder = *this //avoid modify this
-//	switch t.Kind() {
-//	case reflect.String:
-//		s, _ := d.Uvarint()
-//		size := int(s)
-//		return size + __cntSize //string length and data
-//	case reflect.Slice, reflect.Array:
-//		s, _ := this.Uvarint()
-//		cnt := int(s)
-//		e := t.Elem()
-//		if s := _fixTypeSize(e); s > 0 {
-//			if t.Elem().Kind() == reflect.Bool { //compressed bool array
-//				return sizeofBoolArray(cnt)
-//			}
-//			return __cntSize + cnt*s
-//		} else {
-//			sum := __cntSize //array size
-//			for i, n := 0, cnt; i < n; i++ {
-//				s := d.sizeofType(e)
-//				d.Skip(s) //move to next element
-//				if s < 0 {
-//					return -1
-//				}
-//				sum += s
-//			}
-//			return sum
-//		}
-//	case reflect.Map:
-//		s, _ := this.Uvarint()
-//		cnt := int(s)
-//		kt := t.Key()
-//		vt := t.Elem()
-//		sum := __cntSize //array size
-//		for i, n := 0, cnt; i < n; i++ {
-//			sk := d.sizeofType(kt)
-//			sv := d.sizeofType(vt)
-//			sum += (sk + sv)
-//		}
-//		return sum
-
-//	case reflect.Struct:
-//		sum := 0
-//		for i, n := 0, t.NumField(); i < n; i++ {
-//			s := d.sizeofType(t.Field(i).Type)
-//			d.Skip(s) //move to next element
-//			if s < 0 {
-//				return -1
-//			}
-//			sum += s
-//		}
-//		return sum
-//	}
-//	return -1
-//}
 
 // decode bool array
 func (this *Decoder) boolArray(v reflect.Value) int {

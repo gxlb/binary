@@ -177,7 +177,7 @@ func (this *structInfo) sizeofValue(v reflect.Value) int {
 func (this *structInfo) sizeofEmptyPointer(t reflect.Type) int {
 	sum := 0
 	for i, n := 0, this.fieldNum(t); i < n; i++ {
-		s := sizeofEmptyPointer(this.fieldType(i, t))
+		s := sizeofNilPointer(this.fieldType(i, t))
 		if s < 0 {
 			return -1
 		}

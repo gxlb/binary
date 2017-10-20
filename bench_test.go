@@ -1,6 +1,5 @@
 package binary
 
-///*
 import (
 	"bytes"
 	std "encoding/binary"
@@ -24,8 +23,6 @@ var (
 
 	str  = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 	strW string
-
-//	cpx128 complex128 = complex(111.5, 555.5)
 )
 
 func init() {
@@ -155,72 +152,6 @@ func BenchmarkUnackString(b *testing.B) {
 	testBenchUnpack(b, &data, &strW, "BenchmarkUnackString")
 }
 
-////////////////
-//func BenchmarkReadStruct1(b *testing.B) {
-//	testBenchRead(b, &_struct, "struct")
-//}
-
-//func BenchmarkUnpackStruct1(b *testing.B) {
-//	buff, _ := Pack(_struct, nil)
-//	b.SetBytes(int64(sizeofValue(reflect.ValueOf(_struct))))
-//	var t Struct
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		Unpack(buff, &t)
-//	}
-//	b.StopTimer()
-//	if b.N > 0 && !reflect.DeepEqual(_struct, t) {
-//		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
-//	}
-//}
-
-//func BenchmarkReadString(b *testing.B) {
-//	bsr := &byteSliceReader{}
-//	var buf bytes.Buffer
-//	Write(&buf, BigEndian, str)
-//	b.SetBytes(int64(buf.Len()))
-//	var t string
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		bsr.remain = buf.Bytes()
-//		Read(bsr, BigEndian, &t)
-//	}
-//	b.StopTimer()
-//	if b.N > 0 && !reflect.DeepEqual(str, t) {
-//		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
-//	}
-//}
-//func BenchmarkUnpackString(b *testing.B) {
-//	buff, _ := Pack(str, nil)
-//	b.SetBytes(int64(len(buff)))
-//	var t string
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		Unpack(buff, &t)
-//	}
-//	b.StopTimer()
-//	if b.N > 0 && !reflect.DeepEqual(str, t) {
-//		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
-//	}
-//}
-
-//func testBenchReadStd(b *testing.B, data interface{}, caseName string) {
-//	bsr := &byteSliceReader{}
-//	var buf bytes.Buffer
-//	Write(&buf, BigEndian, data)
-//	b.SetBytes(int64(sizeofValue(reflect.ValueOf(_struct))))
-//	t := reflect.New(reflect.Indirect(reflect.ValueOf(data)).Type())
-//	b.ResetTimer()
-//	for i := 0; i < b.N; i++ {
-//		bsr.remain = buf.Bytes()
-//		Read(bsr, BigEndian, &t)
-//	}
-//	b.StopTimer()
-//	if b.N > 0 && !reflect.DeepEqual(_struct, t) {
-//		b.Fatalf("struct doesn't match:\ngot  %v;\nwant %v", t, _struct)
-//	}
-//}
-
 func newSame(v reflect.Value) (value reflect.Value) {
 	vv := reflect.Indirect(v)
 	t := vv.Type()
@@ -297,8 +228,7 @@ func testBenchGobDecode(b *testing.B, data, w interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(buffer.Len()))
-	//	newValue := newSame(reflect.ValueOf(data))
-	//	t := newValue.Interface()
+
 	b.ResetTimer()
 	buf := buffer.Bytes()
 	bsr.remain = buf
@@ -329,8 +259,7 @@ func testBenchStdRead(b *testing.B, data, w interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(len(buffer.Bytes())))
-	//	newValue := newSame(reflect.ValueOf(data))
-	//	t := newValue.Interface()
+
 	b.ResetTimer()
 	bsr.remain = buffer.Bytes()
 	std.Read(bsr, std.LittleEndian, w)
@@ -351,8 +280,7 @@ func testBenchRead(b *testing.B, data, w interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(len(buffer.Bytes())))
-	//	newValue := newSame(reflect.ValueOf(data))
-	//	t := newValue.Interface()
+
 	b.ResetTimer()
 	bsr.remain = buffer.Bytes()
 	Read(bsr, DefaultEndian, w)
@@ -371,8 +299,7 @@ func testBenchUnpack(b *testing.B, data, w interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(len(buf)))
-	//	newValue := newSame(reflect.ValueOf(data))
-	//	t := newValue.Interface()
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Unpack(buf, w)
@@ -382,5 +309,3 @@ func testBenchUnpack(b *testing.B, data, w interface{}, caseName string) {
 		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, w, data)
 	}
 }
-
-//*/

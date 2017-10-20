@@ -23,7 +23,7 @@ type TDoNotSupport struct {
 	Struct        struct {
 		PStruct *struct {
 			PPUintptr **uintptr
-		} `binary:"PStruct"`
+		}
 	}
 	Struct2 struct {
 		PStruct *struct {
@@ -323,33 +323,6 @@ var littleFull = []byte{
 	0x13, 0x0, 0x1, 0x2, 0x7f, 0x80, 0x1, 0xfd, 0xff, 0x1, 0xfe, 0xff, 0x1, 0xff, 0xff, 0x1, 0x80, 0x80, 0x2, 0xfd, 0xff, 0x3, 0xfe, 0xff, 0x3, 0xff, 0xff, 0x3, 0x80, 0x80, 0x4, 0xfd, 0xff, 0xff, 0x7, 0xfe, 0xff, 0xff, 0x7, 0xff, 0xff, 0xff, 0x7, 0xfd, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1,
 }
 
-func TestGenerate(t *testing.T) {
-	//	var a, b int = -32767, 0
-	//	var c, d int = 32767, 0
-	//	var e, f uint = 0xfffffe, 0
-	//	b1, _ := Pack(a, nil)
-	//	Unpack(b1, &b)
-	//	b2, _ := Pack(c, nil)
-	//	Unpack(b2, &d)
-	//	b3, _ := Pack(e, nil)
-	//	Unpack(b3, &f)
-	//	fmt.Printf("1 %#v %X \n%#v\n%#v\n", a, a, b, b1)
-	//	fmt.Printf("2 %#v %X \n%#v\n%#v\n", c, c, d, b2)
-	//	fmt.Printf("2 %#v %X \n%#v\n%#v\n", e, e, f, b3)
-	//	b1, _ := Pack(full.IntSlice, nil)
-	//	b2, _ := Pack(full.UintSlice, nil)
-	//	fmt.Printf("%#v\n%#v\n", full.IntSlice, b1)
-	//	fmt.Printf("%#v\n%#v\n", full.UintSlice, b2)
-	//	for i, v := range full.IntSlice {
-	//		b, _ := Pack(v, nil)
-	//		fmt.Printf("int %d %x %x %d %#v\n", i, v, ToUvarint(int64(v)), len(b), b)
-	//	}
-	//	for i, v := range full.UintSlice {
-	//		b, _ := Pack(v, nil)
-	//		fmt.Printf("int %d %x %d %#v\n", i, v, len(b), b)
-	//	}
-}
-
 func TestPack(t *testing.T) {
 	v := reflect.ValueOf(full)
 	vt := v.Type()
@@ -488,8 +461,6 @@ func TestPackEmptyPointer(t *testing.T) {
 	if !reflect.DeepEqual(b2, check) {
 		t.Errorf("got %+v\nneed %+v\n", b2, check)
 	}
-	//fmt.Printf("%+v\n%#v\n", s, b)
-	//	fmt.Printf("%+v\n%#v\n", ss, b2)
 }
 
 func TestHideStructField(t *testing.T) {
@@ -595,7 +566,6 @@ func TestDecoderSkip(t *testing.T) {
 	}
 
 	var r [4]s
-	//println("Sizeof(w)", Sizeof(w))
 	b, err := Pack(&w, nil)
 	if err != nil {
 		t.Error(err)
@@ -748,7 +718,7 @@ func TestRegistStruct(t *testing.T) {
 	c := a
 	c.B = 0
 	c.d = ""
-	r.PS = nil //bug:encode nil pointer 1 byte?
+	r.PS = nil //BUG: how to encode nil pointer?
 	if !reflect.DeepEqual(r, c) {
 		t.Errorf("got %+v\nneed %+v\n", r, c)
 	}
@@ -773,160 +743,3 @@ func TestRegistStructUnsupported(t *testing.T) {
 		t.Errorf("RegistStructUnsupported: have info == %v, want nil", field)
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////
-
-//func _TestGob(t *testing.T) {
-//	var s struct {
-//		P *int32
-//		Q int16
-//		R string
-//		T struct {
-//			A int8
-//			B string
-//		}
-//	}
-//	s.P = new(int32)
-//	s.Q = 5
-//	s.R = "hello"
-//	s.T.A = 3
-//	s.T.B = "abc"
-
-//	buff := make([]byte, 0, 32)
-//	bu := bytes.NewBuffer(buff)
-//	coder := gob.NewEncoder(bu)
-//	err := coder.Encode(s)
-//	fmt.Println(err)
-//	fmt.Printf("before pack: %#v\n", s)
-//	bb := bu.Bytes()
-//	fmt.Printf("gobencode: %d %#v\n", len(bb), bb)
-//	b, _ := Pack(s, nil)
-//	fmt.Printf("packencode: %d %#v\n", len(b), b)
-//}
-
-//func _TestGob2(t *testing.T) {
-//	type SubStruct struct {
-//		Strings []string
-//		Int16s  []int16
-//		Uint32s []uint32
-//	}
-//	type S struct {
-//		Bools      []bool
-//		Bools2     [9]bool
-//		Bool       bool
-//		Int8       int8
-//		Uint8      uint8
-//		Int16      int16
-//		Uint16     uint16
-//		Int32      int32
-//		Uint32     uint32
-//		Int64      int64
-//		Uint64     uint64
-//		Float32    float32
-//		Float64    float64
-//		Complex64  complex64
-//		Complex128 complex128
-//		String     string
-//		//		PString    *string
-//		Struct SubStruct
-//	}
-//	var s S = S{
-//		Bools:  []bool{true, true, false, false, true, true, false, false, false, true},
-//		Bools2: [9]bool{false, false, false, true, true, true, false, false},
-//		Int8:   5,
-//		Uint32: 277,
-//		String: "sss",
-//		//		PString: new(string),
-//		Struct: SubStruct{
-//			Strings: []string{"aaa", "bbb", "ccc"},
-//		},
-//	}
-//	buffer := bytes.NewBuffer(make([]byte, 0, 512))
-//	coder := gob.NewEncoder(buffer)
-//	err := coder.Encode(s)
-//	fmt.Println(err)
-//	fmt.Printf("before pack: %#v\n", s)
-//	bb := buffer.Bytes()
-//	fmt.Printf("gobencode: %d %#v\n", len(bb), bb)
-//	//fmt.Println(Size(s))
-//	b, _ := Pack(s, nil)
-//	fmt.Printf("packencode: %d %#v\n", len(b), b)
-//	var tt S
-//	err = Unpack(b, &tt)
-//	fmt.Println(err)
-//	fmt.Printf("after unpack: %#v\n", tt)
-//	fmt.Println(reflect.DeepEqual(s, tt))
-
-//}
-
-//func _TestSlice(t *testing.T) {
-//	var s = []byte("hello")
-//	testSlice(&s)
-//	fmt.Printf("%#v\n", s)
-//}
-
-//func testSlice(i interface{}) {
-//	//	v := reflect.ValueOf(i)
-//	//	//t := []byte("asdf")
-//	//	v.Elem().Set(reflect.MakeSlice(v.Elem().Type(), 2, 2))
-//	//	//v.Elem().Set(reflect.ValueOf(&t).Elem())
-
-//	//	var s []byte
-//	//	var ss []byte = []byte("hh")
-//	//	p := &s
-//	//	var q *[]byte
-//	//	r := &ss
-
-//	//	fmt.Printf("%#v\n", p)
-//	//	fmt.Printf("%#v\n", q)
-//	//	fmt.Printf("%#v\n", r)
-
-//	var s struct {
-//		P *int
-//	}
-
-//	//	var pi *int
-//	//	fmt.Printf("%#v\n", pi)
-//	//	v := reflect.ValueOf(&pi)
-//	//	vv := reflect.Indirect(v)
-//	//	vv.Set(reflect.New(vv.Type().Elem()))
-//	//	fmt.Printf("%#v\n", pi)
-//	//	pi = new(int)
-//	//	fmt.Printf("%#v\n", pi)
-
-//	v := reflect.ValueOf(&s)
-//	vv := reflect.Indirect(v)
-//	f := vv.Field(0)
-//	f.Set(reflect.New(f.Type().Elem()))
-//	fmt.Printf("%#v\n", s)
-//}
-
-//func __TestPack(t *testing.T) {
-//	var s struct {
-//		P *int32
-//		Q int16
-//		R string
-//		T struct {
-//			A int8
-//			B string
-//		}
-//	}
-//	s.P = new(int32)
-//	s.Q = 5
-//	s.R = "hello"
-//	s.T.A = 3
-//	s.T.B = "abc"
-
-//	b, err := Pack(s, nil)
-//	//fmt.Println("err:", err)
-//	fmt.Printf("before pack: %#v\n", s)
-//	fmt.Printf("pack data: len:%d, %#v\n", len(b), b)
-
-//	tt := s
-//	err2 := Unpack(b, &tt)
-//	err2 = err2
-//	err = err
-//	//fmt.Println("err:", err2)
-
-//	fmt.Printf("after unpack: %#v\n", tt)
-//}

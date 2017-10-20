@@ -1,9 +1,3 @@
-// TODO:
-// bench test with std.binary and gob
-// function test
-// field tag parse
-// read buffer not enough, need return errr, not panic
-
 package binary
 
 import (

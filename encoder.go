@@ -378,7 +378,7 @@ func (this *Encoder) value(v reflect.Value) error {
 		this.String(v.String())
 
 	case reflect.Slice, reflect.Array:
-		if sizeofEmptyPointer(v.Type().Elem()) < 0 { //verify array element is valid
+		if sizeofNilPointer(v.Type().Elem()) < 0 { //verify array element is valid
 			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
 		}
 		if this.boolArray(v) < 0 { //deal with bool array first
@@ -392,8 +392,8 @@ func (this *Encoder) value(v reflect.Value) error {
 		t := v.Type()
 		kt := t.Key()
 		vt := t.Elem()
-		if sizeofEmptyPointer(kt) < 0 ||
-			sizeofEmptyPointer(vt) < 0 { //verify map key and value type are both valid
+		if sizeofNilPointer(kt) < 0 ||
+			sizeofNilPointer(vt) < 0 { //verify map key and value type are both valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 
@@ -425,22 +425,6 @@ func (this *Encoder) value(v reflect.Value) error {
 	}
 	return nil
 }
-
-//func (this *Encoder) fstruct(v reflect.Value) error {
-//	assert(v.Kind() == reflect.Struct, v.Type().String())
-//	t := v.Type()
-//	for i, n := 0, v.NumField(); i < n; i++ {
-//		// see comment for corresponding code in decoder.value()
-//		if f := v.Field(i); validField(t.Field(i)) {
-//			if err := this.value(f); err != nil {
-//				return err
-//			}
-//		} else {
-//			//this.Skip(sizeofEmptyValue(f))
-//		}
-//	}
-//	return nil
-//}
 
 func (this *Encoder) nilPointer(t reflect.Type) int {
 	tt := t
@@ -492,7 +476,6 @@ func (this *Encoder) boolArray(v reflect.Value) int {
 				if bit == 0 {
 					b = this.reserve(1)
 					b[0] = 0
-					//fmt.Println("Encoder.boolArray", i, bit, this.pos)
 				}
 				if x := v.Index(i).Bool(); x {
 					b[0] |= mask

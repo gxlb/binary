@@ -1,4 +1,4 @@
-# binary [![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-0.8.0.final-green.svg)
+# binary [![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-1.0.0.final-green.svg)
   Package binary is uesed to Pack/Unpack between go data and byte slice.
 
   The main purpose of this package is to replace package "std.binary".

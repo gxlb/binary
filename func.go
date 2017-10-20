@@ -38,7 +38,7 @@ func sizeofValue(v reflect.Value) (l int) {
 	//		fmt.Printf("sizeof(%s)=%d\n", v.Type().String(), l)
 	//	}()
 	if v.Kind() == reflect.Ptr && v.IsNil() { //nil is not aviable
-		return sizeofEmptyPointer(v.Type())
+		return sizeofNilPointer(v.Type())
 	}
 
 	v = reflect.Indirect(v)                 //redrect pointer to it's value
@@ -59,7 +59,7 @@ func sizeofValue(v reflect.Value) (l int) {
 			return sizeofFixArray(arrayLen, s)
 		} else {
 			sum := SizeofUvarint(uint64(arrayLen)) //array size bytes num
-			if sizeofEmptyPointer(t.Elem()) < 0 {  //check if array element type valid
+			if sizeofNilPointer(t.Elem()) < 0 {    //check if array element type valid
 				return -1
 			}
 			for i, n := 0, arrayLen; i < n; i++ {
@@ -74,8 +74,8 @@ func sizeofValue(v reflect.Value) (l int) {
 		sum := SizeofUvarint(uint64(mapLen)) //array size
 		keys := v.MapKeys()
 
-		if sizeofEmptyPointer(t.Key()) < 0 ||
-			sizeofEmptyPointer(t.Elem()) < 0 { //check if map key and value type valid
+		if sizeofNilPointer(t.Key()) < 0 ||
+			sizeofNilPointer(t.Elem()) < 0 { //check if map key and value type valid
 			return -1
 		}
 
@@ -102,7 +102,7 @@ func sizeofValue(v reflect.Value) (l int) {
 	return -1
 }
 
-func sizeofEmptyPointer(t reflect.Type) int {
+func sizeofNilPointer(t reflect.Type) int {
 	tt := t
 	if tt.Kind() == reflect.Ptr {
 		tt = t.Elem()
@@ -122,7 +122,7 @@ func sizeofEmptyPointer(t reflect.Type) int {
 			}
 			return sizeofFixArray(tt.Len(), s)
 		} else {
-			size := sizeofEmptyPointer(tt.Elem())
+			size := sizeofNilPointer(tt.Elem())
 			if size < 0 {
 				return -1
 			}
@@ -135,36 +135,6 @@ func sizeofEmptyPointer(t reflect.Type) int {
 
 	return -1
 }
-
-//func sizeofEmptyValue(v reflect.Value) (l int) {
-//	if !(v.Kind() == reflect.Ptr && v.IsNil()) { //nil pointer only
-//		return -1
-//	}
-//	t := v.Type().Elem()
-
-//	if s := _fixTypeSize(t); s > 0 { //fix size
-//		return s
-//	}
-//	switch t.Kind() {
-//	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
-//		return 1
-//	case reflect.Slice, reflect.Array, reflect.String:
-//		return SizeofUvarint(uint64(0))
-
-//	case reflect.Struct:
-//		sum := 0
-//		for i, n := 0, v.NumField(); i < n; i++ {
-//			s := sizeofEmptyValue(v.Field(i))
-//			if s < 0 {
-//				return -1
-//			}
-//			sum += s
-//		}
-//		return sum
-//	}
-
-//	return -1
-//}
 
 func _fixTypeSize(t reflect.Type) int {
 	switch t.Kind() {
@@ -182,6 +152,7 @@ func _fixTypeSize(t reflect.Type) int {
 	return -1
 }
 
+// Auto allocate for aviable pointer
 func newPtr(v reflect.Value) bool {
 	if v.Kind() == reflect.Ptr {
 		e := v.Type().Elem()
@@ -199,8 +170,10 @@ func newPtr(v reflect.Value) bool {
 	return false
 }
 
+// NOTE:
+// This function will make the encode/decode of struct slow down.
+// It is recommeded to use RegistStruct to improve this case.
 func validField(f reflect.StructField) bool {
-	//println("validField", v.CanSet(), f.Name, f.Index)
 	if isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
 		return true
 	}
@@ -212,14 +185,6 @@ func isExported(id string) bool {
 	r, _ := utf8.DecodeRuneInString(id)
 	return unicode.IsUpper(r)
 }
-
-//deep indirect change ***X to X
-//func DeepIndirect(v reflect.Value) reflect.Value {
-//	for v.Kind() == reflect.Ptr {
-//		v = v.Elem()
-//	}
-//	return v
-//}
 
 //size of bool array when encode
 func sizeofBoolArray(_len int) int {
