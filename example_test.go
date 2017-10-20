@@ -201,7 +201,7 @@ func ExamplePacker() {
 }
 
 func ExampleSizeof() {
-	type t struct {
+	var s struct {
 		Int8        int8
 		Int16       int16
 		Int32       int32
@@ -219,7 +219,6 @@ func ExampleSizeof() {
 		BoolArray   [100]bool
 		Uint32Array [10]uint32
 	}
-	var s t
 
 	buf := bytes.NewBuffer(make([]byte, 0, 1024))
 	coder := gob.NewEncoder(buf)
@@ -233,5 +232,5 @@ func ExampleSizeof() {
 	// Output:
 	// Sizeof(s)  = 133
 	// std.Size(s)= 217
-	// gob.Size(s)= 415
+	// gob.Size(s)= 412
 }
