@@ -34,9 +34,6 @@ func assert(b bool, msg interface{}) {
 
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
 func sizeofValue(v reflect.Value) (l int) {
-	//	defer func() {
-	//		fmt.Printf("sizeof(%s)=%d\n", v.Type().String(), l)
-	//	}()
 	if v.Kind() == reflect.Ptr && v.IsNil() { //nil is not aviable
 		return sizeofNilPointer(v.Type())
 	}

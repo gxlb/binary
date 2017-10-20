@@ -292,7 +292,7 @@ func TestBlankFields(t *testing.T) {
 }
 
 //************************************************************************************
-// Different form std.binary, Unexported filed will be ignored when encoding/decoding.
+// Different form std.binary, unexported filed will be ignored when encoding/decoding.
 // So TestUnexportedRead is not suitable for this package.
 //************************************************************************************
 

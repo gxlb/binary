@@ -39,7 +39,6 @@ func (this *Decoder) reserve(size int) []byte {
 		}
 		buff := this.buff[:size]
 		if n, _ := this.reader.Read(buff); n < size {
-			//return nil, io.ErrUnexpectedEOF
 			panic(io.ErrUnexpectedEOF)
 		}
 		return buff
@@ -221,9 +220,6 @@ func (this *Decoder) Value(x interface{}) (err error) {
 }
 
 func (this *Decoder) value(v reflect.Value) error {
-	//	defer func() {
-	//		fmt.Printf("Decoder:after value(%#v)=%d\n", v.Interface(), this.pos)
-	//	}()
 	switch k := v.Kind(); k {
 	case reflect.Int:
 		v.SetInt(int64(this.Int()))
@@ -303,7 +299,6 @@ func (this *Decoder) value(v reflect.Value) error {
 		s, _ := this.Uvarint()
 		size := int(s)
 		for i := 0; i < size; i++ {
-			//fmt.Printf("key:%#v value:%#v\n", key.Elem().Interface(), value.Elem().Interface())
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
 			this.value(key)

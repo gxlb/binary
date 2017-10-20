@@ -26,7 +26,7 @@ var (
 )
 
 func init() {
-	RegistStruct((*regedStruct)(nil))
+	RegStruct((*regedStruct)(nil))
 	for i := len(u32Array1000) - 1; i >= 0; i-- {
 		u32Array1000[i] = uint32(i)*7368787 + 2750159 //rand number
 	}
@@ -100,7 +100,7 @@ func BenchmarkWriteInt1000(b *testing.B) {
 func BenchmarkPackInt1000(b *testing.B) {
 	data := u32Array1000
 	testBenchPack(b, data, "BenchmarkPackInt1000")
-} //
+} //BUG: this case will fail
 //func BenchmarkGobDecodeInt1000(b *testing.B) {
 //	data := u32Array1000
 //	testBenchGobDecode(b, &data, &u32Array1000W, "BenchmarkGobDecodeInt1000")

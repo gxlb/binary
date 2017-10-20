@@ -344,6 +344,7 @@ func TestPack(t *testing.T) {
 		}
 	}
 
+	//map fields will case uncertain bytes order but it does't matter
 	//	b, err := Pack(full, nil)
 	//	if err != nil {
 	//		t.Error(err)
@@ -374,7 +375,7 @@ func TestReset(t *testing.T) {
 	if len(old) != l {
 		t.Errorf("encode len error: got %#v\nneed %#v\n", old, l)
 	}
-	//fmt.Printf("%#v\n", old)
+
 	if !reflect.DeepEqual(old, oldCheck) {
 		t.Errorf("got %#v\nneed %#v\n", old, oldCheck)
 	}
@@ -570,7 +571,7 @@ func TestDecoderSkip(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	//fmt.Printf("%#v\n", b)
+
 	err2 := Unpack(b, &r)
 	if err2 != nil {
 		t.Error(err2)
@@ -593,7 +594,6 @@ func TestFastValue(t *testing.T) {
 		}
 	}
 	buffer := encoder.Buffer()
-	//fmt.Printf("%#v\n", buffer)
 
 	var r fastValues
 	vr := reflect.ValueOf(&r)
@@ -669,7 +669,7 @@ func TestAssert(t *testing.T) {
 	assert(false, message)
 }
 
-func TestRegistStruct(t *testing.T) {
+func TestRegStruct(t *testing.T) {
 	type StructForReg struct {
 		A int
 		B uint `binary:"ignore"`
@@ -690,9 +690,9 @@ func TestRegistStruct(t *testing.T) {
 			B string
 		}
 	}
-	RegistStruct((*StructForReg)(nil))
-	if err := RegistStruct((*StructForReg)(nil)); err == nil { //duplicate regist
-		t.Errorf("RegistStruct: have err == nil, want non-nil")
+	RegStruct((*StructForReg)(nil))
+	if err := RegStruct((*StructForReg)(nil)); err == nil { //duplicate regist
+		t.Errorf("RegStruct: have err == nil, want non-nil")
 	}
 	var a = StructForReg{
 		A: -5,
@@ -708,8 +708,6 @@ func TestRegistStruct(t *testing.T) {
 		t.Error(err)
 	}
 
-	//fmt.Printf("%#v\n", b)
-
 	var r StructForReg
 	err = Unpack(b, &r)
 	if err != nil {
@@ -720,12 +718,12 @@ func TestRegistStruct(t *testing.T) {
 	c.d = ""
 	r.PS = nil //BUG: how to encode nil pointer?
 	if !reflect.DeepEqual(r, c) {
-		t.Errorf("got %+v\nneed %+v\n", r, c)
+		t.Errorf("RegStruct got %+v\nneed %+v\n", r, c)
 	}
 }
 
 func TestRegistStructUnsupported(t *testing.T) {
-	err := RegistStruct(int(0))
+	err := RegStruct(int(0))
 	if err == nil {
 		t.Errorf("RegistStructUnsupported: have err == nil, want non-nil")
 	}

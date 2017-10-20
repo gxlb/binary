@@ -329,11 +329,6 @@ func (this *Encoder) fastValue(x interface{}) bool {
 }
 
 func (this *Encoder) value(v reflect.Value) error {
-	//	defer func() {
-	//		fmt.Printf("Encoder:after value(%#v)=%d\n", v.Interface(), this.pos)
-	//	}()
-	//t := v.Type()
-	//fmt.Printf("Encoder.value type=[%s] name=[%s] pkgpath=[%s]\n", t.String(), t.Name(), t.PkgPath())
 	switch k := v.Kind(); k {
 	case reflect.Int:
 		this.Int(int(v.Int()))

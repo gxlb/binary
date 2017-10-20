@@ -236,11 +236,11 @@ func ExampleSizeof() {
 }
 
 func ExampleRegistStruct() {
-	type registedStruct struct {
+	type someRegedStruct struct {
 		A int `binary:"ignore"`
 		B string
 		C uint
 	}
-	binary.RegistStruct((*registedStruct)(nil))
+	binary.RegStruct((*someRegedStruct)(nil))
 	// Output:
 }

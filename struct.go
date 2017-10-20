@@ -7,9 +7,9 @@ import (
 	"reflect"
 )
 
-// RegsterStruct regist struct info to improve encoding/decoding efficiency.
-// Regist by nil pointer is aviable.
-func RegistStruct(data interface{}) error {
+// RegStruct regist struct info to improve encoding/decoding efficiency.
+// Regist by a nil pointer is aviable.
+func RegStruct(data interface{}) error {
 	return _structInfoMgr.regist(reflect.TypeOf(data))
 }
 
@@ -55,7 +55,6 @@ func (this *structInfoMgr) regist(t reflect.Type) error {
 			p := &structInfo{}
 			if p.parse(_t) {
 				this.reg[p.identify] = p
-				//fmt.Printf("%#v\n", p)
 			}
 		} else {
 			return fmt.Errorf("binary: regist duplicate type %s", _t.String())
@@ -105,7 +104,7 @@ func (this *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 				return err
 			}
 		} else {
-			//this.Skip(sizeofEmptyValue(f))
+			//do nothing
 		}
 	}
 	return nil
@@ -136,12 +135,11 @@ func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 		// costly (run "go test -bench=ReadStruct" and compare
 		// results when making changes to this code).
 		if f := v.Field(i); this.fieldValid(i, t) {
-			//fmt.Printf("field(%d) [%s] \n", i, t.Field(i).Name)
 			if err := decoder.value(f); err != nil {
 				return err
 			}
 		} else {
-			//this.Skip(this.sizeofType(f.Type()))
+			//do nothing
 		}
 	}
 	return nil
@@ -222,11 +220,9 @@ func (this *structInfo) parse(t reflect.Type) bool {
 		field.ignore = !isExported(f.Name) || tag == "ignore"
 		//field.encodeKind = getIntKind(tag)
 
-		//fmt.Printf("%d %+v %s \n", i, field, field.field.Type.String())
-
 		this.fields = append(this.fields, field)
 
-		//deep register if field is a struct
+		//deep regist if field is a struct
 		if _t, ok, _ := _structInfoMgr.deepStructType(f.Type, false); ok {
 			if err := _structInfoMgr.regist(_t); err != nil {
 				//fmt.Printf("binary: internal regist duplicate type %s\n", _t.String())
