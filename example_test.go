@@ -6,8 +6,11 @@ package binary_test
 
 import (
 	"bytes"
+	"encoding/gob"
 	"fmt"
 	"math"
+
+	std "encoding/binary"
 
 	"github.com/vipally/binary"
 )
@@ -195,4 +198,40 @@ func ExamplePacker() {
 	// [{A:287454020 B:-5 C:hello}
 	// []byte{0x44, 0x33, 0x22, 0x11, 0xfb, 0xff, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 	// {A:287454020 B:-5 C:hello}]
+}
+
+func ExampleSizeof() {
+	type t struct {
+		Int8        int8
+		Int16       int16
+		Int32       int32
+		Int64       int64
+		Uint8       uint8
+		Uint16      uint16
+		Uint32      uint32
+		Uint64      uint64
+		Float32     float32
+		Float64     float64
+		Complex64   complex64
+		Complex128  complex128
+		Array       [10]uint8
+		Bool        bool
+		BoolArray   [100]bool
+		Uint32Array [10]uint32
+	}
+	var s t
+
+	buf := bytes.NewBuffer(make([]byte, 0, 1024))
+	coder := gob.NewEncoder(buf)
+	coder.Encode(s)
+	gobSize := len(buf.Bytes())
+
+	stdSize := std.Size(s)
+	size := binary.Sizeof(s)
+
+	fmt.Printf("Sizeof(s)  = %d\nstd.Size(s)= %d\ngob.Size(s)= %d", size, stdSize, gobSize)
+	// Output:
+	// Sizeof(s)  = 133
+	// std.Size(s)= 217
+	// gob.Size(s)= 415
 }
