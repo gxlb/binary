@@ -9,6 +9,7 @@ import (
 
 // RegStruct regist struct info to improve encoding/decoding efficiency.
 // Regist by a nil pointer is aviable.
+// RegStruct((*someStruct)(nil)) is recommended usage.
 func RegStruct(data interface{}) error {
 	return _structInfoMgr.regist(reflect.TypeOf(data))
 }
@@ -183,6 +184,7 @@ func (this *structInfo) sizeofEmptyPointer(t reflect.Type) int {
 func (this *structInfo) fieldValid(i int, t reflect.Type) bool {
 	if this == nil {
 		//Note: creating the StructField info for each field is costly
+		// use RegStruct((*someStruct)(nil)) to aboid this path
 		return validField(t.Field(i)) // slow way to access field info
 	} else {
 		return this.field(i).valid() //fast way to access field info
