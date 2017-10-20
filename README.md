@@ -243,7 +243,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 		}
 	}
 
-# Lisense.
+# License.
 	Under MIT license.
 
 	Copyright (c) 2017 Ally Dale<vipally@gmail.com>
