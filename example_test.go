@@ -235,7 +235,7 @@ func ExampleSizeof() {
 	// gob.Size(s)= 412
 }
 
-func ExampleRegistStruct() {
+func ExampleRegStruct() {
 	type someRegedStruct struct {
 		A int `binary:"ignore"`
 		B string
