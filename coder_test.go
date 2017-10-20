@@ -741,3 +741,20 @@ func TestRegistStructUnsupported(t *testing.T) {
 		t.Errorf("RegistStructUnsupported: have info == %v, want nil", field)
 	}
 }
+
+func TestDecodeUvarintOverflow(t *testing.T) {
+	data := [][]byte{
+		[]byte{0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x2},
+		[]byte{0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x1, 0, 0},
+	}
+	var d uint
+	for _, v := range data {
+		decoder := NewDecoder(v)
+		err := decoder.Value(&d)
+		if err == nil {
+			t.Errorf("DecodeUvarintOverflow: have err == nil, want none-nil")
+		} else {
+			//println(err.Error())
+		}
+	}
+}

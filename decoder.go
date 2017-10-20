@@ -189,12 +189,15 @@ func (this *Decoder) Uvarint() (uint64, int) {
 		b := this.Uint8()
 		x |= uint64(b&0x7f) << bit
 		if b < 0x80 {
-			assert(i < 9 || i == 9 && b <= 1, "binary.Decoder.Uvarint") //bytes num verify
-			break
+			if i > 9 || i == 9 && b > 1 {
+				break // overflow
+			}
+			return x, i + 1
 		}
 		bit += 7
 	}
-	return x, i + 1
+	//return 0, 0
+	panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d).", this.Len(), this.Cap()))
 }
 
 // Value decode an interface value from Encoder buffer.
@@ -203,8 +206,9 @@ func (this *Decoder) Uvarint() (uint64, int) {
 // or buffer is not enough.
 func (this *Decoder) Value(x interface{}) (err error) {
 	defer func() {
-		if recover() != nil {
-			err = io.ErrUnexpectedEOF
+		if info := recover(); info != nil {
+			err = info.(error)
+			assert(err != nil, info)
 		}
 	}()
 	if this.fastValue(x) { //fast value path
