@@ -31,7 +31,7 @@ func (this *coder) Cap() int {
 	return len(this.buff)
 }
 
-// Skip ignore this next size of bytes for encoding/decoding and
+// Skip ignore the next size of bytes for encoding/decoding and
 // set skiped bytes to 0.
 // It will panic if space not enough.
 // It will return -1 if size <= 0.

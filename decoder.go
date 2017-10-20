@@ -25,7 +25,7 @@ type Decoder struct {
 	reader io.Reader //for decode from reader only
 }
 
-// Skip ignore this next size of bytes for encoding/decoding.
+// Skip ignore the next size of bytes for encoding/decoding.
 // It will panic If space not enough.
 // It will return -1 if size <= 0.
 func (this *Decoder) Skip(size int) int {
