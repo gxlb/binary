@@ -74,7 +74,7 @@ func Size(data interface{}) int {
 // must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 func Sizeof(data interface{}) int {
-	if p, ok := data.(Packer); ok {
+	if p, ok := data.(Sizer); ok {
 		return p.Size()
 	}
 	return sizeof(data)
@@ -135,11 +135,25 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 	return err
 }
 
-// Packer is an interface to define go data Pack and UnPack method.
-type Packer interface {
+// Sizer is an interface to define go data Size  method.
+type Sizer interface {
 	Size() int
+}
+
+// Packer is an interface to define go data Pack  method.
+type Packer interface {
 	Pack() ([]byte, error)
+}
+
+// Packer is an interface to define go data UnPack method.
+type Unpacker interface {
 	Unpack(buffer []byte) error
+}
+
+type Serializer interface {
+	Sizer
+	Packer
+	Unpacker
 }
 
 // Pack encode go data to byte array.
@@ -168,7 +182,7 @@ func Pack(data interface{}, buffer []byte) ([]byte, error) {
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
 func Unpack(buffer []byte, data interface{}) error {
-	if p, ok := data.(Packer); ok {
+	if p, ok := data.(Unpacker); ok {
 		return p.Unpack(buffer)
 	}
 
