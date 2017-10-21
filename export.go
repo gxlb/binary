@@ -73,9 +73,17 @@ func Size(data interface{}) int {
 // Sizeof returns how many bytes Write would generate to encode the value v, which
 // must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
+// It will panic if data implements interface Sizer or Packer only.
 func Sizeof(data interface{}) int {
 	if p, ok := data.(Sizer); ok {
+		if _, _ok := data.(Packer); !_ok { //interface verification
+			panic(errors.New("expect but not Packer:" + reflect.TypeOf(data).String()))
+		}
 		return p.Size()
+	} else {
+		if _, _ok := data.(Packer); _ok { //interface verification
+			panic(errors.New("unexpected Packer:" + reflect.TypeOf(data).String()))
+		}
 	}
 	return sizeof(data)
 }
@@ -141,8 +149,9 @@ type Sizer interface {
 }
 
 // Packer is an interface to define go data Pack  method.
+// buffer is nil-able
 type Packer interface {
-	Pack() ([]byte, error)
+	Pack(buffer []byte) ([]byte, error)
 }
 
 // Packer is an interface to define go data UnPack method.
@@ -150,7 +159,7 @@ type Unpacker interface {
 	Unpack(buffer []byte) error
 }
 
-type Serializer interface {
+type PackUnpacker interface {
 	Sizer
 	Packer
 	Unpacker
@@ -159,22 +168,14 @@ type Serializer interface {
 // Pack encode go data to byte array.
 // nil buffer is aviable, it will create new buffer if necessary.
 func Pack(data interface{}, buffer []byte) ([]byte, error) {
-	size := Sizeof(data)
-	if size < 0 {
-		return nil, errors.New("binary.Pack: invalid type " + reflect.TypeOf(data).String())
+	buff, err := MakeEncodeBuffer(data, buffer)
+	if err != nil {
+		return nil, err
 	}
-	if len(buffer) < size {
-		buffer = make([]byte, size)
-	}
-	if p, ok := data.(Packer); ok {
-		return p.Pack()
-	}
-	var encoder Encoder
-	encoder.buff = buffer
-	encoder.endian = DefaultEndian
-	encoder.pos = 0
 
-	err := encoder.Value(data)
+	encoder := NewEncoderBuffer(buff)
+
+	err = encoder.Value(data)
 	return encoder.Buffer(), err
 }
 
@@ -182,11 +183,22 @@ func Pack(data interface{}, buffer []byte) ([]byte, error) {
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
 func Unpack(buffer []byte, data interface{}) error {
-	if p, ok := data.(Unpacker); ok {
-		return p.Unpack(buffer)
-	}
-
 	var decoder Decoder
 	decoder.Init(buffer, DefaultEndian)
 	return decoder.Value(data)
+}
+
+// MakeEncodeBuffer create enough buffer to encode data
+// nil buffer is aviable, it will create new buffer if necessary.
+func MakeEncodeBuffer(data interface{}, buffer []byte) ([]byte, error) {
+	size := Sizeof(data)
+	if size < 0 {
+		return nil, errors.New("binary.Pack: invalid type " + reflect.TypeOf(data).String())
+	}
+
+	buff := buffer
+	if len(buff) < size {
+		buff = make([]byte, size)
+	}
+	return buff, nil
 }

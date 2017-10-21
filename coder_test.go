@@ -758,3 +758,101 @@ func TestDecodeUvarintOverflow(t *testing.T) {
 		}
 	}
 }
+
+type sizerOnly struct{ A uint8 }
+
+func (this sizerOnly) Size() int { return 1 }
+
+type packerOnly struct{ B uint8 }
+
+func (this packerOnly) Pack(buffer []byte) ([]byte, error) { return nil, nil }
+
+type unpackerOnly struct {
+	C uint8
+}
+
+func (this *unpackerOnly) Unpack(buffer []byte) error { return nil }
+
+type sizepackerOnly struct {
+	sizerOnly
+	packerOnly
+}
+type sizeunpackerOnly struct {
+	sizerOnly
+	unpackerOnly
+}
+type packunpackerOnly struct {
+	packerOnly
+	unpackerOnly
+}
+type fullPackUnpacker struct {
+	sizerOnly
+	packerOnly
+	unpackerOnly
+}
+
+func TestPackUnpacker(t *testing.T) {
+	var a sizerOnly
+	var b packerOnly
+	var c unpackerOnly
+	var d sizepackerOnly
+	var e sizeunpackerOnly
+	var f packunpackerOnly
+	var g fullPackUnpacker
+
+	testCase := func(data interface{}, testcase int) (info interface{}) {
+		defer func() {
+
+			_info := recover()
+			if _info != nil && info == nil {
+				info = _info
+				//fmt.Println(info)
+			}
+		}()
+		switch testcase {
+		case 1:
+			Sizeof(data)
+		case 2:
+			if _, err := Pack(data, nil); err != nil {
+				info = err
+			}
+
+		case 3:
+			if err := Unpack(buff, data); err != nil {
+				info = err
+			}
+		}
+		return
+	}
+
+	testCode := func(data interface{}) (info interface{}) {
+		for i := 1; i <= 3; i++ {
+			if _info := testCase(data, i); _info != nil && info == nil {
+				info = _info
+			}
+		}
+		return
+	}
+
+	if info := testCode(&a); info == nil {
+		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+	}
+	if info := testCode(&b); info == nil {
+		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+	}
+	if info := testCode(&c); info == nil {
+		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+	}
+	if info := testCode(&d); info == nil {
+		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+	}
+	if info := testCode(&e); info == nil {
+		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+	}
+	if info := testCode(&f); info == nil {
+		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+	}
+	if info := testCode(&g); info != nil {
+		t.Errorf("PackUnpacker: have err == %#v, want nil", info)
+	}
+}

@@ -140,8 +140,12 @@ func (this *S) Size() int {
 	size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
 	return size
 }
-func (this *S) Pack() ([]byte, error) {
-	encoder := binary.NewEncoder(this.Size())
+func (this *S) Pack(buffer []byte) ([]byte, error) {
+	buff, err := binary.MakeEncodeBuffer(this, buffer)
+	if err != nil {
+		return nil, err
+	}
+	encoder := binary.NewEncoderBuffer(buff)
 	encoder.Value(this.A)
 	encoder.Int16(int16(this.B))
 	encoder.Value(this.C)

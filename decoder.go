@@ -220,6 +220,32 @@ func (this *Decoder) Value(x interface{}) (err error) {
 	}
 
 	v := reflect.ValueOf(x)
+
+	if p, ok := x.(Unpacker); ok {
+		size := 0
+		if sizer, _ok := x.(Sizer); _ok { //interface verification
+			size = sizer.Size()
+		} else {
+			panic(fmt.Errorf("expect but not Sizer:" + v.Type().String()))
+		}
+		if _, _ok := x.(Packer); !_ok { //interface verification
+			panic(fmt.Errorf("unexpect but not Packer:" + v.Type().String()))
+		}
+		err := p.Unpack(this.buff[this.pos:])
+		if err != nil {
+			return err
+		}
+		this.reserve(size)
+		return nil
+	} else {
+		if _, _ok := x.(Sizer); _ok { //interface verification
+			panic(fmt.Errorf("unexpected Sizer:" + v.Type().String()))
+		}
+		if _, _ok := x.(Packer); _ok { //interface verification
+			panic(fmt.Errorf("unexpected Packer:" + v.Type().String()))
+		}
+	}
+
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
 		return this.value(v)
 	} else {
@@ -228,6 +254,22 @@ func (this *Decoder) Value(x interface{}) (err error) {
 }
 
 func (this *Decoder) value(v reflect.Value) error {
+	// check Packer interface for every value is perfect
+	// but this is too costly
+	//
+	//	iter := v.Interface()
+	//	if p, ok := iter.(PackUnpacker); ok {
+	//		size := p.Size()
+	//		b := this.reserve(size)
+	//		err := p.Unpack(b)
+	//		return err
+	//	} else {
+	//		_, ok := iter.(Sizer)
+	//		assert(!ok, v.Type().String())
+	//		_, ok = iter.(Packer)
+	//		assert(!ok, v.Type().String())
+	//	}
+
 	switch k := v.Kind(); k {
 	case reflect.Int:
 		v.SetInt(int64(this.Int()))

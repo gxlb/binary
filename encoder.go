@@ -11,6 +11,16 @@ func NewEncoder(size int) *Encoder {
 	return NewEncoderEndian(size, DefaultEndian)
 }
 
+// NewEncoder make a new Encoder object with buffer.
+func NewEncoderBuffer(buffer []byte) *Encoder {
+	p := &Encoder{}
+	//assert(buffer != nil, "nil buffer")
+	p.buff = buffer
+	p.endian = DefaultEndian
+	p.pos = 0
+	return p
+}
+
 // NewEncoderEndian make a new Encoder object with buffer size and endian.
 func NewEncoderEndian(size int, endian Endian) *Encoder {
 	p := &Encoder{}
@@ -176,6 +186,23 @@ func (this *Encoder) Value(x interface{}) (err error) {
 	}
 
 	v := reflect.ValueOf(x)
+
+	if p, ok := x.(Packer); ok {
+		if _, _ok := x.(Sizer); !_ok { //interface verification
+			panic(fmt.Errorf("pected but not Sizer:" + v.Type().String()))
+		}
+
+		r, err := p.Pack(this.buff[this.pos:])
+		if err == nil {
+			this.reserve(len(r))
+		}
+		return err
+	} else {
+		if _, _ok := x.(Sizer); _ok { //interface verification
+			panic(fmt.Errorf("unexpected Sizer:" + v.Type().String()))
+		}
+	}
+
 	return this.value(v)
 }
 
@@ -329,6 +356,19 @@ func (this *Encoder) fastValue(x interface{}) bool {
 }
 
 func (this *Encoder) value(v reflect.Value) error {
+	// check Packer interface for every value is perfect
+	// but this is too costly
+	//
+	//	if p, ok := v.Interface().(Packer); ok {
+	//		if bytes, err := p.Pack(); err == nil {
+	//			b := this.reserve(len(bytes))
+	//			copy(b, bytes)
+	//			return nil
+	//		} else {
+	//			return err
+	//		}
+	//	}
+
 	switch k := v.Kind(); k {
 	case reflect.Int:
 		this.Int(int(v.Int()))
