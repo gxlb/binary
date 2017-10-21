@@ -6,6 +6,24 @@ import (
 	"unicode/utf8"
 )
 
+//var (
+//	tSizer        reflect.Type
+//	tPacker       reflect.Type
+//	tUnpacker     reflect.Type
+//	tPackUnpacker reflect.Type
+//)
+
+//func init() {
+//	var sizer Sizer
+//	var packer Packer
+//	var unpacker Unpacker
+//	var packUnpacker PackUnpacker
+//	tSizer = reflect.TypeOf(&sizer).Elem()
+//	tPacker = reflect.TypeOf(&packer).Elem()
+//	tUnpacker = reflect.TypeOf(&unpacker).Elem()
+//	tPackUnpacker = reflect.TypeOf(&packUnpacker).Elem()
+//}
+
 func sizeof(i interface{}) int {
 	switch d := i.(type) { //fast size calculation
 	case bool, int8, uint8, *bool, *int8, *uint8:

@@ -257,17 +257,30 @@ func (this *Decoder) value(v reflect.Value) error {
 	// check Packer interface for every value is perfect
 	// but this is too costly
 	//
-	//	iter := v.Interface()
-	//	if p, ok := iter.(PackUnpacker); ok {
-	//		size := p.Size()
-	//		b := this.reserve(size)
-	//		err := p.Unpack(b)
-	//		return err
+	//	if t := v.Type(); t.Implements(tUnpacker) {
+	//		if !t.Implements(tPacker) { //interface verification
+	//			panic(fmt.Errorf("unexpect but not Packer: %s", v.Type().String()))
+	//		}
+	//		if !t.Implements(tSizer) { //interface verification
+	//			panic(fmt.Errorf("expect but not Sizer: %s", t.String()))
+	//		}
+
+	//		unpacker := v.Interface().(PackUnpacker)
+	//		size := unpacker.Size()
+	//		err := unpacker.Unpack(this.buff[this.pos:])
+	//		if err != nil {
+	//			return err
+	//		}
+	//		this.reserve(size)
+	//		return nil
 	//	} else {
-	//		_, ok := iter.(Sizer)
-	//		assert(!ok, v.Type().String())
-	//		_, ok = iter.(Packer)
-	//		assert(!ok, v.Type().String())
+	//		//interface verification
+	//		if t.Implements(tSizer) {
+	//			panic(fmt.Errorf("unexpected Sizer: %s", t.String()))
+	//		}
+	//		if t.Implements(tPacker) {
+	//			panic(fmt.Errorf("unexpected Packer: %s", t.String()))
+	//		}
 	//	}
 
 	switch k := v.Kind(); k {

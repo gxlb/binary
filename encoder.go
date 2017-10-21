@@ -359,13 +359,19 @@ func (this *Encoder) value(v reflect.Value) error {
 	// check Packer interface for every value is perfect
 	// but this is too costly
 	//
-	//	if p, ok := v.Interface().(Packer); ok {
-	//		if bytes, err := p.Pack(); err == nil {
-	//			b := this.reserve(len(bytes))
-	//			copy(b, bytes)
-	//			return nil
-	//		} else {
-	//			return err
+	//	if t := v.Type(); t.Implements(tPacker) {
+	//		if !t.Implements(tSizer) { //interface verification
+	//			panic(fmt.Errorf("pected but not Sizer: %s", t.String()))
+	//		}
+	//		packer := v.Interface().(Packer)
+	//		reault, err := packer.Pack(this.buff[this.pos:])
+	//		if err == nil {
+	//			this.reserve(len(reault))
+	//		}
+	//		return err
+	//	} else {
+	//		if t.Implements(tSizer) { //interface verification
+	//			panic(fmt.Errorf("unexpected Sizer: %s", v.Type().String()))
 	//		}
 	//	}
 
