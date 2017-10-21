@@ -790,6 +790,13 @@ type fullPackUnpacker struct {
 	packerOnly
 	unpackerOnly
 }
+type fullPackUnpackerUnpackerror struct {
+	fullPackUnpacker
+}
+
+func (this *fullPackUnpackerUnpackerror) Unpack(buffer []byte) error {
+	return fmt.Errorf("expected error")
+}
 
 func TestPackUnpacker(t *testing.T) {
 	var a sizerOnly
@@ -798,7 +805,8 @@ func TestPackUnpacker(t *testing.T) {
 	var d sizepackerOnly
 	var e sizeunpackerOnly
 	var f packunpackerOnly
-	var g fullPackUnpacker
+	var g fullPackUnpackerUnpackerror
+	var h fullPackUnpacker
 
 	testCase := func(data interface{}, testcase int) (info interface{}) {
 		defer func() {
@@ -821,12 +829,17 @@ func TestPackUnpacker(t *testing.T) {
 			if err := Unpack(buff, data); err != nil {
 				info = err
 			}
+		case 4:
+			encoder := NewEncoder(100)
+			if err := encoder.Value(data); err != nil {
+				info = err
+			}
 		}
 		return
 	}
 
 	testCode := func(data interface{}) (info interface{}) {
-		for i := 1; i <= 3; i++ {
+		for i := 1; i <= 4; i++ {
 			if _info := testCase(data, i); _info != nil && info == nil {
 				info = _info
 			}
@@ -852,7 +865,10 @@ func TestPackUnpacker(t *testing.T) {
 	if info := testCode(&f); info == nil {
 		t.Errorf("PackUnpacker: have err == nil, want none-nil")
 	}
-	if info := testCode(&g); info != nil {
+	if info := testCode(&g); info == nil {
+		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+	}
+	if info := testCode(&h); info != nil {
 		t.Errorf("PackUnpacker: have err == %#v, want nil", info)
 	}
 }
