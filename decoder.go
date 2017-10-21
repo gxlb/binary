@@ -226,10 +226,10 @@ func (this *Decoder) Value(x interface{}) (err error) {
 		if sizer, _ok := x.(Sizer); _ok { //interface verification
 			size = sizer.Size()
 		} else {
-			panic(fmt.Errorf("expect but not Sizer:" + v.Type().String()))
+			panic(fmt.Errorf("expect but not Sizer: %s", v.Type().String()))
 		}
 		if _, _ok := x.(Packer); !_ok { //interface verification
-			panic(fmt.Errorf("unexpect but not Packer:" + v.Type().String()))
+			panic(fmt.Errorf("unexpect but not Packer: %s", v.Type().String()))
 		}
 		err := p.Unpack(this.buff[this.pos:])
 		if err != nil {
@@ -239,10 +239,10 @@ func (this *Decoder) Value(x interface{}) (err error) {
 		return nil
 	} else {
 		if _, _ok := x.(Sizer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected Sizer:" + v.Type().String()))
+			panic(fmt.Errorf("unexpected Sizer: %s", v.Type().String()))
 		}
 		if _, _ok := x.(Packer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected Packer:" + v.Type().String()))
+			panic(fmt.Errorf("unexpected Packer: %s", v.Type().String()))
 		}
 	}
 
