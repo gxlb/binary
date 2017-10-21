@@ -174,6 +174,7 @@ func (this *Encoder) Uvarint(x uint64) int {
 // Value encode an interface value to Encoder buffer.
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
+// It will check if x implements interface Packer and use x.Pack first.
 func (this *Encoder) Value(x interface{}) (err error) {
 	defer func() {
 		if e := recover(); e != nil {

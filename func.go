@@ -38,6 +38,62 @@ func sizeof(i interface{}) int {
 		return 16
 	case string:
 		return sizeofString(len(d))
+
+		//	case int:
+		//		return SizeofVarint(int64(d))
+		//	case uint:
+		//		return SizeofUvarint(uint64(d))
+		//	case *int:
+		//		return SizeofVarint(int64(*d))
+		//	case *uint:
+		//		return SizeofUvarint(uint64(*d))
+		//	case []bool:
+		//		return sizeofBoolArray(len(d))
+		//	case []int8:
+		//		return sizeofFixArray(len(d), 1)
+		//	case []uint8:
+		//		return sizeofFixArray(len(d), 1)
+		//	case []int16:
+		//		return sizeofFixArray(len(d), 2)
+		//	case []uint16:
+		//		return sizeofFixArray(len(d), 2)
+		//	case []int32:
+		//		return sizeofFixArray(len(d), 4)
+		//	case []uint32:
+		//		return sizeofFixArray(len(d), 4)
+		//	case []float32:
+		//		return sizeofFixArray(len(d), 4)
+		//	case []int64:
+		//		return sizeofFixArray(len(d), 8)
+		//	case []uint64:
+		//		return sizeofFixArray(len(d), 8)
+		//	case []float64:
+		//		return sizeofFixArray(len(d), 8)
+		//	case []complex64:
+		//		return sizeofFixArray(len(d), 8)
+		//	case []complex128:
+		//		return sizeofFixArray(len(d), 16)
+		//	case []string:
+		//		l := len(d)
+		//		s := SizeofUvarint(uint64(l))
+		//		for _, v := range d {
+		//			s += sizeofString(len(v))
+		//		}
+		//		return s
+		//	case []int:
+		//		l := len(d)
+		//		s := SizeofUvarint(uint64(l))
+		//		for _, v := range d {
+		//			s += SizeofVarint(int64(v))
+		//		}
+		//		return s
+		//	case []uint:
+		//		l := len(d)
+		//		s := SizeofUvarint(uint64(l))
+		//		for _, v := range d {
+		//			s += SizeofUvarint(uint64(v))
+		//		}
+		//		return s
 	}
 
 	s := sizeofValue(reflect.ValueOf(i))

@@ -71,8 +71,9 @@ func Size(data interface{}) int {
 }
 
 // Sizeof returns how many bytes Write would generate to encode the value v, which
-// must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
+// must be a serialize-able value or a slice/map/struct of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
+// If data implements interface Sizer, it will use data.Size first.
 // It will panic if data implements interface Sizer or Packer only.
 func Sizeof(data interface{}) int {
 	if p, ok := data.(Sizer); ok {

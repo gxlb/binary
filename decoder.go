@@ -208,6 +208,7 @@ func (this *Decoder) Uvarint() (uint64, int) {
 // x must be interface of pointer for modify.
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
+// It will check if x implements interface Unpacker and use x.Unpack first.
 func (this *Decoder) Value(x interface{}) (err error) {
 	defer func() {
 		if info := recover(); info != nil {
