@@ -97,7 +97,7 @@ type structInfo struct {
 }
 
 func (this *structInfo) encode(encoder *Encoder, v reflect.Value) error {
-	assert(v.Kind() == reflect.Struct, v.Type().String())
+	//assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
 		// see comment for corresponding code in decoder.value()
@@ -128,8 +128,8 @@ func (this *structInfo) encodeNilPointer(encoder *Encoder, t reflect.Type) int {
 }
 
 func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
-	assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
+	//assert(t.Kind() == reflect.Struct, t.String())
 	for i, n := 0, v.NumField(); i < n; i++ {
 		if f := v.Field(i); this.fieldValid(i, t) {
 			if err := decoder.value(f); err != nil {
@@ -143,19 +143,20 @@ func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 }
 
 func (this *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type) int {
+	//assert(t.Kind() == reflect.Struct, t.String())
 	sum := 0
 	for i, n := 0, t.NumField(); i < n; i++ {
 		ft := this.fieldType(i, t)
 		s := decoder.skipByType(ft)
-		assert(s >= 0, ft.String()) //I'm sure here cannot find unsupported type
+		assert(s >= 0, "") //I'm sure here cannot find unsupported type
 		sum += s
 	}
 	return sum
 }
 
 func (this *structInfo) sizeofValue(v reflect.Value) int {
-	assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
+	//assert(t.Kind() == reflect.Struct,t.String())
 	sum := 0
 	for i, n := 0, v.NumField(); i < n; i++ {
 		if this.fieldValid(i, t) {
@@ -198,6 +199,7 @@ func (this *structInfo) fieldValid(i int, t reflect.Type) bool {
 func (this *structInfo) fieldType(i int, t reflect.Type) reflect.Type {
 	if this == nil {
 		return t.Field(i).Type
+
 	} else {
 		return this.field(i).field.Type
 	}
@@ -212,7 +214,7 @@ func (this *structInfo) fieldNum(t reflect.Type) int {
 }
 
 func (this *structInfo) parse(t reflect.Type) bool {
-	assert(t.Kind() == reflect.Struct, t.String())
+	//assert(t.Kind() == reflect.Struct, t.String())
 	this.identify = t.String()
 	for i, n := 0, t.NumField(); i < n; i++ {
 		f := t.Field(i)

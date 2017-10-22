@@ -586,7 +586,7 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 			sum := sLen //array size
 			for i, n := 0, cnt; i < n; i++ {
 				s := this.skipByType(e)
-				assert(s >= 0, e.String()) //I'm sure here cannot find unsupported type
+				assert(s >= 0, "") //I'm sure here cannot find unsupported type
 				sum += s
 			}
 			return sum
