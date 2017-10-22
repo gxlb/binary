@@ -190,7 +190,7 @@ func (this *Encoder) Value(x interface{}) (err error) {
 
 	if p, ok := x.(Packer); ok {
 		if _, _ok := x.(Sizer); !_ok { //interface verification
-			panic(fmt.Errorf("pected but not Sizer: %s", v.Type().String()))
+			panic(fmt.Errorf("expect but not Sizer: %s", v.Type().String()))
 		}
 
 		r, err := p.Pack(this.buff[this.pos:])
