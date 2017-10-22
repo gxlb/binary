@@ -873,7 +873,7 @@ func TestPackUnpacker(t *testing.T) {
 	}
 }
 
-func TestfastSizeof(t *testing.T) {
+func TestFastSizeof(t *testing.T) {
 	type interSize struct {
 		iter interface{}
 		size int
