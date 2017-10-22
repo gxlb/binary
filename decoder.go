@@ -551,7 +551,7 @@ func (this *Decoder) fastValue(x interface{}) bool {
 }
 
 func (this *Decoder) skipByType(t reflect.Type) int {
-	if s := _fixTypeSize(t); s > 0 {
+	if s := fixedTypeSize(t); s > 0 {
 		this.Skip(s)
 		return s
 	}
@@ -571,7 +571,7 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 		s, sLen := this.Uvarint()
 		cnt := int(s)
 		e := t.Elem()
-		if s := _fixTypeSize(e); s > 0 {
+		if s := fixedTypeSize(e); s > 0 {
 			if t.Elem().Kind() == reflect.Bool { //compressed bool array
 				totalSize := sizeofBoolArray(cnt)
 				size := totalSize - SizeofUvarint(uint64(cnt)) //cnt has been read

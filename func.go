@@ -1,6 +1,7 @@
 package binary
 
 import (
+	"fmt"
 	"reflect"
 	"unicode"
 	"unicode/utf8"
@@ -24,8 +25,17 @@ import (
 //	tPackUnpacker = reflect.TypeOf(&packUnpacker).Elem()
 //}
 
-func sizeof(i interface{}) int {
-	switch d := i.(type) { //fast size calculation
+func sizeof(data interface{}) int {
+	if s := fastSizeof(data); s >= 0 {
+		return s
+	}
+
+	s := sizeofValue(reflect.ValueOf(data))
+	return s
+}
+
+func fastSizeof(data interface{}) int {
+	switch d := data.(type) { //fast size calculation
 	case bool, int8, uint8, *bool, *int8, *uint8:
 		return 1
 	case int16, uint16, *int16, *uint16:
@@ -39,81 +49,148 @@ func sizeof(i interface{}) int {
 	case string:
 		return sizeofString(len(d))
 
-		//	case int:
-		//		return SizeofVarint(int64(d))
-		//	case uint:
-		//		return SizeofUvarint(uint64(d))
-		//	case *int:
-		//		return SizeofVarint(int64(*d))
-		//	case *uint:
-		//		return SizeofUvarint(uint64(*d))
-		//	case []bool:
-		//		return sizeofBoolArray(len(d))
-		//	case []int8:
-		//		return sizeofFixArray(len(d), 1)
-		//	case []uint8:
-		//		return sizeofFixArray(len(d), 1)
-		//	case []int16:
-		//		return sizeofFixArray(len(d), 2)
-		//	case []uint16:
-		//		return sizeofFixArray(len(d), 2)
-		//	case []int32:
-		//		return sizeofFixArray(len(d), 4)
-		//	case []uint32:
-		//		return sizeofFixArray(len(d), 4)
-		//	case []float32:
-		//		return sizeofFixArray(len(d), 4)
-		//	case []int64:
-		//		return sizeofFixArray(len(d), 8)
-		//	case []uint64:
-		//		return sizeofFixArray(len(d), 8)
-		//	case []float64:
-		//		return sizeofFixArray(len(d), 8)
-		//	case []complex64:
-		//		return sizeofFixArray(len(d), 8)
-		//	case []complex128:
-		//		return sizeofFixArray(len(d), 16)
-		//	case []string:
-		//		l := len(d)
-		//		s := SizeofUvarint(uint64(l))
-		//		for _, v := range d {
-		//			s += sizeofString(len(v))
-		//		}
-		//		return s
-		//	case []int:
-		//		l := len(d)
-		//		s := SizeofUvarint(uint64(l))
-		//		for _, v := range d {
-		//			s += SizeofVarint(int64(v))
-		//		}
-		//		return s
-		//	case []uint:
-		//		l := len(d)
-		//		s := SizeofUvarint(uint64(l))
-		//		for _, v := range d {
-		//			s += SizeofUvarint(uint64(v))
-		//		}
-		//		return s
-	}
+	case int:
+		return SizeofVarint(int64(d))
+	case uint:
+		return SizeofUvarint(uint64(d))
+	case *int:
+		if d != nil {
+			return SizeofVarint(int64(*d))
+		}
+	case *uint:
+		if d != nil {
+			return SizeofUvarint(uint64(*d))
+		}
+	case []bool:
+		return sizeofBoolArray(len(d))
+	case []int8:
+		return sizeofFixArray(len(d), 1)
+	case []uint8:
+		return sizeofFixArray(len(d), 1)
+	case []int16:
+		return sizeofFixArray(len(d), 2)
+	case []uint16:
+		return sizeofFixArray(len(d), 2)
+	case []int32:
+		return sizeofFixArray(len(d), 4)
+	case []uint32:
+		return sizeofFixArray(len(d), 4)
+	case []float32:
+		return sizeofFixArray(len(d), 4)
+	case []int64:
+		return sizeofFixArray(len(d), 8)
+	case []uint64:
+		return sizeofFixArray(len(d), 8)
+	case []float64:
+		return sizeofFixArray(len(d), 8)
+	case []complex64:
+		return sizeofFixArray(len(d), 8)
+	case []complex128:
+		return sizeofFixArray(len(d), 16)
+	case []string:
+		l := len(d)
+		s := SizeofUvarint(uint64(l))
+		for _, v := range d {
+			s += sizeofString(len(v))
+		}
+		return s
+	case []int:
+		l := len(d)
+		s := SizeofUvarint(uint64(l))
+		for _, v := range d {
+			s += SizeofVarint(int64(v))
+		}
+		return s
+	case []uint:
+		l := len(d)
+		s := SizeofUvarint(uint64(l))
+		for _, v := range d {
+			s += SizeofUvarint(uint64(v))
+		}
+		return s
 
-	s := sizeofValue(reflect.ValueOf(i))
-	return s
+	case *[]bool:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]int8:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]uint8:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]int16:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]uint16:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]int32:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]uint32:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]float32:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]int64:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]uint64:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]float64:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]complex64:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]complex128:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]string:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]int:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	case *[]uint:
+		if d != nil {
+			return fastSizeof(*d)
+		}
+	}
+	return -1
 }
 
 func assert(b bool, msg interface{}) {
 	if !b {
-		panic(msg)
+		panic(fmt.Errorf("%s", msg))
 	}
 }
 
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
-func sizeofValue(v reflect.Value) (l int) {
+func sizeofValue(v reflect.Value) int {
 	if v.Kind() == reflect.Ptr && v.IsNil() { //nil is not aviable
 		return sizeofNilPointer(v.Type())
 	}
 
-	v = reflect.Indirect(v)                 //redrect pointer to it's value
-	if s := _fixTypeSize(v.Type()); s > 0 { //fixed size
+	v = reflect.Indirect(v)                  //redrect pointer to it's value
+	if s := fixedTypeSize(v.Type()); s > 0 { //fixed size
 		return s
 	}
 	switch t := v.Type(); t.Kind() {
@@ -123,7 +200,7 @@ func sizeofValue(v reflect.Value) (l int) {
 		return SizeofUvarint(v.Uint())
 	case reflect.Slice, reflect.Array:
 		arrayLen := v.Len()
-		if s := _fixTypeSize(t.Elem()); s > 0 {
+		if s := fixedTypeSize(t.Elem()); s > 0 {
 			if t.Elem().Kind() == reflect.Bool {
 				return sizeofBoolArray(arrayLen)
 			}
@@ -135,7 +212,7 @@ func sizeofValue(v reflect.Value) (l int) {
 			}
 			for i, n := 0, arrayLen; i < n; i++ {
 				s := sizeofValue(v.Index(i))
-				assert(s >= 0, v.Type().Kind().String()) //element size must not error
+				//assert(s >= 0, v.Type().String()) //element size must not error
 				sum += s
 			}
 			return sum
@@ -153,12 +230,12 @@ func sizeofValue(v reflect.Value) (l int) {
 		for i := 0; i < mapLen; i++ {
 			key := keys[i]
 			sizeKey := sizeofValue(key)
-			assert(sizeKey >= 0, key.Type().Kind().String()) //key size must not error
+			//assert(sizeKey >= 0, key.Type().Kind().String()) //key size must not error
 
 			sum += sizeKey
 			value := v.MapIndex(key)
 			sizeValue := sizeofValue(value)
-			assert(sizeValue >= 0, value.Type().Kind().String()) //key size must not error
+			//assert(sizeValue >= 0, value.Type().Kind().String()) //key size must not error
 
 			sum += sizeValue
 		}
@@ -178,36 +255,44 @@ func sizeofNilPointer(t reflect.Type) int {
 	if tt.Kind() == reflect.Ptr {
 		tt = t.Elem()
 	}
-	if s := _fixTypeSize(tt); s > 0 { //fix size
+	if s := fixedTypeSize(tt); s > 0 { //fix size
 		return s
 	}
 	switch tt.Kind() {
 	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
 		return 1
-	case reflect.Slice, reflect.String, reflect.Map:
+	case reflect.String:
 		return SizeofUvarint(0)
+	case reflect.Slice:
+		if sizeofNilPointer(tt.Elem()) > 0 { //verify element type valid
+			return SizeofUvarint(0)
+		}
+	case reflect.Map:
+		if sizeofNilPointer(tt.Key()) > 0 &&
+			sizeofNilPointer(tt.Elem()) > 0 { //verify key and value type valid
+			return SizeofUvarint(0)
+		}
 	case reflect.Array:
-		if s := _fixTypeSize(tt.Elem()); s > 0 {
-			if tt.Elem().Kind() == reflect.Bool {
+		elem := tt.Elem()
+		if s := fixedTypeSize(elem); s > 0 {
+			if elem.Kind() == reflect.Bool {
 				return sizeofBoolArray(tt.Len())
 			}
 			return sizeofFixArray(tt.Len(), s)
 		} else {
-			size := sizeofNilPointer(tt.Elem())
-			if size < 0 {
-				return -1
+			size := sizeofNilPointer(elem)
+			if size > 0 { //verify element type valid
+				return sizeofFixArray(tt.Len(), size)
 			}
-			return sizeofFixArray(tt.Len(), size)
 		}
-
 	case reflect.Struct:
-		return queryStruct(tt).sizeofEmptyPointer(tt)
+		return queryStruct(tt).sizeofNilPointer(tt)
 	}
 
 	return -1
 }
 
-func _fixTypeSize(t reflect.Type) int {
+func fixedTypeSize(t reflect.Type) int {
 	switch t.Kind() {
 	case reflect.Bool, reflect.Int8, reflect.Uint8:
 		return 1

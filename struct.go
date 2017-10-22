@@ -65,6 +65,7 @@ func (this *structInfoMgr) regist(t reflect.Type) error {
 	}
 	return nil
 }
+
 func (this *structInfoMgr) query(t reflect.Type) *structInfo {
 	if _t, _ok, _ := this.deepStructType(t, false); _ok {
 		if p, ok := this.reg[_t.String()]; ok {
@@ -158,32 +159,35 @@ func (this *structInfo) sizeofValue(v reflect.Value) int {
 	sum := 0
 	for i, n := 0, v.NumField(); i < n; i++ {
 		if this.fieldValid(i, t) {
-			s := sizeofValue(v.Field(i))
-			if s < 0 {
-				return -1
+			if s := sizeofValue(v.Field(i)); s >= 0 {
+				sum += s
+			} else {
+				return -1 //invalid field type
 			}
-			sum += s
 		}
 	}
 	return sum
 }
 
-func (this *structInfo) sizeofEmptyPointer(t reflect.Type) int {
+func (this *structInfo) sizeofNilPointer(t reflect.Type) int {
 	sum := 0
 	for i, n := 0, this.fieldNum(t); i < n; i++ {
-		s := sizeofNilPointer(this.fieldType(i, t))
-		if s < 0 {
-			return -1
+		if this.fieldValid(i, t) {
+			if s := sizeofNilPointer(this.fieldType(i, t)); s >= 0 {
+				sum += s
+			} else {
+				return -1 //invalid field type
+			}
 		}
-		sum += s
 	}
 	return sum
 }
 
-//check if
+//check if field i of t valid for encoding/decoding
 func (this *structInfo) fieldValid(i int, t reflect.Type) bool {
 	if this == nil {
-		//Note: creating the StructField info for each field is costly
+		// NOTE:
+		// creating the StructField info for each field is costly
 		// use RegStruct((*someStruct)(nil)) to aboid this path
 		return validField(t.Field(i)) // slow way to access field info
 	} else {
@@ -198,6 +202,7 @@ func (this *structInfo) fieldType(i int, t reflect.Type) reflect.Type {
 		return this.field(i).field.Type
 	}
 }
+
 func (this *structInfo) fieldNum(t reflect.Type) int {
 	if this == nil {
 		return t.NumField()
@@ -248,7 +253,7 @@ func (this *structInfo) numField() int {
 type fieldInfo struct {
 	field  reflect.StructField
 	ignore bool //if this field is ignored
-	//encodeKind reflect.Kind //enable encode integers as other size
+	//encodeKind reflect.Kind //enable encode integers as other size,this is an advanced feature, do not achive now
 }
 
 func (this *fieldInfo) valid() bool {

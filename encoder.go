@@ -476,7 +476,7 @@ func (this *Encoder) nilPointer(t reflect.Type) int {
 			return -1
 		}
 	}
-	if s := _fixTypeSize(tt); s > 0 { //fix size
+	if s := fixedTypeSize(tt); s > 0 { //fix size
 		return this.Skip(s)
 	}
 	switch tt.Kind() {

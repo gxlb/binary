@@ -872,3 +872,68 @@ func TestPackUnpacker(t *testing.T) {
 		t.Errorf("PackUnpacker: have err == %#v, want nil", info)
 	}
 }
+
+func TestfastSizeof(t *testing.T) {
+	type interSize struct {
+		iter interface{}
+		size int
+	}
+	var cases = []interSize{
+		interSize{bool(false), 1},
+		interSize{int8(0), 1},
+		interSize{uint8(0), 1},
+		interSize{int16(0), 2},
+		interSize{uint16(0), 2},
+		interSize{int32(0), 4},
+		interSize{uint32(0), 4},
+		interSize{int64(0), 8},
+		interSize{uint64(0), 8},
+		interSize{float32(0), 4},
+		interSize{float64(0), 8},
+		interSize{complex64(0), 8},
+		interSize{complex128(0), 16},
+		interSize{string("hello"), 6},
+
+		interSize{int(0), 1},
+		interSize{uint(0), 1},
+
+		interSize{[]bool{false, false, true}, 2},
+		interSize{[]int8{0}, 2},
+		interSize{[]uint8{0}, 2},
+		interSize{[]int16{0}, 3},
+		interSize{[]uint16{0}, 3},
+		interSize{[]int32{0}, 5},
+		interSize{[]uint32{0}, 5},
+		interSize{[]int64{0}, 9},
+		interSize{[]uint64{0}, 9},
+		interSize{[]float32{0}, 5},
+		interSize{[]float64{0}, 9},
+		interSize{[]complex64{0}, 9},
+		interSize{[]complex128{0}, 17},
+		interSize{[]string{"hello"}, 7},
+
+		interSize{&[]bool{false, false, true}, 2},
+		interSize{&[]int8{0}, 2},
+		interSize{&[]uint8{0}, 2},
+		interSize{&[]int16{0}, 3},
+		interSize{&[]uint16{0}, 3},
+		interSize{&[]int32{0}, 5},
+		interSize{&[]uint32{0}, 5},
+		interSize{&[]int64{0}, 9},
+		interSize{&[]uint64{0}, 9},
+		interSize{&[]float32{0}, 5},
+		interSize{&[]float64{0}, 9},
+		interSize{&[]complex64{0}, 9},
+		interSize{&[]complex128{0}, 17},
+		interSize{&[]string{"hello"}, 7},
+
+		interSize{uintptr(0), -1},
+		interSize{(*[]int)(nil), -1},
+	}
+	for i, v := range cases {
+		s := fastSizeof(v.iter)
+		if s != v.size {
+			t.Errorf("%d %#v got %d need %d", i, v.iter, s, v.size)
+		}
+	}
+}
