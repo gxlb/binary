@@ -31,7 +31,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	eg: *string, *struct, *map, *slice, *int32.
 
 # 2. [recommended usage] Use Pack/UnPack to read/write memory buffer directly.
-## 	Use RegStruct to improving struct encoding/decoding efficiency.
+## 	Use RegStruct to improve struct encoding/decoding efficiency.
 	type someRegedStruct struct {
 		A int `binary:"ignore"`
 		B string
@@ -39,7 +39,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	}
 	binary.RegStruct((*someRegedStruct)(nil))
 
-	If data implement interface Packer, it will use data.Pack/data.Unpack 
+	If data implements interface Packer, it will use data.Pack/data.Unpack 
 	to encode/decode data.
 	NOTE that data.Unpack must implement on pointer receiever to enable modifying
 	receiever.Even though Size/Pack of data can implement on non-pointer receiever,
@@ -92,7 +92,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 
 # 6. Hide struct field when encoding/decoding.
 	Only encode/decode exported fields.
-	Support field tag `binary:"ignore"` to disable encode/decode fields.
+	Support using field tag `binary:"ignore"` to disable encode/decode fields.
 	eg: 
 	type S struct{
 	    A uint32
