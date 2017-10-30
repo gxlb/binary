@@ -56,6 +56,17 @@
 //	Origin  : https://github.com/vipally/binary
 package binary
 
+// **************************************************************************
+// TODO:
+// 1.[Encoder/Decoder].RegStruct
+// 2.[Encoder/Decoder].RegMarshaler
+// 3.[Encoder/Decoder].ResizeBuffer
+// 4.bool as a bit
+// 5.pointer put a bool to check if it is nil
+// 6.reg interface to using PackUnpacker interface
+// 7.use `binary:"packed"` to set if store a int_n value as varint
+// ***************************************************************************
+
 import (
 	"errors"
 	"io"

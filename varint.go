@@ -122,7 +122,7 @@ func ReadVarint(r io.ByteReader) (int64, error) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// ToUvarint convert an int64 value to uint64 for encoding.
+// ToUvarint convert an int64 value to uint64 ZigZag-encoding value for encoding.
 // Different from uint64(x), it will move sign bit to bit 0.
 // To help to cost fewer bytes for little negative numbers.
 // eg: -5 will be encoded as 0x9.
@@ -134,7 +134,7 @@ func ToUvarint(x int64) uint64 {
 	return ux
 }
 
-// ToVarint decode an uint64 value to original int64 value.
+// ToVarint decode an uint64 ZigZag-encoding value to original int64 value.
 func ToVarint(ux uint64) int64 {
 	x := int64(ux >> 1) //move bit0 to sign bit
 	if ux&1 != 0 {
