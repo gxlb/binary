@@ -22,7 +22,8 @@ func NewDecoderEndian(buffer []byte, endian Endian) *Decoder {
 // Decoder is used to decode byte array to go data.
 type Decoder struct {
 	coder
-	reader io.Reader //for decode from reader only
+	reader    io.Reader //for decode from reader only
+	boolValue byte      //last bool value byte
 }
 
 // Skip ignore the next size of bytes for encoding/decoding.
@@ -61,9 +62,17 @@ func (this *Decoder) Init(buffer []byte, endian Endian) {
 // Bool decode a bool value from Decoder buffer.
 // It will panic if buffer is not enough.
 func (this *Decoder) Bool() bool {
-	b := this.reserve(1)
-	x := b[0]
-	return x != 0
+	if this.boolBit == 0 {
+		b := this.reserve(1)
+		assert(b != nil, "")
+		this.boolValue = b[0]
+	}
+
+	mask := byte(1 << this.boolBit)
+	this.boolBit = (this.boolBit + 1) % 8
+
+	x := ((this.boolValue & mask) != 0)
+	return x
 }
 
 // Int8 decode an int8 value from Decoder buffer.

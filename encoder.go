@@ -43,12 +43,17 @@ func (this *Encoder) Init(size int, endian Endian) {
 // Bool encode a bool value to Encoder buffer.
 // It will panic if buffer is not enough.
 func (this *Encoder) Bool(x bool) {
-	b := this.reserve(1)
-	if x {
-		b[0] = 1
-	} else {
+	if this.boolBit == 0 {
+		b := this.reserve(1)
+		assert(b != nil, "")
 		b[0] = 0
+		this.boolPos = this.pos - 1
 	}
+
+	if mask := byte(1 << this.boolBit); x {
+		this.buff[this.boolPos] |= mask
+	}
+	this.boolBit = (this.boolBit + 1) % 8
 }
 
 // Int8 encode an int8 value to Encoder buffer.

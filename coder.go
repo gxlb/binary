@@ -11,9 +11,12 @@ var (
 )
 
 type coder struct {
-	buff   []byte
-	pos    int
-	endian Endian
+	buff []byte
+	pos  int
+
+	boolPos int  //index of last bool set in buff
+	boolBit byte //bit of next aviable bool
+	endian  Endian
 }
 
 // Buffer returns the byte slice that has been encoding/decoding.
@@ -47,6 +50,15 @@ func (this *coder) Skip(size int) int {
 	return -1
 }
 
+func (this *coder) Resize(size int) bool {
+	ok := len(this.buff) < size
+	if ok {
+		this.buff = make([]byte, size)
+	}
+	this.Reset()
+	return ok
+}
+
 // Reset move the read/write pointer to the beginning of buffer
 // and set all reseted bytes to 0.
 func (this *coder) Reset() {
@@ -54,6 +66,8 @@ func (this *coder) Reset() {
 		this.buff[i] = 0
 	}
 	this.pos = 0
+	this.boolPos = 0
+	this.boolBit = 0
 }
 
 // reserve returns next size bytes for encoding/decoding.

@@ -155,8 +155,15 @@ func TestReadBool(t *testing.T) {
 	err = Read(bytes.NewReader([]byte{1}), BigEndian, &res)
 	checkResult(t, "ReadBool", BigEndian, err, res, true)
 	res = false
-	err = Read(bytes.NewReader([]byte{2}), BigEndian, &res)
-	checkResult(t, "ReadBool", BigEndian, err, res, true)
+	type boolSet struct {
+		A bool
+		B byte
+		C bool
+	}
+	var boolSet1 boolSet
+	var boolSet2 = boolSet{false, 15, true}
+	err = Read(bytes.NewReader([]byte{2, 15}), BigEndian, &boolSet1)
+	checkResult(t, "ReadBool", BigEndian, err, boolSet1, boolSet2)
 }
 
 func TestReadBoolSlice(t *testing.T) {
