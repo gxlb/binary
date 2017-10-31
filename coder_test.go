@@ -646,7 +646,7 @@ func TestPackDonotSupportedType(t *testing.T) {
 	}
 }
 
-func TestDecoder(t *testing.T) {
+func TestDecoder(t *testing.T) { //
 	buffer := []byte{}
 	decoder := NewDecoder(buffer)
 	got := decoder.Skip(0)
