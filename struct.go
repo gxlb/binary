@@ -132,7 +132,7 @@ func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	//assert(t.Kind() == reflect.Struct, t.String())
 	for i, n := 0, v.NumField(); i < n; i++ {
 		if f := v.Field(i); this.fieldValid(i, t) {
-			if err := decoder.value(f); err != nil {
+			if err := decoder.value(f, false); err != nil {
 				return err
 			}
 		} else {

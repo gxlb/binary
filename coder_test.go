@@ -367,104 +367,104 @@ var littleFull = []byte{
 //	}
 //}
 
-//func TestReset(t *testing.T) {
-//	encoder := NewEncoder(100)
-//	encoder.Uint64(0x1122334455667788)
-//	encoder.String("0123456789abcdef")
-//	oldCheck := []byte{0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x10, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66}
-//	old := encoder.Buffer()
-//	l := encoder.Len()
-//	if len(old) != l {
-//		t.Errorf("encode len error: got %#v\nneed %#v\n", old, l)
-//	}
+func TestReset(t *testing.T) {
+	encoder := NewEncoder(100)
+	encoder.Uint64(0x1122334455667788)
+	encoder.String("0123456789abcdef")
+	oldCheck := []byte{0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x10, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66}
+	old := encoder.Buffer()
+	l := encoder.Len()
+	if len(old) != l {
+		t.Errorf("encode len error: got %#v\nneed %#v\n", old, l)
+	}
 
-//	if !reflect.DeepEqual(old, oldCheck) {
-//		t.Errorf("got %#v\nneed %#v\n", old, oldCheck)
-//	}
-//	encoder.Reset()
-//	var s struct {
-//		PString  *string
-//		PSlice   *[]int
-//		PArray   *[2]bool
-//		PArray2  *[2]struct{ X *string }
-//		PInt     *int32
-//		PStruct  *struct{ A int }
-//		PStruct2 *struct{ B *[]string }
-//	}
-//	err := encoder.Value(&s)
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	_new := encoder.Buffer()
-//	l2 := encoder.Len()
-//	newCheck := []byte{0x0, 0x0, 0x2, 0x0, 0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
-//	if len(_new) != l2 {
-//		t.Errorf("encode len error: got %#v\nneed %#v\n", _new, l2)
-//	}
-//	if !reflect.DeepEqual(_new, newCheck) {
-//		t.Errorf("got %#v\nneed %#v\n", _new, newCheck)
-//	}
-//	if s := encoder.Skip(encoder.Cap()); s >= 0 {
-//		t.Errorf("got %#v\nneed %#v\n", s, -1)
-//	}
-//	r := encoder.reserve(0)
-//	if r != nil {
-//		t.Errorf("got %#v\nneed %#v\n", r, nil)
-//	}
+	if !reflect.DeepEqual(old, oldCheck) {
+		t.Errorf("got %#v\nneed %#v\n", old, oldCheck)
+	}
+	encoder.Reset()
+	var s struct {
+		PString  *string
+		PSlice   *[]int
+		PArray   *[2]bool
+		PArray2  *[2]struct{ X *string }
+		PInt     *int32
+		PStruct  *struct{ A int }
+		PStruct2 *struct{ B *[]string }
+	}
+	err := encoder.Value(&s)
+	if err != nil {
+		t.Error(err)
+	}
+	_new := encoder.Buffer()
+	l2 := encoder.Len()
+	newCheck := []byte{0x0}
+	if len(_new) != l2 {
+		t.Errorf("encode len error: got %#v\nneed %#v\n", _new, l2)
+	}
+	if !reflect.DeepEqual(_new, newCheck) {
+		t.Errorf("got %#v\nneed %#v\n", _new, newCheck)
+	}
+	if s := encoder.Skip(encoder.Cap()); s >= 0 {
+		t.Errorf("got %#v\nneed %#v\n", s, -1)
+	}
+	r := encoder.reserve(0)
+	if r != nil {
+		t.Errorf("got %#v\nneed %#v\n", r, nil)
+	}
 
-//	defer func() {
-//		if e := recover(); e == nil {
-//			t.Error("need panic but not")
-//		}
-//	}()
+	defer func() {
+		if e := recover(); e == nil {
+			t.Error("need panic but not")
+		}
+	}()
 
-//	large := [100]complex128{}
-//	err2 := encoder.Value(&large)
-//	if err2 == nil {
-//		t.Errorf("got err=nil, need err=none-nil")
-//	} else {
-//		//println("info******", err2.Error())
-//	}
+	large := [100]complex128{}
+	err2 := encoder.Value(&large)
+	if err2 == nil {
+		t.Errorf("got err=nil, need err=none-nil")
+	} else {
+		//println("info******", err2.Error())
+	}
 
-//	r2 := encoder.reserve(100)
-//	if r2 != nil {
-//		t.Errorf("got %#v\nneed %#v\n", r2, nil)
-//	}
-//}
+	r2 := encoder.reserve(100)
+	if r2 != nil {
+		t.Errorf("got %#v\nneed %#v\n", r2, nil)
+	}
+}
 
-//func TestPackEmptyPointer(t *testing.T) {
-//	var s struct {
-//		PString  *string
-//		PSlice   *[]int
-//		PArray   *[2]bool
-//		PArray2  *[2]struct{ X *string }
-//		PInt     *int32
-//		PStruct  *struct{ A int }
-//		PStruct2 *struct{ B *[]string }
-//	}
-//	b, err := Pack(&s, nil)
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	ss := s
+func TestPackEmptyPointer(t *testing.T) {
+	var s struct {
+		PString  *string
+		PSlice   *[]int
+		PArray   *[2]bool
+		PArray2  *[2]struct{ X *string }
+		PInt     *int32
+		PStruct  *struct{ A int }
+		PStruct2 *struct{ B *[]string }
+	}
+	b, err := Pack(&s, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	ss := s
 
-//	err = Unpack(b, &ss)
-//	if err != nil {
-//		t.Error(err)
-//	}
+	err = Unpack(b, &ss)
+	if err != nil {
+		t.Error(err)
+	}
 
-//	b2, err2 := Pack(&ss, nil)
-//	if err2 != nil {
-//		t.Error(err)
-//	}
-//	if !reflect.DeepEqual(b, b2) {
-//		t.Errorf("%+v->%+v got %+v\nneed %+v\n", s, ss, b2, b)
-//	}
-//	check := []byte{0x0, 0x0, 0x2, 0x0, 0x2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}
-//	if !reflect.DeepEqual(b2, check) {
-//		t.Errorf("got %+v\nneed %+v\n", b2, check)
-//	}
-//}
+	b2, err2 := Pack(&ss, nil)
+	if err2 != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(b, b2) {
+		t.Errorf("%+v->%+v got %+v\nneed %+v\n", s, ss, b2, b)
+	}
+	check := []byte{0x0}
+	if !reflect.DeepEqual(b2, check) {
+		t.Errorf("got %+v\nneed %+v\n", b2, check)
+	}
+}
 
 func TestHideStructField(t *testing.T) {
 	type T struct {
@@ -646,7 +646,7 @@ func TestPackDonotSupportedType(t *testing.T) {
 	}
 }
 
-func TestDecoder(t *testing.T) { //
+func TestDecoder(t *testing.T) {
 	buffer := []byte{}
 	decoder := NewDecoder(buffer)
 	got := decoder.Skip(0)
@@ -673,58 +673,59 @@ func TestAssert(t *testing.T) {
 	assert(false, message)
 }
 
-//func TestRegStruct(t *testing.T) {
-//	type StructForReg struct {
-//		A int
-//		B uint `binary:"ignore"`
-//		C int  `binary:"int32"`
-//		d string
-//		_ int32
-//		F float32
-//		S struct {
-//			A int
-//			B string
-//		}
-//		S2 struct {
-//			A int
-//			B string
-//		}
-//		PS *struct {
-//			A int32
-//			B string
-//		}
-//	}
-//	RegStruct((*StructForReg)(nil))
-//	if err := RegStruct((*StructForReg)(nil)); err == nil { //duplicate regist
-//		t.Errorf("RegStruct: have err == nil, want non-nil")
-//	}
-//	var a = StructForReg{
-//		A: -5,
-//		B: 6,
-//		C: 7,
-//		d: "hello",
-//		F: 3.14,
-//	}
-//	a.S.A = 9
-//	a.S.B = "abc"
-//	b, err := Pack(&a, nil)
-//	if err != nil {
-//		t.Error(err)
-//	}
+func TestRegStruct(t *testing.T) {
+	type StructForReg struct {
+		A int
+		B uint `binary:"ignore"`
+		C int  `binary:"int32"`
+		d string
+		_ int32
+		F float32
+		S struct {
+			A int
+			B string
+		}
+		S2 struct {
+			A int
+			B string
+		}
+		PS *struct {
+			A int32
+			B string
+		}
+	}
+	RegStruct((*StructForReg)(nil))
+	if err := RegStruct((*StructForReg)(nil)); err == nil { //duplicate regist
+		t.Errorf("RegStruct: have err == nil, want non-nil")
+	}
+	var a = StructForReg{
+		A: -5,
+		B: 6,
+		C: 7,
+		d: "hello",
+		F: 3.14,
+	}
+	a.S.A = 9
+	a.S.B = "abc"
+	b, err := Pack(&a, nil)
+	if err != nil {
+		t.Error(err)
+	}
 
-//	var r StructForReg
-//	err = Unpack(b, &r)
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	c := a
-//	c.B = 0
-//	c.d = ""
-//	r.PS = nil //BUG: how to encode nil pointer?
-//	if !reflect.DeepEqual(r, c) {
-//		t.Errorf("RegStruct got %+v\nneed %+v\n", r, c)
-//	}
-//}
+	var r StructForReg
+	//fmt.Printf("%#v\n%#v\n", a, b)
+	err = Unpack(b, &r)
+	if err != nil {
+		t.Error(err)
+	}
+	c := a
+	c.B = 0
+	c.d = ""
+	//r.PS = nil //BUG: how to encode nil pointer?
+	if !reflect.DeepEqual(r, c) {
+		t.Errorf("RegStruct got %+v\nneed %+v\n", r, c)
+	}
+}
 
 func TestRegistStructUnsupported(t *testing.T) {
 	err := RegStruct(int(0))
@@ -830,6 +831,7 @@ func TestPackUnpacker(t *testing.T) {
 			}
 
 		case 3:
+			buff := make([]byte, 1000)
 			if err := Unpack(buff, data); err != nil {
 				info = err
 			}
