@@ -187,6 +187,8 @@ func (this *Encoder) Value(x interface{}) (err error) {
 		}
 	}()
 
+	this.resetBoolCoder() //reset bool writer
+
 	if this.fastValue(x) { //fast value path
 		return nil
 	}

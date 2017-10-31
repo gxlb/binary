@@ -154,13 +154,13 @@ func (this *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type) int {
 	return sum
 }
 
-func (this *structInfo) sizeofValue(v reflect.Value) int {
+func (this *structInfo) bitsOfValue(v reflect.Value) int {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct,t.String())
 	sum := 0
 	for i, n := 0, v.NumField(); i < n; i++ {
 		if this.fieldValid(i, t) {
-			if s := sizeofValue(v.Field(i)); s >= 0 {
+			if s := bitsOfValue(v.Field(i), false); s >= 0 {
 				sum += s
 			} else {
 				return -1 //invalid field type

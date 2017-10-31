@@ -226,6 +226,9 @@ func TestDonotSupportedType(t *testing.T) {
 
 	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
+		//		if Sizeof(tv.Field(i).Interface()) >= 0 {
+		//			panic(tv.Field(i))
+		//		}
 		if err := Write(buf, BigEndian, tv.Field(i).Interface()); err == nil {
 			t.Errorf("Write DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {

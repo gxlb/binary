@@ -225,6 +225,9 @@ func (this *Decoder) Value(x interface{}) (err error) {
 			assert(err != nil, info)
 		}
 	}()
+
+	this.resetBoolCoder() //reset bool reader
+
 	if this.fastValue(x) { //fast value path
 		return nil
 	}

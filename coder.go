@@ -66,7 +66,11 @@ func (this *coder) Reset() {
 		this.buff[i] = 0
 	}
 	this.pos = 0
-	this.boolPos = 0
+	this.resetBoolCoder()
+}
+
+func (this *coder) resetBoolCoder() {
+	this.boolPos = -1
 	this.boolBit = 0
 }
 

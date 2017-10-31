@@ -30,8 +30,11 @@ func sizeof(data interface{}) int {
 		return s
 	}
 
-	s := sizeofValue(reflect.ValueOf(data))
-	return s
+	s := bitsOfValue(reflect.ValueOf(data), true)
+	if s < 0 {
+		return -1
+	}
+	return (s + 7) / 8
 }
 
 func fastSizeof(data interface{}) int {
@@ -184,34 +187,43 @@ func assert(b bool, msg interface{}) {
 }
 
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
-func sizeofValue(v reflect.Value) int {
-	if v.Kind() == reflect.Ptr && v.IsNil() { //nil is not aviable
-		return sizeofNilPointer(v.Type())
+func bitsOfValue(v reflect.Value, topLevel bool) int {
+	bits := 0
+	if v.Kind() == reflect.Ptr { //nil is not aviable
+		if !topLevel {
+			bits = 1
+		}
+		if v.IsNil() {
+			if topLevel || sizeofNilPointer(v.Type()) < 0 {
+				return -1
+			}
+			return 1
+		}
 	}
 
 	v = reflect.Indirect(v)                  //redrect pointer to it's value
 	if s := fixedTypeSize(v.Type()); s > 0 { //fixed size
-		return s
+		return s*8 + bits
 	}
 	switch t := v.Type(); t.Kind() {
 	case reflect.Int:
-		return SizeofVarint(v.Int())
+		return SizeofVarint(v.Int())*8 + bits
 	case reflect.Uint:
-		return SizeofUvarint(v.Uint())
+		return SizeofUvarint(v.Uint())*8 + bits
 	case reflect.Slice, reflect.Array:
 		arrayLen := v.Len()
 		if s := fixedTypeSize(t.Elem()); s > 0 {
 			if t.Elem().Kind() == reflect.Bool {
-				return sizeofBoolArray(arrayLen)
+				return sizeofBoolArray(arrayLen)*8 + bits
 			}
-			return sizeofFixArray(arrayLen, s)
+			return sizeofFixArray(arrayLen, s)*8 + bits
 		} else {
-			sum := SizeofUvarint(uint64(arrayLen)) //array size bytes num
-			if sizeofNilPointer(t.Elem()) < 0 {    //check if array element type valid
+			sum := SizeofUvarint(uint64(arrayLen))*8 + bits //array size bytes num
+			if sizeofNilPointer(t.Elem()) < 0 {             //check if array element type valid
 				return -1
 			}
 			for i, n := 0, arrayLen; i < n; i++ {
-				s := sizeofValue(v.Index(i))
+				s := bitsOfValue(v.Index(i), false)
 				//assert(s >= 0, v.Type().String()) //element size must not error
 				sum += s
 			}
@@ -219,7 +231,7 @@ func sizeofValue(v reflect.Value) int {
 		}
 	case reflect.Map:
 		mapLen := v.Len()
-		sum := SizeofUvarint(uint64(mapLen)) //array size
+		sum := SizeofUvarint(uint64(mapLen))*8 + bits //array size
 		keys := v.MapKeys()
 
 		if sizeofNilPointer(t.Key()) < 0 ||
@@ -229,12 +241,12 @@ func sizeofValue(v reflect.Value) int {
 
 		for i := 0; i < mapLen; i++ {
 			key := keys[i]
-			sizeKey := sizeofValue(key)
+			sizeKey := bitsOfValue(key, false)
 			//assert(sizeKey >= 0, key.Type().Kind().String()) //key size must not error
 
 			sum += sizeKey
 			value := v.MapIndex(key)
-			sizeValue := sizeofValue(value)
+			sizeValue := bitsOfValue(value, false)
 			//assert(sizeValue >= 0, value.Type().Kind().String()) //key size must not error
 
 			sum += sizeValue
@@ -242,10 +254,10 @@ func sizeofValue(v reflect.Value) int {
 		return sum
 
 	case reflect.Struct:
-		return queryStruct(v.Type()).sizeofValue(v)
+		return queryStruct(v.Type()).bitsOfValue(v) + bits
 
 	case reflect.String:
-		return sizeofString(v.Len()) //string length and data
+		return sizeofString(v.Len())*8 + bits //string length and data
 	}
 	return -1
 }
