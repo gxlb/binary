@@ -658,7 +658,7 @@ func TestDecoder(t *testing.T) {
 		t.Errorf("Decoder: have %d, want %d", n, -1)
 	}
 	if !decoder.Resize(10) {
-		t.Errorf("Decoder: have %d, want %d", false, true)
+		t.Errorf("Decoder: have %v, want %v", false, true)
 	}
 }
 
