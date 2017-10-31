@@ -115,17 +115,17 @@ func (this *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 //func (this *structInfo) encodeField(encoder *Encoder, i int, v reflect.Value) error {}
 //func (this *structInfo) decodeField(decoder *Decoder, i int, v reflect.Value) error {}
 
-func (this *structInfo) encodeNilPointer(encoder *Encoder, t reflect.Type) int {
-	sum := 0
-	for i, n := 0, this.fieldNum(t); i < n; i++ {
-		s := encoder.nilPointer(this.fieldType(i, t))
-		if s < 0 {
-			return -1
-		}
-		sum += s
-	}
-	return sum
-}
+//func (this *structInfo) encodeNilPointer(encoder *Encoder, t reflect.Type) int {
+//	sum := 0
+//	for i, n := 0, this.fieldNum(t); i < n; i++ {
+//		s := encoder.nilPointer(this.fieldType(i, t))
+//		if s < 0 {
+//			return -1
+//		}
+//		sum += s
+//	}
+//	return sum
+//}
 
 func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	t := v.Type()

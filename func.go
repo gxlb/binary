@@ -309,7 +309,7 @@ func fixedTypeSize(t reflect.Type) int {
 }
 
 // Auto allocate for aviable pointer
-func newPtr(v reflect.Value) bool {
+func newPtr(v reflect.Value, decoder *Decoder) bool {
 	if v.Kind() == reflect.Ptr {
 		e := v.Type().Elem()
 		switch e.Kind() {
@@ -317,8 +317,11 @@ func newPtr(v reflect.Value) bool {
 			reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64,
 			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
 			reflect.Complex128, reflect.String, reflect.Array, reflect.Struct, reflect.Slice, reflect.Map:
+
 			if v.IsNil() {
-				v.Set(reflect.New(e))
+				if isNilPointer := decoder.Bool(); !isNilPointer {
+					v.Set(reflect.New(e))
+				}
 			}
 			return true
 		}

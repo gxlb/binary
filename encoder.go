@@ -209,7 +209,7 @@ func (this *Encoder) Value(x interface{}) (err error) {
 		}
 	}
 
-	return this.value(v)
+	return this.value(reflect.Indirect(v))
 }
 
 func (this *Encoder) fastValue(x interface{}) bool {
@@ -456,14 +456,19 @@ func (this *Encoder) value(v reflect.Value) error {
 		return queryStruct(v.Type()).encode(this, v)
 
 	case reflect.Ptr:
+		if sizeofNilPointer(v.Type()) < 0 {
+			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
+		}
 		if !v.IsNil() {
+			this.Bool(true)
 			if e := v.Elem(); e.Kind() != reflect.Ptr {
 				return this.value(e)
 			}
 		} else {
-			if this.nilPointer(v.Type()) < 0 {
-				return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())
-			}
+			this.Bool(false)
+			//			if this.nilPointer(v.Type()) < 0 {
+			//				return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())
+			//			}
 		}
 		//	case reflect.Invalid://BUG: it will panic to get zero.Type
 		//		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Kind().String())
@@ -473,42 +478,42 @@ func (this *Encoder) value(v reflect.Value) error {
 	return nil
 }
 
-func (this *Encoder) nilPointer(t reflect.Type) int {
-	tt := t
-	if tt.Kind() == reflect.Ptr {
-		tt = t.Elem()
-		if tt.Kind() == reflect.Ptr {
-			return -1
-		}
-	}
-	if s := fixedTypeSize(tt); s > 0 { //fix size
-		return this.Skip(s)
-	}
-	switch tt.Kind() {
-	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
-		return this.Uvarint(0)
-	case reflect.Slice, reflect.String:
-		return this.Uvarint(0)
-	case reflect.Array:
-		l := tt.Len()
-		n := this.Uvarint(uint64(l))
-		if tt.Elem().Kind() == reflect.Bool { //bool array
-			n2 := sizeofBoolArray(n)
-			this.Skip(n2 - n)
-			n = n2
-		} else {
-			tte := tt.Elem()
-			for i := 0; i < l; i++ {
-				n += this.nilPointer(tte)
-			}
-		}
-		return n
+//func (this *Encoder) nilPointer(t reflect.Type) int {
+//	tt := t
+//	if tt.Kind() == reflect.Ptr {
+//		tt = t.Elem()
+//		if tt.Kind() == reflect.Ptr {
+//			return -1
+//		}
+//	}
+//	if s := fixedTypeSize(tt); s > 0 { //fix size
+//		return this.Skip(s)
+//	}
+//	switch tt.Kind() {
+//	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
+//		return this.Uvarint(0)
+//	case reflect.Slice, reflect.String:
+//		return this.Uvarint(0)
+//	case reflect.Array:
+//		l := tt.Len()
+//		n := this.Uvarint(uint64(l))
+//		if tt.Elem().Kind() == reflect.Bool { //bool array
+//			n2 := sizeofBoolArray(n)
+//			this.Skip(n2 - n)
+//			n = n2
+//		} else {
+//			tte := tt.Elem()
+//			for i := 0; i < l; i++ {
+//				n += this.nilPointer(tte)
+//			}
+//		}
+//		return n
 
-	case reflect.Struct:
-		return queryStruct(tt).encodeNilPointer(this, tt)
-	}
-	return -1
-}
+//	case reflect.Struct:
+//		return queryStruct(tt).encodeNilPointer(this, tt)
+//	}
+//	return -1
+//}
 
 // encode bool array
 func (this *Encoder) boolArray(v reflect.Value) int {

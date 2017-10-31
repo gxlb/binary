@@ -382,7 +382,7 @@ func (this *Decoder) value(v reflect.Value) error {
 		return queryStruct(v.Type()).decode(this, v)
 
 	default:
-		if newPtr(v) {
+		if newPtr(v, this) {
 			return this.value(v.Elem())
 		} else {
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
