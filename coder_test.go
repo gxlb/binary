@@ -324,48 +324,48 @@ var littleFull = []byte{
 	0x13, 0x0, 0x1, 0x2, 0x7f, 0x80, 0x1, 0xfd, 0xff, 0x1, 0xfe, 0xff, 0x1, 0xff, 0xff, 0x1, 0x80, 0x80, 0x2, 0xfd, 0xff, 0x3, 0xfe, 0xff, 0x3, 0xff, 0xff, 0x3, 0x80, 0x80, 0x4, 0xfd, 0xff, 0xff, 0x7, 0xfe, 0xff, 0xff, 0x7, 0xff, 0xff, 0xff, 0x7, 0xfd, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x1,
 }
 
-//func TestPack(t *testing.T) {
-//	v := reflect.ValueOf(full)
-//	vt := v.Type()
-//	n := v.NumField()
-//	check := littleFull
-//	for i := 0; i < n; i++ {
-//		if !validField(vt.Field(i)) {
-//			continue
-//		}
-//		b, err := Pack(v.Field(i).Interface(), nil)
-//		c := check[:len(b)]
-//		check = check[len(b):]
-//		if err != nil {
-//			t.Error(err)
-//		}
-//		if vt.Field(i).Type.Kind() != reflect.Map && //map keys will be got as unspecified order, byte order may change but it doesn't matter
-//			!reflect.DeepEqual(b, c) {
-//			fmt.Printf("%d %s\ngot%#v\n%need#v\n", i, vt.Field(i).Type.String(), b, c)
-//			t.Errorf("field %d %s got %+v\nneed %+v\n", i, vt.Field(i).Name, b, c)
-//		}
-//	}
+func _TestPack(t *testing.T) {
+	v := reflect.ValueOf(full)
+	vt := v.Type()
+	n := v.NumField()
+	check := littleFull
+	for i := 0; i < n; i++ {
+		if !validField(vt.Field(i)) {
+			continue
+		}
+		b, err := Pack(v.Field(i).Interface(), nil)
+		c := check[:len(b)]
+		check = check[len(b):]
+		if err != nil {
+			t.Error(err)
+		}
+		if vt.Field(i).Type.Kind() != reflect.Map && //map keys will be got as unspecified order, byte order may change but it doesn't matter
+			!reflect.DeepEqual(b, c) {
+			//fmt.Printf("%d %s\ngot%#v\n%need#v\n", i, vt.Field(i).Type.String(), b, c)
+			t.Errorf("field %d %s got %+v\nneed %+v\n", i, vt.Field(i).Name, b, c)
+		}
+	}
 
-//	//map fields will case uncertain bytes order but it does't matter
-//	//	b, err := Pack(full, nil)
-//	//	if err != nil {
-//	//		t.Error(err)
-//	//	}
-//	//	if !reflect.DeepEqual(b, littleFull) {
-//	//		t.Errorf("got %+v\nneed %+v\n", b, littleFull)
-//	//	}
-//}
+	//map fields will case uncertain bytes order but it does't matter
+	//	b, err := Pack(full, nil)
+	//	if err != nil {
+	//		t.Error(err)
+	//	}
+	//	if !reflect.DeepEqual(b, littleFull) {
+	//		t.Errorf("got %+v\nneed %+v\n", b, littleFull)
+	//	}
+}
 
-//func TestUnpack(t *testing.T) {
-//	var v fullStruct
-//	err := Unpack(littleFull, &v)
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	if !reflect.DeepEqual(v, full) {
-//		t.Errorf("got %#v\nneed %#v\n", v, full)
-//	}
-//}
+func _TestUnpack(t *testing.T) {
+	var v fullStruct
+	err := Unpack(littleFull, &v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(v, full) {
+		t.Errorf("got %#v\nneed %#v\n", v, full)
+	}
+}
 
 func TestReset(t *testing.T) {
 	encoder := NewEncoder(100)
