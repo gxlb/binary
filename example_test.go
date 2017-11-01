@@ -58,7 +58,7 @@ func ExampleRead() {
 	// 3.141592653589793
 }
 
-func ExamplePack() {
+func ExampleEncode() {
 	var s struct {
 		A uint32
 		B int
@@ -69,13 +69,13 @@ func ExamplePack() {
 	s.C = "hello"
 	b, err := binary.Encode(s, nil)
 	if err != nil {
-		fmt.Println("binary.Pack failed:", err)
+		fmt.Println("binary.Encode failed:", err)
 	}
 	fmt.Printf("%#v", b)
 	// Output:
 	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
-func ExamplePack_withbuffer() {
+func ExampleEncode_withbuffer() {
 	var s struct {
 		A uint32
 		B int
@@ -88,13 +88,13 @@ func ExamplePack_withbuffer() {
 	buffer := make([]byte, size)
 	b, err := binary.Encode(s, buffer)
 	if err != nil {
-		fmt.Println("binary.Pack failed:", err)
+		fmt.Println("binary.Encode failed:", err)
 	}
 	fmt.Printf("%#v", b)
 	// Output:
 	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
-func ExampleUnpack() {
+func ExampleDecode() {
 	var s struct {
 		A uint32
 		B int
@@ -103,7 +103,7 @@ func ExampleUnpack() {
 	buffer := []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 	err := binary.Decode(buffer, &s)
 	if err != nil {
-		fmt.Println("binary.Unpack failed:", err)
+		fmt.Println("binary.Decode failed:", err)
 	}
 	fmt.Printf("%+v", s)
 	// Output:
@@ -191,11 +191,11 @@ func ExampleBinarySerializer() {
 	b, err := binary.Encode(&s, nil)
 
 	if err != nil {
-		fmt.Println("binary.Pack failed:", err)
+		fmt.Println("binary.Encode failed:", err)
 	}
 	err = binary.Decode(b, &ss)
 	if err != nil {
-		fmt.Println("binary.Unpack failed:", err)
+		fmt.Println("binary.Decode failed:", err)
 	}
 	fmt.Printf("[%+v\n%#v\n%+v]", s, b, ss)
 	// Output:

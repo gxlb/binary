@@ -327,7 +327,7 @@ var littleFullAll = []byte{
 	0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01,
 }
 
-func TestPack(t *testing.T) {
+func TestEncode(t *testing.T) {
 	v := reflect.ValueOf(full)
 	vt := v.Type()
 	n := v.NumField()
@@ -351,7 +351,7 @@ func TestPack(t *testing.T) {
 	}
 
 	////map fields will case uncertain bytes order but it does't matter
-	//b2, err := Pack(full, nil)
+	//b2, err := Encode(full, nil)
 	//if err != nil {
 	//	t.Error(err)
 	//}
@@ -361,7 +361,7 @@ func TestPack(t *testing.T) {
 	//}
 }
 
-func TestUnpack(t *testing.T) {
+func TestDecode(t *testing.T) {
 	var v fullStruct
 	err := Decode(littleFullAll, &v)
 	if err != nil {
@@ -440,7 +440,7 @@ func TestReset(t *testing.T) {
 	}
 }
 
-func TestPackEmptyPointer(t *testing.T) {
+func TestEncodeEmptyPointer(t *testing.T) {
 	var s struct {
 		PString  *string
 		PSlice   *[]int
@@ -623,10 +623,10 @@ func TestFastValue(t *testing.T) {
 	}
 }
 
-func TestPackDonotSupportedType(t *testing.T) {
+func TestEncodeDonotSupportedType(t *testing.T) {
 	ts := doNotSupportTypes
 	if _, err := Encode(ts, nil); err == nil {
-		t.Errorf("PackDonotSupportedType: have err == nil, want non-nil")
+		t.Errorf("EncodeDonotSupportedType: have err == nil, want non-nil")
 	}
 
 	buff := make([]byte, 0)
@@ -636,25 +636,25 @@ func TestPackDonotSupportedType(t *testing.T) {
 	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
 		if _, err := Encode(tv.Field(i).Interface(), nil); err == nil {
-			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
 		}
 
 		if err := ecoder.Value(tv.Field(i).Interface()); err == nil {
-			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
 		}
 
 		if err := Decode(buff, tv.Field(i).Addr().Interface()); err == nil {
-			t.Errorf("Unpack DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+			t.Errorf("Decode DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
-			//fmt.Printf("Unpack error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
+			//fmt.Printf("Decode error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
 
 		if err := decoder.value(tv.Field(i), true); err == nil {
-			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
 		}
@@ -797,15 +797,15 @@ type decoderOnly struct {
 
 func (this *decoderOnly) Decode(buffer []byte) error { return nil }
 
-type sizepackerOnly struct {
+type sizeencoderOnly struct {
 	sizerOnly
 	encoderOnly
 }
-type sizeunpackerOnly struct {
+type sizedecoderOnly struct {
 	sizerOnly
 	decoderOnly
 }
-type packunpackerOnly struct {
+type encodedecoderOnly struct {
 	encoderOnly
 	decoderOnly
 }
@@ -822,13 +822,13 @@ func (this *fullSerializerError) Decode(buffer []byte) error {
 	return fmt.Errorf("expected error")
 }
 
-func TestPackUnpacker(t *testing.T) {
+func TestBinarySerializer(t *testing.T) {
 	var a sizerOnly
 	var b encoderOnly
 	var c decoderOnly
-	var d sizepackerOnly
-	var e sizeunpackerOnly
-	var f packunpackerOnly
+	var d sizeencoderOnly
+	var e sizedecoderOnly
+	var f encodedecoderOnly
 	var g fullSerializerError
 	var h fullSerializer
 
@@ -873,28 +873,28 @@ func TestPackUnpacker(t *testing.T) {
 	}
 
 	if info := testCode(&a); info == nil {
-		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+		t.Errorf("BinarySerializer: have err == nil, want none-nil")
 	}
 	if info := testCode(&b); info == nil {
-		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+		t.Errorf("BinarySerializer: have err == nil, want none-nil")
 	}
 	if info := testCode(&c); info == nil {
-		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+		t.Errorf("BinarySerializer: have err == nil, want none-nil")
 	}
 	if info := testCode(&d); info == nil {
-		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+		t.Errorf("BinarySerializer: have err == nil, want none-nil")
 	}
 	if info := testCode(&e); info == nil {
-		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+		t.Errorf("BinarySerializer: have err == nil, want none-nil")
 	}
 	if info := testCode(&f); info == nil {
-		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+		t.Errorf("BinarySerializer: have err == nil, want none-nil")
 	}
 	if info := testCode(&g); info == nil {
-		t.Errorf("PackUnpacker: have err == nil, want none-nil")
+		t.Errorf("BinarySerializer: have err == nil, want none-nil")
 	}
 	if info := testCode(&h); info != nil {
-		t.Errorf("PackUnpacker: have err == %#v, want nil", info)
+		t.Errorf("BinarySerializer: have err == %#v, want nil", info)
 	}
 }
 

@@ -18,7 +18,7 @@
 //
 
 //
-// Package binary is uesed to Pack/Unpack between go data and byte slice.
+// Package binary is uesed to Encode/Decode between go data and byte slice.
 //
 // The main purpose of this package is to replace package "std.binary".
 // The design goal is to take both advantages of std.binary(encoding/binary) and gob.
@@ -206,7 +206,7 @@ func Decode(buffer []byte, data interface{}) error {
 func MakeEncodeBuffer(data interface{}, buffer []byte) ([]byte, error) {
 	size := Sizeof(data)
 	if size < 0 {
-		return nil, errors.New("binary.Pack: invalid type " + reflect.TypeOf(data).String())
+		return nil, errors.New("binary.MakeEncodeBuffer: invalid type " + reflect.TypeOf(data).String())
 	}
 
 	buff := buffer
