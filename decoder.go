@@ -217,7 +217,7 @@ func (this *Decoder) Uvarint() (uint64, int) {
 // x must be interface of pointer for modify.
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
-// It will check if x implements interface Unpacker and use x.Unpack first.
+// It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (this *Decoder) Value(x interface{}) (err error) {
 	defer func() {
 		if info := recover(); info != nil {
@@ -234,28 +234,28 @@ func (this *Decoder) Value(x interface{}) (err error) {
 
 	v := reflect.ValueOf(x)
 
-	if p, ok := x.(Unpacker); ok {
+	if p, ok := x.(BinaryDecoder); ok {
 		size := 0
-		if sizer, _ok := x.(Sizer); _ok { //interface verification
+		if sizer, _ok := x.(BinarySizer); _ok { //interface verification
 			size = sizer.Size()
 		} else {
-			panic(fmt.Errorf("expect but not Sizer: %s", v.Type().String()))
+			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
 		}
-		if _, _ok := x.(Packer); !_ok { //interface verification
-			panic(fmt.Errorf("unexpect but not Packer: %s", v.Type().String()))
+		if _, _ok := x.(BinaryEncoder); !_ok { //interface verification
+			panic(fmt.Errorf("unexpect but not BinaryEncoder: %s", v.Type().String()))
 		}
-		err := p.Unpack(this.buff[this.pos:])
+		err := p.Decode(this.buff[this.pos:])
 		if err != nil {
 			return err
 		}
 		this.reserve(size)
 		return nil
 	} else {
-		if _, _ok := x.(Sizer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected Sizer: %s", v.Type().String()))
+		if _, _ok := x.(BinarySizer); _ok { //interface verification
+			panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
 		}
-		if _, _ok := x.(Packer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected Packer: %s", v.Type().String()))
+		if _, _ok := x.(BinaryEncoder); _ok { //interface verification
+			panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
 		}
 	}
 
@@ -338,7 +338,7 @@ func (this *Decoder) value(v reflect.Value, topLevel bool) error {
 		v.SetString(this.String())
 
 	case reflect.Slice, reflect.Array:
-		if sizeofNilPointer(v.Type().Elem()) < 0 { //verify array element is valid
+		if !validUserType(v.Type().Elem()) { //verify array element is valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 		if this.boolArray(v) < 0 { //deal with bool array first
@@ -362,8 +362,8 @@ func (this *Decoder) value(v reflect.Value, topLevel bool) error {
 		t := v.Type()
 		kt := t.Key()
 		vt := t.Elem()
-		if sizeofNilPointer(kt) < 0 ||
-			sizeofNilPointer(vt) < 0 { //verify map key and value type are both valid
+		if !validUserType(kt) ||
+			!validUserType(vt) { //verify map key and value type are both valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 

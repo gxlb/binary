@@ -336,7 +336,7 @@ func TestPack(t *testing.T) {
 		if !validField(vt.Field(i)) {
 			continue
 		}
-		b, err := Pack(v.Field(i).Interface(), nil)
+		b, err := Encode(v.Field(i).Interface(), nil)
 		c := check[:len(b)]
 		check = check[len(b):]
 		if err != nil {
@@ -363,7 +363,7 @@ func TestPack(t *testing.T) {
 
 func TestUnpack(t *testing.T) {
 	var v fullStruct
-	err := Unpack(littleFullAll, &v)
+	err := Decode(littleFullAll, &v)
 	if err != nil {
 		t.Error(err)
 	}
@@ -450,18 +450,18 @@ func TestPackEmptyPointer(t *testing.T) {
 		PStruct  *struct{ A int }
 		PStruct2 *struct{ B *[]string }
 	}
-	b, err := Pack(&s, nil)
+	b, err := Encode(&s, nil)
 	if err != nil {
 		t.Error(err)
 	}
 	ss := s
 
-	err = Unpack(b, &ss)
+	err = Decode(b, &ss)
 	if err != nil {
 		t.Error(err)
 	}
 
-	b2, err2 := Pack(&ss, nil)
+	b2, err2 := Encode(&ss, nil)
 	if err2 != nil {
 		t.Error(err)
 	}
@@ -486,7 +486,7 @@ func TestHideStructField(t *testing.T) {
 	s.b = 0x22334455
 	s.C = 0x33445566
 	check := []byte{0x44, 0x33, 0x22, 0x11}
-	b, err := Pack(s, nil)
+	b, err := Encode(s, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -495,7 +495,7 @@ func TestHideStructField(t *testing.T) {
 	}
 	var ss, ssCheck T
 	ssCheck.A = s.A
-	err = Unpack(b, &ss)
+	err = Decode(b, &ss)
 	if err != nil {
 		t.Error(err)
 	}
@@ -577,12 +577,12 @@ func TestDecoderSkip(t *testing.T) {
 	}
 
 	var r [4]s
-	b, err := Pack(&w, nil)
+	b, err := Encode(&w, nil)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err2 := Unpack(b, &r)
+	err2 := Decode(b, &r)
 	if err2 != nil {
 		t.Error(err2)
 	}
@@ -625,7 +625,7 @@ func TestFastValue(t *testing.T) {
 
 func TestPackDonotSupportedType(t *testing.T) {
 	ts := doNotSupportTypes
-	if _, err := Pack(ts, nil); err == nil {
+	if _, err := Encode(ts, nil); err == nil {
 		t.Errorf("PackDonotSupportedType: have err == nil, want non-nil")
 	}
 
@@ -635,7 +635,7 @@ func TestPackDonotSupportedType(t *testing.T) {
 
 	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
-		if _, err := Pack(tv.Field(i).Interface(), nil); err == nil {
+		if _, err := Encode(tv.Field(i).Interface(), nil); err == nil {
 			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
@@ -647,7 +647,7 @@ func TestPackDonotSupportedType(t *testing.T) {
 			//fmt.Println(err)
 		}
 
-		if err := Unpack(buff, tv.Field(i).Addr().Interface()); err == nil {
+		if err := Decode(buff, tv.Field(i).Addr().Interface()); err == nil {
 			t.Errorf("Unpack DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Printf("Unpack error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
@@ -726,14 +726,14 @@ func TestRegStruct(t *testing.T) {
 	}
 	a.S.A = 9
 	a.S.B = "abc"
-	b, err := Pack(&a, nil)
+	b, err := Encode(&a, nil)
 	if err != nil {
 		t.Error(err)
 	}
 
 	var r StructForReg
 	//fmt.Printf("%#v\n%#v\n", a, b)
-	err = Unpack(b, &r)
+	err = Decode(b, &r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -787,50 +787,50 @@ type sizerOnly struct{ A uint8 }
 
 func (this sizerOnly) Size() int { return 1 }
 
-type packerOnly struct{ B uint8 }
+type encoderOnly struct{ B uint8 }
 
-func (this packerOnly) Pack(buffer []byte) ([]byte, error) { return nil, nil }
+func (this encoderOnly) Encode(buffer []byte) ([]byte, error) { return nil, nil }
 
-type unpackerOnly struct {
+type decoderOnly struct {
 	C uint8
 }
 
-func (this *unpackerOnly) Unpack(buffer []byte) error { return nil }
+func (this *decoderOnly) Decode(buffer []byte) error { return nil }
 
 type sizepackerOnly struct {
 	sizerOnly
-	packerOnly
+	encoderOnly
 }
 type sizeunpackerOnly struct {
 	sizerOnly
-	unpackerOnly
+	decoderOnly
 }
 type packunpackerOnly struct {
-	packerOnly
-	unpackerOnly
+	encoderOnly
+	decoderOnly
 }
-type fullPackUnpacker struct {
+type fullSerializer struct {
 	sizerOnly
-	packerOnly
-	unpackerOnly
+	encoderOnly
+	decoderOnly
 }
-type fullPackUnpackerUnpackerror struct {
-	fullPackUnpacker
+type fullSerializerError struct {
+	fullSerializer
 }
 
-func (this *fullPackUnpackerUnpackerror) Unpack(buffer []byte) error {
+func (this *fullSerializerError) Decode(buffer []byte) error {
 	return fmt.Errorf("expected error")
 }
 
 func TestPackUnpacker(t *testing.T) {
 	var a sizerOnly
-	var b packerOnly
-	var c unpackerOnly
+	var b encoderOnly
+	var c decoderOnly
 	var d sizepackerOnly
 	var e sizeunpackerOnly
 	var f packunpackerOnly
-	var g fullPackUnpackerUnpackerror
-	var h fullPackUnpacker
+	var g fullSerializerError
+	var h fullSerializer
 
 	testCase := func(data interface{}, testcase int) (info interface{}) {
 		defer func() {
@@ -845,13 +845,13 @@ func TestPackUnpacker(t *testing.T) {
 		case 1:
 			Sizeof(data)
 		case 2:
-			if _, err := Pack(data, nil); err != nil {
+			if _, err := Encode(data, nil); err != nil {
 				info = err
 			}
 
 		case 3:
 			buff := make([]byte, 1000)
-			if err := Unpack(buff, data); err != nil {
+			if err := Decode(buff, data); err != nil {
 				info = err
 			}
 		case 4:

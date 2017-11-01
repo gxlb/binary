@@ -84,17 +84,17 @@ func Size(data interface{}) int {
 // Sizeof returns how many bytes Write would generate to encode the value v, which
 // must be a serialize-able value or a slice/map/struct of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
-// If data implements interface Sizer, it will use data.Size first.
-// It will panic if data implements interface Sizer or Packer only.
+// If data implements interface BinarySizer, it will use data.Size first.
+// It will panic if data implements interface BinarySizer or BinaryEncoder only.
 func Sizeof(data interface{}) int {
-	if p, ok := data.(Sizer); ok {
-		if _, _ok := data.(Packer); !_ok { //interface verification
-			panic(errors.New("expect but not Packer:" + reflect.TypeOf(data).String()))
+	if p, ok := data.(BinarySizer); ok {
+		if _, _ok := data.(BinaryEncoder); !_ok { //interface verification
+			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
 		}
 		return p.Size()
 	} else {
-		if _, _ok := data.(Packer); _ok { //interface verification
-			panic(errors.New("unexpected Packer:" + reflect.TypeOf(data).String()))
+		if _, _ok := data.(BinaryEncoder); _ok { //interface verification
+			panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
 		}
 	}
 	return sizeof(data)
@@ -155,31 +155,32 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 	return err
 }
 
-// Sizer is an interface to define go data Size  method.
-type Sizer interface {
+// BinarySizer is an interface to define go data Size method.
+type BinarySizer interface {
 	Size() int
 }
 
-// Packer is an interface to define go data Pack  method.
+// BinaryEncoder is an interface to define go data Encode method.
 // buffer is nil-able
-type Packer interface {
-	Pack(buffer []byte) ([]byte, error)
+type BinaryEncoder interface {
+	Encode(buffer []byte) ([]byte, error)
 }
 
-// Packer is an interface to define go data UnPack method.
-type Unpacker interface {
-	Unpack(buffer []byte) error
+// BinaryDecoder is an interface to define go data Decode method.
+type BinaryDecoder interface {
+	Decode(buffer []byte) error
 }
 
-type PackUnpacker interface {
-	Sizer
-	Packer
-	Unpacker
+// interface BinarySerializer defines the go data Size/Encode/Decode method
+type BinarySerializer interface {
+	BinarySizer
+	BinaryEncoder
+	BinaryDecoder
 }
 
-// Pack encode go data to byte array.
+// Encode marshal go data to byte array.
 // nil buffer is aviable, it will create new buffer if necessary.
-func Pack(data interface{}, buffer []byte) ([]byte, error) {
+func Encode(data interface{}, buffer []byte) ([]byte, error) {
 	buff, err := MakeEncodeBuffer(data, buffer)
 	if err != nil {
 		return nil, err
@@ -191,10 +192,10 @@ func Pack(data interface{}, buffer []byte) ([]byte, error) {
 	return encoder.Buffer(), err
 }
 
-// Unpack decode go data from byte array.
+// Decode unmarshal go data from byte array.
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
-func Unpack(buffer []byte, data interface{}) error {
+func Decode(buffer []byte, data interface{}) error {
 	var decoder Decoder
 	decoder.Init(buffer, DefaultEndian)
 	return decoder.Value(data)

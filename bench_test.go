@@ -230,7 +230,7 @@ func testBenchPack(b *testing.B, data interface{}, caseName string) {
 	b.SetBytes(int64(Sizeof(data)))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Pack(data, buff)
+		Encode(data, buff)
 	}
 	b.StopTimer()
 }
@@ -310,7 +310,7 @@ func testBenchRead(b *testing.B, data, w interface{}, caseName string) {
 	}
 }
 func testBenchUnpack(b *testing.B, data, w interface{}, caseName string) {
-	buf, err := Pack(data, buff)
+	buf, err := Encode(data, buff)
 	if err != nil {
 		b.Error(caseName, err)
 	}
@@ -318,7 +318,7 @@ func testBenchUnpack(b *testing.B, data, w interface{}, caseName string) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Unpack(buf, w)
+		Decode(buf, w)
 	}
 	b.StopTimer()
 	if b.N > 0 && !reflect.DeepEqual(data, w) {
