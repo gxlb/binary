@@ -8,7 +8,23 @@ import (
 	"testing"
 )
 
-type regedStruct Struct
+type regedStruct struct {
+	Int8       int8
+	Int16      int16
+	Int32      int32
+	Int64      int64
+	Uint8      uint8
+	Uint16     uint16
+	Uint32     uint32
+	Uint64     uint64
+	Float32    float32
+	Float64    float64
+	Complex64  complex64
+	Complex128 complex128
+	Array      [4]uint8
+	Bool       bool
+	BoolArray  [4]bool
+}
 
 var (
 	buff   = make([]byte, 8192)

@@ -260,13 +260,13 @@ func (this *Decoder) Value(x interface{}) (err error) {
 	}
 
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return this.value(v)
+		return this.value(v, true)
 	} else {
 		return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
 	}
 }
 
-func (this *Decoder) value(v reflect.Value) error {
+func (this *Decoder) value(v reflect.Value, topLevel bool) error {
 	// check Packer interface for every value is perfect
 	// but this is too costly
 	//
@@ -352,7 +352,7 @@ func (this *Decoder) value(v reflect.Value) error {
 			l := v.Len()
 			for i := 0; i < size; i++ {
 				if i < l {
-					this.value(v.Index(i))
+					this.value(v.Index(i), false)
 				} else {
 					this.skipByType(v.Type().Elem())
 				}
@@ -377,16 +377,18 @@ func (this *Decoder) value(v reflect.Value) error {
 		for i := 0; i < size; i++ {
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
-			this.value(key)
-			this.value(value)
+			this.value(key, false)
+			this.value(value, false)
 			v.SetMapIndex(key, value)
 		}
 	case reflect.Struct:
 		return queryStruct(v.Type()).decode(this, v)
 
 	default:
-		if newPtr(v, this) {
-			return this.value(v.Elem())
+		if newPtr(v, this, topLevel) {
+			if !v.IsNil() {
+				return this.value(v.Elem(), false)
+			}
 		} else {
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
