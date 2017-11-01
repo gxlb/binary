@@ -22,11 +22,14 @@ type TDoNotSupport struct {
 	Array3        [2]struct{ A uintptr }
 	Func          func()
 	Struct        struct {
+		Uintptr uintptr
+	}
+	Struct2 struct {
 		PStruct *struct {
 			PPUintptr **uintptr
 		}
 	}
-	Struct2 struct {
+	Struct3 struct {
 		PStruct *struct {
 			PUintptr  *uintptr
 			PPUintptr **uintptr
@@ -406,6 +409,9 @@ func TestReset(t *testing.T) {
 	if !reflect.DeepEqual(_new, newCheck) {
 		t.Errorf("got %#v\nneed %#v\n", _new, newCheck)
 	}
+	if s := encoder.Skip(1); s < 0 {
+		t.Errorf("got %#v\nneed %#v\n", s, 1)
+	}
 	if s := encoder.Skip(encoder.Cap()); s >= 0 {
 		t.Errorf("got %#v\nneed %#v\n", s, -1)
 	}
@@ -625,6 +631,7 @@ func TestPackDonotSupportedType(t *testing.T) {
 
 	buff := make([]byte, 0)
 	ecoder := NewEncoder(100)
+	decoer := NewDecoder(buff)
 
 	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
@@ -641,10 +648,14 @@ func TestPackDonotSupportedType(t *testing.T) {
 		}
 
 		if err := Unpack(buff, tv.Field(i).Addr().Interface()); err == nil {
-			t.Errorf("Read DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+			t.Errorf("Unpack DonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
-			//println(err.Error())
+			//fmt.Printf("Unpack error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
+	}
+
+	if queryStruct(tv.Type()).decode(decoer, tv) == nil {
+		t.Errorf("decode DonotSupportedType.%v: have err == nil, want non-nil", tv.Type())
 	}
 }
 
