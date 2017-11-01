@@ -631,7 +631,7 @@ func TestPackDonotSupportedType(t *testing.T) {
 
 	buff := make([]byte, 0)
 	ecoder := NewEncoder(100)
-	decoer := NewDecoder(buff)
+	decoder := NewDecoder(buff)
 
 	tv := reflect.Indirect(reflect.ValueOf(&ts))
 	for i, n := 0, tv.NumField(); i < n; i++ {
@@ -652,9 +652,15 @@ func TestPackDonotSupportedType(t *testing.T) {
 		} else {
 			//fmt.Printf("Unpack error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
+
+		if err := decoder.value(tv.Field(i), true); err == nil {
+			t.Errorf("PackDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+		} else {
+			//fmt.Println(err)
+		}
 	}
 
-	if queryStruct(tv.Type()).decode(decoer, tv) == nil {
+	if queryStruct(tv.Type()).decode(decoder, tv) == nil {
 		t.Errorf("decode DonotSupportedType.%v: have err == nil, want non-nil", tv.Type())
 	}
 }
