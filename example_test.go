@@ -111,7 +111,7 @@ func ExampleDecode() {
 }
 func ExampleEncoder() {
 	encoder := binary.NewEncoder(100)
-	encoder.Uint32(0x11223344)
+	encoder.Uint32(0x11223344, false)
 	encoder.Varint(-5)
 	encoder.String("hello")
 	encodeResult := encoder.Buffer()
@@ -122,7 +122,7 @@ func ExampleEncoder() {
 func ExampleDecoder() {
 	buffer := []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 	decoder := binary.NewDecoder(buffer)
-	u32 := decoder.Uint32()
+	u32 := decoder.Uint32(false)
 	i, _ := decoder.Varint()
 	str := decoder.String()
 	fmt.Printf("%#v %#v %#v", u32, i, str)
@@ -147,14 +147,14 @@ func (this *S) Encode(buffer []byte) ([]byte, error) {
 	}
 	encoder := binary.NewEncoderBuffer(buff)
 	encoder.Value(this.A)
-	encoder.Int16(int16(this.B))
+	encoder.Int16(int16(this.B), false)
 	encoder.Value(this.C)
 	return encoder.Buffer(), nil
 }
 func (this *S) Decode(buffer []byte) error {
 	decoder := binary.NewDecoder(buffer)
 	decoder.Value(&this.A)
-	this.B = int(decoder.Int16())
+	this.B = int(decoder.Int16(false))
 	decoder.Value(&this.C)
 	return nil
 }

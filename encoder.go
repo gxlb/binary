@@ -40,6 +40,17 @@ func (this *Encoder) Init(size int, endian Endian) {
 	this.endian = endian
 }
 
+// ResizeBuffer confirm that len(buffer) >= size and alloc larger buffer if necessary
+// It will call Reset to initial this state of buffer
+func (this *Encoder) ResizeBuffer(size int) bool {
+	ok := len(this.buff) < size
+	if ok {
+		this.buff = make([]byte, size)
+	}
+	this.Reset()
+	return ok
+}
+
 // Bool encode a bool value to Encoder buffer.
 // It will panic if buffer is not enough.
 func (this *Encoder) Bool(x bool) {
@@ -71,67 +82,92 @@ func (this *Encoder) Uint8(x uint8) {
 
 // Int16 encode an int16 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (this *Encoder) Int16(x int16) {
-	this.Uint16(uint16(x))
+func (this *Encoder) Int16(x int16, packed bool) {
+	if packed {
+		this.Varint(int64(x))
+	} else {
+		this.Uint16(uint16(x), false)
+	}
+
 }
 
 // Uint16 encode a uint16 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (this *Encoder) Uint16(x uint16) {
-	b := this.reserve(2)
-	this.endian.PutUint16(b, x)
+func (this *Encoder) Uint16(x uint16, packed bool) {
+	if packed {
+		this.Uvarint(uint64(x))
+	} else {
+		b := this.reserve(2)
+		this.endian.PutUint16(b, x)
+	}
 }
 
 // Int32 encode an int32 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (this *Encoder) Int32(x int32) {
-	this.Uint32(uint32(x))
+func (this *Encoder) Int32(x int32, packed bool) {
+	if packed {
+		this.Varint(int64(x))
+	} else {
+		this.Uint32(uint32(x), false)
+	}
 }
 
 // Uint32 encode a uint32 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (this *Encoder) Uint32(x uint32) {
-	b := this.reserve(4)
-	this.endian.PutUint32(b, x)
+func (this *Encoder) Uint32(x uint32, packed bool) {
+	if packed {
+		this.Uvarint(uint64(x))
+	} else {
+		b := this.reserve(4)
+		this.endian.PutUint32(b, x)
+	}
 }
 
 // Int64 encode an int64 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (this *Encoder) Int64(x int64) {
-	this.Uint64(uint64(x))
+func (this *Encoder) Int64(x int64, packed bool) {
+	if packed {
+		this.Varint(int64(x))
+	} else {
+		this.Uint64(uint64(x), false)
+	}
 }
 
 // Uint64 encode a uint64 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (this *Encoder) Uint64(x uint64) {
-	b := this.reserve(8)
-	this.endian.PutUint64(b, x)
+func (this *Encoder) Uint64(x uint64, packed bool) {
+	if packed {
+		this.Uvarint(uint64(x))
+	} else {
+		b := this.reserve(8)
+		this.endian.PutUint64(b, x)
+	}
 }
 
 // Float32 encode a float32 value to Encoder buffer.
 // It will panic if buffer is not enough.
 func (this *Encoder) Float32(x float32) {
-	this.Uint32(math.Float32bits(x))
+	this.Uint32(math.Float32bits(x), false)
 }
 
 // Float64 encode a float64 value to Encoder buffer.
 // It will panic if buffer is not enough.
 func (this *Encoder) Float64(x float64) {
-	this.Uint64(math.Float64bits(x))
+	this.Uint64(math.Float64bits(x), false)
 }
 
 // Complex64 encode a complex64 value to Encoder buffer.
 // It will panic if buffer is not enough.
 func (this *Encoder) Complex64(x complex64) {
-	this.Uint32(math.Float32bits(real(x)))
-	this.Uint32(math.Float32bits(imag(x)))
+	this.Uint32(math.Float32bits(real(x)), false)
+	this.Uint32(math.Float32bits(imag(x)), false)
 }
 
 // Complex128 encode a complex128 value to Encoder buffer.
 // It will panic if buffer is not enough.
 func (this *Encoder) Complex128(x complex128) {
-	this.Uint64(math.Float64bits(real(x)))
-	this.Uint64(math.Float64bits(imag(x)))
+	this.Uint64(math.Float64bits(real(x)), false)
+	this.Uint64(math.Float64bits(imag(x)), false)
 }
 
 // String encode a string value to Encoder buffer.
@@ -211,7 +247,7 @@ func (this *Encoder) Value(x interface{}) (err error) {
 		}
 	}
 
-	return this.value(reflect.Indirect(v))
+	return this.value(reflect.Indirect(v), false)
 }
 
 func (this *Encoder) fastValue(x interface{}) bool {
@@ -228,19 +264,19 @@ func (this *Encoder) fastValue(x interface{}) bool {
 	case uint8:
 		this.Uint8(d)
 	case int16:
-		this.Int16(d)
+		this.Int16(d, false)
 	case uint16:
-		this.Uint16(d)
+		this.Uint16(d, false)
 	case int32:
-		this.Int32(d)
+		this.Int32(d, false)
 	case uint32:
-		this.Uint32(d)
+		this.Uint32(d, false)
 	case float32:
 		this.Float32(d)
 	case int64:
-		this.Int64(d)
+		this.Int64(d, false)
 	case uint64:
-		this.Uint64(d)
+		this.Uint64(d, false)
 	case float64:
 		this.Float64(d)
 	case complex64:
@@ -281,38 +317,38 @@ func (this *Encoder) fastValue(x interface{}) bool {
 		l := len(d)
 		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			this.Int16(d[i])
+			this.Int16(d[i], false)
 		}
 	case []uint16:
 		l := len(d)
 		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			this.Uint16(d[i])
+			this.Uint16(d[i], false)
 		}
 
 	case []int32:
 		l := len(d)
 		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			this.Int32(d[i])
+			this.Int32(d[i], false)
 		}
 	case []uint32:
 		l := len(d)
 		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			this.Uint32(d[i])
+			this.Uint32(d[i], false)
 		}
 	case []int64:
 		l := len(d)
 		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			this.Int64(d[i])
+			this.Int64(d[i], false)
 		}
 	case []uint64:
 		l := len(d)
 		this.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			this.Uint64(d[i])
+			this.Uint64(d[i], false)
 		}
 	case []float32:
 		l := len(d)
@@ -363,7 +399,7 @@ func (this *Encoder) fastValue(x interface{}) bool {
 
 }
 
-func (this *Encoder) value(v reflect.Value) error {
+func (this *Encoder) value(v reflect.Value, packed bool) error {
 	// check Packer interface for every value is perfect
 	// but this is too costly
 	//
@@ -395,20 +431,20 @@ func (this *Encoder) value(v reflect.Value) error {
 	case reflect.Int8:
 		this.Int8(int8(v.Int()))
 	case reflect.Int16:
-		this.Int16(int16(v.Int()))
+		this.Int16(int16(v.Int()), packed)
 	case reflect.Int32:
-		this.Int32(int32(v.Int()))
+		this.Int32(int32(v.Int()), packed)
 	case reflect.Int64:
-		this.Int64(v.Int())
+		this.Int64(v.Int(), packed)
 
 	case reflect.Uint8:
 		this.Uint8(uint8(v.Uint()))
 	case reflect.Uint16:
-		this.Uint16(uint16(v.Uint()))
+		this.Uint16(uint16(v.Uint()), packed)
 	case reflect.Uint32:
-		this.Uint32(uint32(v.Uint()))
+		this.Uint32(uint32(v.Uint()), packed)
 	case reflect.Uint64:
-		this.Uint64(v.Uint())
+		this.Uint64(v.Uint(), packed)
 
 	case reflect.Float32:
 		this.Float32(float32(v.Float()))
@@ -434,7 +470,7 @@ func (this *Encoder) value(v reflect.Value) error {
 			l := v.Len()
 			this.Uvarint(uint64(l))
 			for i := 0; i < l; i++ {
-				this.value(v.Index(i))
+				this.value(v.Index(i), packed)
 			}
 		}
 	case reflect.Map:
@@ -451,8 +487,8 @@ func (this *Encoder) value(v reflect.Value) error {
 		this.Uvarint(uint64(l))
 		for i := 0; i < l; i++ {
 			key := keys[i]
-			this.value(key)
-			this.value(v.MapIndex(key))
+			this.value(key, packed)
+			this.value(v.MapIndex(key), packed)
 		}
 	case reflect.Struct:
 		return queryStruct(v.Type()).encode(this, v)
@@ -464,7 +500,7 @@ func (this *Encoder) value(v reflect.Value) error {
 		if !v.IsNil() {
 			this.Bool(true)
 			if e := v.Elem(); e.Kind() != reflect.Ptr {
-				return this.value(e)
+				return this.value(e, packed)
 			}
 		} else {
 			this.Bool(false)

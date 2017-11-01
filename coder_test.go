@@ -374,7 +374,7 @@ func TestDecode(t *testing.T) {
 
 func TestReset(t *testing.T) {
 	encoder := NewEncoder(100)
-	encoder.Uint64(0x1122334455667788)
+	encoder.Uint64(0x1122334455667788, false)
 	encoder.String("0123456789abcdef")
 	oldCheck := []byte{0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x10, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66}
 	old := encoder.Buffer()
@@ -425,6 +425,10 @@ func TestReset(t *testing.T) {
 			t.Error("need panic but not")
 		}
 	}()
+
+	if !encoder.ResizeBuffer(101) {
+		t.Errorf("Decoder: have %v, want %v", false, true)
+	}
 
 	large := [100]complex128{}
 	err2 := encoder.Value(&large)
@@ -653,7 +657,7 @@ func TestEncodeDonotSupportedType(t *testing.T) {
 			//fmt.Printf("Decode error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
 
-		if err := decoder.value(tv.Field(i), true); err == nil {
+		if err := decoder.value(tv.Field(i), true, false); err == nil {
 			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
@@ -675,9 +679,6 @@ func TestDecoder(t *testing.T) {
 	n := decoder.skipByType(reflect.TypeOf(uintptr(0)))
 	if n != -1 {
 		t.Errorf("Decoder: have %d, want %d", n, -1)
-	}
-	if !decoder.Resize(10) {
-		t.Errorf("Decoder: have %v, want %v", false, true)
 	}
 }
 
@@ -961,4 +962,34 @@ func TestFastSizeof(t *testing.T) {
 			t.Errorf("%d %#v got %d need %d", i, v.iter, s, v.size)
 		}
 	}
+}
+
+func TestPackedInts(t *testing.T) {
+	type packedInts struct {
+		A int16    `binary:"packed"`
+		B int32    `binary:"packed"`
+		C int64    `binary:"packed"`
+		D uint16   `binary:"packed"`
+		E uint32   `binary:"packed"`
+		F uint64   `binary:"packed"`
+		G []uint64 `binary:"packed"`
+	}
+	var ints = packedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}}
+	RegStruct((*packedInts)(nil))
+	b, err := Encode(ints, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	var ints2 packedInts
+	err = Decode(b, &ints2)
+	if err != nil {
+		t.Error(err)
+	}
+	if s := Sizeof(ints); s != len(b) {
+		t.Errorf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, s)
+	}
+	if !reflect.DeepEqual(ints2, ints) {
+		t.Errorf("PackedInts got %+v\nneed %+v\n", ints2, ints)
+	}
+	//fmt.Printf("size=%d %#v\n%#v\n", Sizeof(ints), ints, b)
 }

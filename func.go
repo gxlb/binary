@@ -30,7 +30,7 @@ func sizeof(data interface{}) int {
 		return s
 	}
 
-	s := bitsOfValue(reflect.ValueOf(data), true)
+	s := bitsOfValue(reflect.ValueOf(data), true, false)
 	if s < 0 {
 		return -1
 	}
@@ -186,8 +186,23 @@ func assert(b bool, msg interface{}) {
 	}
 }
 
+func bitsOfUnfixedArray(v reflect.Value, packed bool) int {
+	if !validUserType(v.Type().Elem()) { //check if array element type valid
+		return -1
+	}
+
+	arrayLen := v.Len()
+	sum := SizeofUvarint(uint64(arrayLen)) * 8 //array size bytes num
+	for i, n := 0, arrayLen; i < n; i++ {
+		s := bitsOfValue(v.Index(i), false, packed)
+		//assert(s >= 0, v.Type().String()) //element size must not error
+		sum += s
+	}
+	return sum
+}
+
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
-func bitsOfValue(v reflect.Value, topLevel bool) int {
+func bitsOfValue(v reflect.Value, topLevel bool, packed bool) int {
 	bits := 0
 	if v.Kind() == reflect.Ptr { //nil is not aviable
 		if !topLevel {
@@ -201,9 +216,19 @@ func bitsOfValue(v reflect.Value, topLevel bool) int {
 		}
 	}
 
-	v = reflect.Indirect(v)                  //redrect pointer to it's value
-	if s := fixedTypeSize(v.Type()); s > 0 { //fixed size
-		return s*8 + bits
+	v = reflect.Indirect(v) //redrect pointer to it's value
+	t := v.Type()
+	if s := fixedTypeSize(t); s > 0 { //fixed size
+		if packedType := packedIntsType(t); packedType > 0 && packed {
+			switch packedType {
+			case _SignedInts:
+				return SizeofVarint(v.Int())*8 + bits
+			case _UnsignedInts:
+				return SizeofUvarint(v.Uint())*8 + bits
+			}
+		} else {
+			return s*8 + bits
+		}
 	}
 	switch t := v.Type(); t.Kind() {
 	case reflect.Int:
@@ -216,18 +241,13 @@ func bitsOfValue(v reflect.Value, topLevel bool) int {
 			if t.Elem().Kind() == reflect.Bool {
 				return sizeofBoolArray(arrayLen)*8 + bits
 			}
-			return sizeofFixArray(arrayLen, s)*8 + bits
+			if packedIntsType(t.Elem()) > 0 && packed {
+				return bitsOfUnfixedArray(v, packed) + bits
+			} else {
+				return sizeofFixArray(arrayLen, s)*8 + bits
+			}
 		} else {
-			sum := SizeofUvarint(uint64(arrayLen))*8 + bits //array size bytes num
-			if !validUserType(t.Elem()) {                   //check if array element type valid
-				return -1
-			}
-			for i, n := 0, arrayLen; i < n; i++ {
-				s := bitsOfValue(v.Index(i), false)
-				//assert(s >= 0, v.Type().String()) //element size must not error
-				sum += s
-			}
-			return sum
+			return bitsOfUnfixedArray(v, packed) + bits
 		}
 	case reflect.Map:
 		mapLen := v.Len()
@@ -241,12 +261,12 @@ func bitsOfValue(v reflect.Value, topLevel bool) int {
 
 		for i := 0; i < mapLen; i++ {
 			key := keys[i]
-			sizeKey := bitsOfValue(key, false)
+			sizeKey := bitsOfValue(key, false, packed)
 			//assert(sizeKey >= 0, key.Type().Kind().String()) //key size must not error
 
 			sum += sizeKey
 			value := v.MapIndex(key)
-			sizeValue := bitsOfValue(value, false)
+			sizeValue := bitsOfValue(value, false, packed)
 			//assert(sizeValue >= 0, value.Type().Kind().String()) //key size must not error
 
 			sum += sizeValue
@@ -302,6 +322,21 @@ func sizeofNilPointer(t reflect.Type) int {
 	}
 
 	return -1
+}
+
+const (
+	_SignedInts = iota + 1
+	_UnsignedInts
+)
+
+func packedIntsType(t reflect.Type) int {
+	switch t.Kind() {
+	case reflect.Int16, reflect.Int32, reflect.Int64:
+		return _SignedInts
+	case reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return _UnsignedInts
+	}
+	return 0
 }
 
 func fixedTypeSize(t reflect.Type) int {

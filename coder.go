@@ -50,15 +50,6 @@ func (this *coder) Skip(size int) int {
 	return -1
 }
 
-func (this *coder) Resize(size int) bool {
-	ok := len(this.buff) < size
-	if ok {
-		this.buff = make([]byte, size)
-	}
-	this.Reset()
-	return ok
-}
-
 // Reset move the read/write pointer to the beginning of buffer
 // and set all reseted bytes to 0.
 func (this *coder) Reset() {
@@ -69,6 +60,7 @@ func (this *coder) Reset() {
 	this.resetBoolCoder()
 }
 
+// reset the state of bool coder
 func (this *coder) resetBoolCoder() {
 	this.boolPos = -1
 	this.boolBit = 0
