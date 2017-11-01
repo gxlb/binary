@@ -58,7 +58,7 @@ func ExampleRead() {
 	// 3.141592653589793
 }
 
-func ExamplePack() {
+func ExampleEncode() {
 	var s struct {
 		A uint32
 		B int
@@ -67,15 +67,15 @@ func ExamplePack() {
 	s.A = 0x11223344
 	s.B = -5
 	s.C = "hello"
-	b, err := binary.Pack(s, nil)
+	b, err := binary.Encode(s, nil)
 	if err != nil {
-		fmt.Println("binary.Pack failed:", err)
+		fmt.Println("binary.Encode failed:", err)
 	}
 	fmt.Printf("%#v", b)
 	// Output:
 	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
-func ExamplePack_withbuffer() {
+func ExampleEncode_withbuffer() {
 	var s struct {
 		A uint32
 		B int
@@ -86,24 +86,24 @@ func ExamplePack_withbuffer() {
 	s.C = "hello"
 	size := binary.Sizeof(s)
 	buffer := make([]byte, size)
-	b, err := binary.Pack(s, buffer)
+	b, err := binary.Encode(s, buffer)
 	if err != nil {
-		fmt.Println("binary.Pack failed:", err)
+		fmt.Println("binary.Encode failed:", err)
 	}
 	fmt.Printf("%#v", b)
 	// Output:
 	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
-func ExampleUnpack() {
+func ExampleDecode() {
 	var s struct {
 		A uint32
 		B int
 		C string
 	}
 	buffer := []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
-	err := binary.Unpack(buffer, &s)
+	err := binary.Decode(buffer, &s)
 	if err != nil {
-		fmt.Println("binary.Unpack failed:", err)
+		fmt.Println("binary.Decode failed:", err)
 	}
 	fmt.Printf("%+v", s)
 	// Output:
@@ -140,7 +140,7 @@ func (this *S) Size() int {
 	size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
 	return size
 }
-func (this *S) Pack(buffer []byte) ([]byte, error) {
+func (this *S) Encode(buffer []byte) ([]byte, error) {
 	buff, err := binary.MakeEncodeBuffer(this, buffer)
 	if err != nil {
 		return nil, err
@@ -151,14 +151,14 @@ func (this *S) Pack(buffer []byte) ([]byte, error) {
 	encoder.Value(this.C)
 	return encoder.Buffer(), nil
 }
-func (this *S) Unpack(buffer []byte) error {
+func (this *S) Decode(buffer []byte) error {
 	decoder := binary.NewDecoder(buffer)
 	decoder.Value(&this.A)
 	this.B = int(decoder.Int16())
 	decoder.Value(&this.C)
 	return nil
 }
-func ExamplePacker() {
+func ExampleBinarySerializer() {
 	/*
 		type S struct {
 			A uint32
@@ -169,14 +169,14 @@ func ExamplePacker() {
 			size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
 			return size
 		}
-		func (this *S) Pack() ([]byte, error) {
+		func (this *S) Encode() ([]byte, error) {
 			encoder := binary.NewEncoder(this.Size())
 			encoder.Value(this.A)
 			encoder.Int16(int16(this.B))
 			encoder.Value(this.C)
 			return encoder.Buffer(), nil
 		}
-		func (this *S) Unpack(buffer []byte) error {
+		func (this *S) Decode(buffer []byte) error {
 			decoder := binary.NewDecoder(buffer)
 			decoder.Value(&this.A)
 			this.B = int(decoder.Int16())
@@ -188,14 +188,14 @@ func ExamplePacker() {
 	s.A = 0x11223344
 	s.B = -5
 	s.C = "hello"
-	b, err := binary.Pack(&s, nil)
+	b, err := binary.Encode(&s, nil)
 
 	if err != nil {
-		fmt.Println("binary.Pack failed:", err)
+		fmt.Println("binary.Encode failed:", err)
 	}
-	err = binary.Unpack(b, &ss)
+	err = binary.Decode(b, &ss)
 	if err != nil {
-		fmt.Println("binary.Unpack failed:", err)
+		fmt.Println("binary.Decode failed:", err)
 	}
 	fmt.Printf("[%+v\n%#v\n%+v]", s, b, ss)
 	// Output:

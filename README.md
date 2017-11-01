@@ -1,5 +1,10 @@
-# binary [![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-1.0.0.final-green.svg)
-  Package binary is uesed to Pack/Unpack between go data and byte slice.
+# binary 
+
+[![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-1.1.0-green.svg)
+
+***
+
+  Package binary is uesed to Encode/Decode between go data and byte slice.
 
   The main purpose of this package is to replace package "std.binary".
 
@@ -30,7 +35,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	And their direct pointers. 
 	eg: *string, *struct, *map, *slice, *int32.
 
-# 2. [recommended usage] Use Pack/UnPack to read/write memory buffer directly.
+# 2. [recommended usage] Use Encode/Decode to read/write memory buffer directly.
 ## 	Use RegStruct to improve struct encoding/decoding efficiency.
 	type someRegedStruct struct {
 		A int `binary:"ignore"`
@@ -39,31 +44,31 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	}
 	binary.RegStruct((*someRegedStruct)(nil))
 
-	If data implements interface Packer, it will use data.Pack/data.Unpack 
+	If data implements interface BinaryEncoder, it will use data.Encode/data.Decode 
 	to encode/decode data.
-	NOTE that data.Unpack must implement on pointer receiever to enable modifying
-	receiever.Even though Size/Pack of data can implement on non-pointer receiever,
-	binary.Pack(&data, nil) is required if data has implement interface Packer.
-	binary.Pack(data, nil) will probably NEVER use Packer methods to Pack/Unpack
+	NOTE that data.Decode must implement on pointer receiever to enable modifying
+	receiever.Even though Size/Encode of data can implement on non-pointer receiever,
+	binary.Encode(&data, nil) is required if data has implement interface BinaryEncoder.
+	binary.Encode(data, nil) will probably NEVER use BinaryEncoder methods to Encode/Decode
 	data.
 	eg:
 
 	import "github.com/vipally/binary"
 	
-	//1.Pack with default buffer
-	if bytes, err := binary.Pack(&data, nil); err==nil{
+	//1.Encode with default buffer
+	if bytes, err := binary.Encode(&data, nil); err==nil{
 		//...
 	}
 
-	//2.Pack with existing buffer
+	//2.Encode with existing buffer
 	size := binary.Sizeof(data)
 	buffer := make([]byte, size)
-	if bytes, err := binary.Pack(&data, buffer); err==nil{
+	if bytes, err := binary.Encode(&data, buffer); err==nil{
 		//...
 	}
 
-	//3.Unpack from buffer
-	if err := binary.Unpack(bytes, &data); err==nil{
+	//3.Decode from buffer
+	if err := binary.Decode(bytes, &data); err==nil{
 		//...
 	}
 

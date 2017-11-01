@@ -194,7 +194,7 @@ func bitsOfValue(v reflect.Value, topLevel bool) int {
 			bits = 1
 		}
 		if v.IsNil() {
-			if topLevel || sizeofNilPointer(v.Type()) < 0 {
+			if topLevel || !validUserType(v.Type()) {
 				return -1
 			}
 			return 1
@@ -219,7 +219,7 @@ func bitsOfValue(v reflect.Value, topLevel bool) int {
 			return sizeofFixArray(arrayLen, s)*8 + bits
 		} else {
 			sum := SizeofUvarint(uint64(arrayLen))*8 + bits //array size bytes num
-			if sizeofNilPointer(t.Elem()) < 0 {             //check if array element type valid
+			if !validUserType(t.Elem()) {                   //check if array element type valid
 				return -1
 			}
 			for i, n := 0, arrayLen; i < n; i++ {
@@ -234,8 +234,8 @@ func bitsOfValue(v reflect.Value, topLevel bool) int {
 		sum := SizeofUvarint(uint64(mapLen))*8 + bits //array size
 		keys := v.MapKeys()
 
-		if sizeofNilPointer(t.Key()) < 0 ||
-			sizeofNilPointer(t.Elem()) < 0 { //check if map key and value type valid
+		if !validUserType(t.Key()) ||
+			!validUserType(t.Elem()) { //check if map key and value type valid
 			return -1
 		}
 
@@ -276,12 +276,12 @@ func sizeofNilPointer(t reflect.Type) int {
 	case reflect.String:
 		return SizeofUvarint(0)
 	case reflect.Slice:
-		if sizeofNilPointer(tt.Elem()) > 0 { //verify element type valid
+		if validUserType(tt.Elem()) { //verify element type valid
 			return SizeofUvarint(0)
 		}
 	case reflect.Map:
-		if sizeofNilPointer(tt.Key()) > 0 &&
-			sizeofNilPointer(tt.Elem()) > 0 { //verify key and value type valid
+		if validUserType(tt.Key()) &&
+			validUserType(tt.Elem()) { //verify key and value type valid
 			return SizeofUvarint(0)
 		}
 	case reflect.Array:
@@ -326,7 +326,7 @@ func newPtr(v reflect.Value, decoder *Decoder, topLevel bool) bool {
 		e := v.Type().Elem()
 		switch e.Kind() {
 		case reflect.Array, reflect.Struct, reflect.Slice, reflect.Map:
-			if sizeofNilPointer(e) < 0 { //check if valid pointer type
+			if !validUserType(e) { //check if valid pointer type
 				return false
 			}
 			fallthrough
@@ -378,4 +378,8 @@ func sizeofString(_len int) int {
 //size of fix array, like []int16, []int64
 func sizeofFixArray(_len, elemLen int) int {
 	return SizeofUvarint(uint64(_len)) + _len*elemLen
+}
+
+func validUserType(t reflect.Type) bool {
+	return sizeofNilPointer(t) >= 0
 }

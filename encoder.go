@@ -179,7 +179,7 @@ func (this *Encoder) Uvarint(x uint64) int {
 // Value encode an interface value to Encoder buffer.
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
-// It will check if x implements interface Packer and use x.Pack first.
+// It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (this *Encoder) Value(x interface{}) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
@@ -195,19 +195,19 @@ func (this *Encoder) Value(x interface{}) (err error) {
 
 	v := reflect.ValueOf(x)
 
-	if p, ok := x.(Packer); ok {
-		if _, _ok := x.(Sizer); !_ok { //interface verification
-			panic(fmt.Errorf("expect but not Sizer: %s", v.Type().String()))
+	if p, ok := x.(BinaryEncoder); ok {
+		if _, _ok := x.(BinarySizer); !_ok { //interface verification
+			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
 		}
 
-		r, err := p.Pack(this.buff[this.pos:])
+		r, err := p.Encode(this.buff[this.pos:])
 		if err == nil {
 			this.reserve(len(r))
 		}
 		return err
 	} else {
-		if _, _ok := x.(Sizer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected Sizer: %s", v.Type().String()))
+		if _, _ok := x.(BinarySizer); _ok { //interface verification
+			panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
 		}
 	}
 
@@ -427,7 +427,7 @@ func (this *Encoder) value(v reflect.Value) error {
 		this.String(v.String())
 
 	case reflect.Slice, reflect.Array:
-		if sizeofNilPointer(v.Type().Elem()) < 0 { //verify array element is valid
+		if !validUserType(v.Type().Elem()) { //verify array element is valid
 			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
 		}
 		if this.boolArray(v) < 0 { //deal with bool array first
@@ -441,8 +441,8 @@ func (this *Encoder) value(v reflect.Value) error {
 		t := v.Type()
 		kt := t.Key()
 		vt := t.Elem()
-		if sizeofNilPointer(kt) < 0 ||
-			sizeofNilPointer(vt) < 0 { //verify map key and value type are both valid
+		if !validUserType(kt) ||
+			!validUserType(vt) { //verify map key and value type are both valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 
@@ -458,7 +458,7 @@ func (this *Encoder) value(v reflect.Value) error {
 		return queryStruct(v.Type()).encode(this, v)
 
 	case reflect.Ptr:
-		if sizeofNilPointer(v.Type()) < 0 {
+		if !validUserType(v.Type()) {
 			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
 		}
 		if !v.IsNil() {
