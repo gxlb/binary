@@ -374,7 +374,7 @@ func TestDecode(t *testing.T) {
 
 func TestReset(t *testing.T) {
 	encoder := NewEncoder(100)
-	encoder.Uint64(0x1122334455667788)
+	encoder.Uint64(0x1122334455667788, false)
 	encoder.String("0123456789abcdef")
 	oldCheck := []byte{0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x10, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66}
 	old := encoder.Buffer()
@@ -425,6 +425,10 @@ func TestReset(t *testing.T) {
 			t.Error("need panic but not")
 		}
 	}()
+
+	if !encoder.ResizeBuffer(101) {
+		t.Errorf("Decoder: have %v, want %v", false, true)
+	}
 
 	large := [100]complex128{}
 	err2 := encoder.Value(&large)
@@ -555,7 +559,7 @@ func TestByteReaderWriter(t *testing.T) {
 }
 
 func TestDecoderSkip(t *testing.T) {
-	type s struct {
+	type skipedStruct struct {
 		S         string
 		I         int
 		U         uint
@@ -564,8 +568,15 @@ func TestDecoderSkip(t *testing.T) {
 		U16Array  [5]uint16
 		StrArray  [5]string
 		Struct    struct{ A uint8 }
+		Bool1     bool
+		Pointer   *uint32
+		Bool2     bool
+		Packed1   uint32 `binary:"packed"`
+		Packed2   int64  `binary:"packed"`
 	}
-	var w [5]s
+	RegStruct((*skipedStruct)(nil))
+
+	var w [5]skipedStruct
 	for i := len(w) - 1; i >= 0; i-- {
 		w[i].S = fmt.Sprintf("%d", i)
 		w[i].I = i
@@ -574,9 +585,15 @@ func TestDecoderSkip(t *testing.T) {
 		w[i].Struct.A = uint8(i)
 		w[i].U16Array[i] = uint16(i)
 		w[i].BoolArray[i] = true
+		w[i].Bool2 = true
+		w[i].Packed1 = uint32(i)
+		w[i].Packed2 = int64(i * 2)
+		if i%2 == 0 {
+			w[i].Pointer = new(uint32)
+		}
 	}
 
-	var r [4]s
+	var r [3]skipedStruct
 	b, err := Encode(&w, nil)
 	if err != nil {
 		t.Error(err)
@@ -592,6 +609,26 @@ func TestDecoderSkip(t *testing.T) {
 		}
 	}
 }
+
+//func TestDecoderSkipError(t *testing.T) {
+//	//	defer func() {
+//	//		if msg := recover(); msg == nil {
+//	//			t.Fatal("did not panic")
+//	//		} else {
+//	//			fmt.Println(msg)
+//	//		}
+//	//	}()
+
+//	bytes := []byte{2, 0, 0, 0, 0}
+//	var dataDecode [0]uintptr
+//	decoder := NewDecoder(bytes)
+//	n := decoder.skipByType(reflect.TypeOf(dataDecode), false)
+//	if n >= 0 {
+//		t.Errorf("DecoderSkipError: have %d, want %d", n, -1)
+//	} else {
+//		//println(n)
+//	}
+//}
 
 func TestFastValue(t *testing.T) {
 	s := _fastValues
@@ -653,7 +690,7 @@ func TestEncodeDonotSupportedType(t *testing.T) {
 			//fmt.Printf("Decode error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
 
-		if err := decoder.value(tv.Field(i), true); err == nil {
+		if err := decoder.value(tv.Field(i), true, false); err == nil {
 			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
@@ -672,12 +709,9 @@ func TestDecoder(t *testing.T) {
 	if got != -1 {
 		t.Errorf("Decoder: have %d, want %d", got, -1)
 	}
-	n := decoder.skipByType(reflect.TypeOf(uintptr(0)))
+	n := decoder.skipByType(reflect.TypeOf(uintptr(0)), false)
 	if n != -1 {
 		t.Errorf("Decoder: have %d, want %d", n, -1)
-	}
-	if !decoder.Resize(10) {
-		t.Errorf("Decoder: have %v, want %v", false, true)
 	}
 }
 
@@ -960,5 +994,77 @@ func TestFastSizeof(t *testing.T) {
 		if s != v.size {
 			t.Errorf("%d %#v got %d need %d", i, v.iter, s, v.size)
 		}
+	}
+}
+
+func TestPackedInts(t *testing.T) {
+	type packedInts struct {
+		A int16    `binary:"packed"`
+		B int32    `binary:"packed"`
+		C int64    `binary:"packed"`
+		D uint16   `binary:"packed"`
+		E uint32   `binary:"packed"`
+		F uint64   `binary:"packed"`
+		G []uint64 `binary:"packed"`
+	}
+	var data = packedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}}
+	RegStruct((*packedInts)(nil))
+	b, err := Encode(data, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	if s := Sizeof(data); s != len(b) {
+		t.Errorf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, s)
+	}
+	check := []byte{0x2, 0x4, 0x6, 0x4, 0x5, 0x6, 0x3, 0x7, 0x8, 0x9}
+	if !reflect.DeepEqual(b, check) {
+		t.Errorf("PackedInts %#v\n got %+v\nneed %+v\n", data, b, check)
+	}
+
+	var dataDecode packedInts
+	err = Decode(b, &dataDecode)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(dataDecode, data) {
+		t.Errorf("PackedInts got %+v\nneed %+v\n", dataDecode, data)
+	}
+}
+
+func TestBools(t *testing.T) {
+	type boolset struct {
+		A uint8   //0x11
+		B bool    //true
+		C uint8   //0x22
+		D []bool  //[]bool{true, false, true}
+		E bool    //true
+		F *uint32 //false
+		G bool    //true
+		H uint8   //0x33
+	}
+	var data = boolset{
+		0x11, true, 0x22, []bool{true, false, true}, true, nil, true, 0x33,
+	}
+	b, err := Encode(data, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	size := Sizeof(data)
+	if size != len(b) {
+		fmt.Printf("EncodeBools got %#v %+v\nneed %+v\n", len(b), b, size)
+	}
+	check := []byte{0x11, 0xb, 0x22, 0x3, 0x5, 0x33}
+	if !reflect.DeepEqual(b, check) {
+		t.Errorf("EncodeBools %#v\n got %+v\nneed %+v\n", data, b, check)
+	}
+
+	var dataDecode boolset
+	err = Decode(b, &dataDecode)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(dataDecode, data) {
+		t.Errorf("EncodeBools got %+v\nneed %+v\n", dataDecode, data)
 	}
 }
