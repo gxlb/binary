@@ -317,10 +317,10 @@ func ExampleRegStruct_packedInts() {
 		fmt.Printf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, size)
 	}
 
-	fmt.Printf("Encode packed ints:\n%#v\nsize=%d result=%#v", ints, len(b), b)
+	fmt.Printf("Encode packed ints:\n%+v\nsize=%d result=%#v", ints, len(b), b)
 
 	// Output:
 	// Encode packed ints:
-	// binary_test.regedPackedInts{A:1, B:2, C:3, D:0x4, E:0x5, F:0x6, G:[]uint64{0x7, 0x8, 0x9}, H:0xa}
+	// {A:1 B:2 C:3 D:4 E:5 F:6 G:[7 8 9] H:10}
 	// size=10 result=[]byte{0x2, 0x4, 0x6, 0x4, 0x5, 0x6, 0x3, 0x7, 0x8, 0x9}
 }
