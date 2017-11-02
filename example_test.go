@@ -75,9 +75,11 @@ func ExampleEncode() {
 	if err != nil {
 		fmt.Println("binary.Encode failed:", err)
 	}
-	fmt.Printf("%#v", b)
+	fmt.Printf("Encode:\n%+v\n%#v", data, b)
 
 	// Output:
+	// Encode:
+	// {A:287454020 B:-5 C:hello}
 	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
 func ExampleEncode_withbuffer() {
@@ -96,24 +98,26 @@ func ExampleEncode_withbuffer() {
 	if err != nil {
 		fmt.Println("binary.Encode failed:", err)
 	}
-	fmt.Printf("%#v", b)
+	fmt.Printf("Encode:\n%+v\n%#v", data, b)
 
 	// Output:
+	// Encode:
+	// {A:287454020 B:-5 C:hello}
 	// []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
 }
 func ExampleEncode_bools() {
 	type boolset struct {
-		A uint8   //0x11
+		A uint8   //0xa
 		B bool    //true
-		C uint8   //0x22
+		C uint8   //0xc
 		D []bool  //[]bool{true, false, true}
 		E bool    //true
 		F *uint32 //false
 		G bool    //true
-		H uint8   //0x33
+		H uint8   //0x8
 	}
 	var data = boolset{
-		0x11, true, 0x22, []bool{true, false, true}, true, nil, true, 0x33,
+		0xa, true, 0xc, []bool{true, false, true}, true, nil, true, 0x8,
 	}
 	b, err := binary.Encode(data, nil)
 	if err != nil {
@@ -123,12 +127,12 @@ func ExampleEncode_bools() {
 	if size := binary.Sizeof(data); size != len(b) {
 		fmt.Printf("Encode got %#v %+v\nneed %+v\n", len(b), b, size)
 	}
-	fmt.Printf("Encode bools:\n%#v\nsize=%d result=%#v", data, len(b), b)
+	fmt.Printf("Encode bools:\n%+v\nsize=%d result=%#v", data, len(b), b)
 
 	// Output:
 	// Encode bools:
-	// binary_test.boolset{A:0x11, B:true, C:0x22, D:[]bool{true, false, true}, E:true, F:(*uint32)(nil), G:true, H:0x33}
-	// size=6 result=[]byte{0x11, 0xb, 0x22, 0x3, 0x5, 0x33}
+	// {A:10 B:true C:12 D:[true false true] E:true F:<nil> G:true H:8}
+	// size=6 result=[]byte{0xa, 0xb, 0xc, 0x3, 0x5, 0x8}
 }
 
 func ExampleEncode_boolArray() {
@@ -187,11 +191,13 @@ func ExampleDecode() {
 		C string
 	}
 	buffer := []byte{0x44, 0x33, 0x22, 0x11, 0x9, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f}
+
 	err := binary.Decode(buffer, &s)
 	if err != nil {
 		fmt.Println("binary.Decode failed:", err)
 	}
 	fmt.Printf("%+v", s)
+
 	// Output:
 	// {A:287454020 B:-5 C:hello}
 }
@@ -274,21 +280,21 @@ func ExampleBinarySerializer() {
 			return nil
 		}
 	*/
-	var s, ss S
-	s.A = 0x11223344
-	s.B = -5
-	s.C = "hello"
+	var data, dataDecode S
+	data.A = 0x11223344
+	data.B = -5
+	data.C = "hello"
 
-	b, err := binary.Encode(&s, nil)
+	b, err := binary.Encode(&data, nil)
 	if err != nil {
 		fmt.Println("binary.Encode failed:", err)
 	}
 
-	err = binary.Decode(b, &ss)
+	err = binary.Decode(b, &dataDecode)
 	if err != nil {
 		fmt.Println("binary.Decode failed:", err)
 	}
-	fmt.Printf("%+v\n%#v\n%+v", s, b, ss)
+	fmt.Printf("%+v\n%#v\n%+v", data, b, dataDecode)
 
 	// Output:
 	// {A:287454020 B:-5 C:hello}
@@ -324,12 +330,12 @@ func ExampleSizeof() {
 	stdSize := std.Size(s)
 	size := binary.Sizeof(s)
 
-	fmt.Printf("Sizeof(s)  = %d\nstd.Size(s)= %d\ngob.Size(s)= %d", size, stdSize, gobSize)
+	fmt.Printf("Sizeof(s)  = %d\nstd Size(s)= %d\ngob Size(s)= %d", size, stdSize, gobSize)
 
 	// Output:
 	// Sizeof(s)  = 133
-	// std.Size(s)= 217
-	// gob.Size(s)= 412
+	// std Size(s)= 217
+	// gob Size(s)= 412
 }
 
 func ExampleRegStruct() {
@@ -341,5 +347,20 @@ func ExampleRegStruct() {
 	}
 	binary.RegStruct((*someRegedStruct)(nil))
 
+	var data = someRegedStruct{1, 2, "hello", 3}
+	b, err := binary.Encode(data, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if size := binary.Sizeof(data); size != len(b) {
+		fmt.Printf("RegedStruct got %+v %+v\nneed %+v\n", len(b), b, size)
+	}
+
+	fmt.Printf("Encode reged struct:\n%+v\nsize=%d result=%#v", data, len(b), b)
+
 	// Output:
+	// Encode reged struct:
+	// {A:1 B:2 C:hello D:3}
+	// size=8 result=[]byte{0x2, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x3}
 }
