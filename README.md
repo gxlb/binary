@@ -279,13 +279,12 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	}
 
 # License.
-	Under MIT license.
+Under MIT license.
 
-	Copyright (c) 2017 Ally Dale<vipally@gmail.com>
-	Author  : Ally Dale<vipally@gmail.com>
-	Site    : https://github.com/vipally
-	Origin  : https://github.com/vipally/binary
-
+Copyright (c) 2017 Ally Dale<vipally@gmail.com>
+Author  : Ally Dale<vipally@gmail.com>
+Site    : https://github.com/vipally
+Origin  : https://github.com/vipally/binary
 
 [travis-img]: https://travis-ci.org/vipally/binary.svg?branch=master
 [travis-url]: https://travis-ci.org/vipally/binary
