@@ -149,6 +149,37 @@ func ExampleEncode_boolArray() {
 	// size=3 result=[]byte{0x9, 0x37, 0x1}
 }
 
+func ExampleEncode_packedInts() {
+	type regedPackedInts struct {
+		A int16    `binary:"packed"`
+		B int32    `binary:"packed"`
+		C int64    `binary:"packed"`
+		D uint16   `binary:"packed"`
+		E uint32   `binary:"packed"`
+		F uint64   `binary:"packed"`
+		G []uint64 `binary:"packed"`
+		H uint     `binary:"ignore"`
+	}
+	binary.RegStruct((*regedPackedInts)(nil))
+
+	var data = regedPackedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}, 10}
+	b, err := binary.Encode(data, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if size := binary.Sizeof(data); size != len(b) {
+		fmt.Printf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, size)
+	}
+
+	fmt.Printf("Encode packed ints:\n%+v\nsize=%d result=%#v", data, len(b), b)
+
+	// Output:
+	// Encode packed ints:
+	// {A:1 B:2 C:3 D:4 E:5 F:6 G:[7 8 9] H:10}
+	// size=10 result=[]byte{0x2, 0x4, 0x6, 0x4, 0x5, 0x6, 0x3, 0x7, 0x8, 0x9}
+}
+
 func ExampleDecode() {
 	var s struct {
 		A uint32
@@ -311,35 +342,4 @@ func ExampleRegStruct() {
 	binary.RegStruct((*someRegedStruct)(nil))
 
 	// Output:
-}
-
-func ExampleRegStruct_packedInts() {
-	type regedPackedInts struct {
-		A int16    `binary:"packed"`
-		B int32    `binary:"packed"`
-		C int64    `binary:"packed"`
-		D uint16   `binary:"packed"`
-		E uint32   `binary:"packed"`
-		F uint64   `binary:"packed"`
-		G []uint64 `binary:"packed"`
-		H uint     `binary:"ignore"`
-	}
-	binary.RegStruct((*regedPackedInts)(nil))
-
-	var ints = regedPackedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}, 10}
-	b, err := binary.Encode(ints, nil)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	if size := binary.Sizeof(ints); size != len(b) {
-		fmt.Printf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, size)
-	}
-
-	fmt.Printf("Encode packed ints:\n%+v\nsize=%d result=%#v", ints, len(b), b)
-
-	// Output:
-	// Encode packed ints:
-	// {A:1 B:2 C:3 D:4 E:5 F:6 G:[7 8 9] H:10}
-	// size=10 result=[]byte{0x2, 0x4, 0x6, 0x4, 0x5, 0x6, 0x3, 0x7, 0x8, 0x9}
 }
