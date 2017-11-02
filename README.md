@@ -18,6 +18,7 @@
 ***
 
 ### install
+
 ```bash
 $ go get -u github.com/vipally/binary
 
@@ -32,6 +33,7 @@ Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
 Site    : [https://github.com/vipally](https://github.com/vipally)
 
 ****
+
 # change log:
 ## v1.2.0
 	1.use field tag `binary:"packed"` to encode ints value as varint/uvarint 
@@ -55,6 +57,7 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	1.[Encoder/Decoder].RegStruct to speed up local Coder.
 	2.[Encoder/Decoder].RegSerializer to speed up BinarySerializer search.
 	3.reg interface to using BinarySerializer interface.
+
 ****
 
 # 1. Support all serialize-able basic types:
