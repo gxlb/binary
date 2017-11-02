@@ -64,7 +64,6 @@ func (this *Decoder) Init(buffer []byte, endian Endian) {
 func (this *Decoder) Bool() bool {
 	if this.boolBit == 0 {
 		b := this.reserve(1)
-		assert(b != nil, "")
 		this.boolValue = b[0]
 	}
 

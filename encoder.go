@@ -56,7 +56,6 @@ func (this *Encoder) ResizeBuffer(size int) bool {
 func (this *Encoder) Bool(x bool) {
 	if this.boolBit == 0 {
 		b := this.reserve(1)
-		assert(b != nil, "")
 		b[0] = 0
 		this.boolPos = this.pos - 1
 	}
