@@ -123,11 +123,30 @@ func ExampleEncode_bools() {
 	if size := binary.Sizeof(data); size != len(b) {
 		fmt.Printf("Encode got %#v %+v\nneed %+v\n", len(b), b, size)
 	}
-	fmt.Printf("Encode %#v\nsize=%d result=%#v", data, len(b), b)
+	fmt.Printf("Encode bools:\n%#v\nsize=%d result=%#v", data, len(b), b)
 
 	// Output:
-	// Encode binary_test.boolset{A:0x11, B:true, C:0x22, D:[]bool{true, false, true}, E:true, F:(*uint32)(nil), G:true, H:0x33}
+	// Encode bools:
+	// binary_test.boolset{A:0x11, B:true, C:0x22, D:[]bool{true, false, true}, E:true, F:(*uint32)(nil), G:true, H:0x33}
 	// size=6 result=[]byte{0x11, 0xb, 0x22, 0x3, 0x5, 0x33}
+}
+
+func ExampleEncode_boolArray() {
+	var data = []bool{true, true, true, false, true, true, false, false, true}
+	b, err := binary.Encode(data, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if size := binary.Sizeof(data); size != len(b) {
+		fmt.Printf("Encode bool array:\ngot %#v %+v\nneed %+v\n", len(b), b, size)
+	}
+	fmt.Printf("Encode bool array:\n%#v\nsize=%d result=%#v", data, len(b), b)
+
+	// Output:
+	// Encode bool array:
+	// []bool{true, true, true, false, true, true, false, false, true}
+	// size=3 result=[]byte{0x9, 0x37, 0x1}
 }
 
 func ExampleDecode() {
