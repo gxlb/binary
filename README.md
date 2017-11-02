@@ -1,6 +1,6 @@
 # binary 
 
-[![Build status][travis-img]][travis-url] [![Coverage Status][coverage-img]][coverage-url] [![GoDoc][doc-img]][doc-url] ![Version][version-img] [![Go Report Card][report-img]][report-url] [![License][license-img]][license-url]
+[![Build status][travis-img]][travis-url] [![Coverage Status][coverage-img]][coverage-url] [![GoDoc][doc-img]][doc-url] [![GoDoc][doc-img2]][doc-url] ![Version][version-img] [![Go Report Card][report-img]][report-url] [![License][license-img]][license-url]
 
 ***
 
@@ -17,7 +17,7 @@
 
 ***
 
-## install
+## Install
 
 ```bash
 $ go get -u github.com/vipally/binary
@@ -28,17 +28,7 @@ $ go get -u github.com/vipally/binary
 
 ***
 
-	CopyRight 2017 @Ally Dale. All rights reserved.
-	
-	Author  : [Ally Dale(vipally@gmail.com)](mailto://vipally@gmail.com)
-
-	Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
-
-	Site    : [https://github.com/vipally](https://github.com/vipally)
-
-***
-
-# change log:
+# Change log:
 ## v1.2.0
 	1.use field tag `binary:"packed"` to encode ints value as varint/uvarint 
 	  for reged structs.
@@ -57,10 +47,22 @@ $ go get -u github.com/vipally/binary
 	6.take both advantages of std.binary and gob.
 	7.recommended using in net protocol serialization and DB serialization.
 
-# TODO:
+# Todo:
 	1.[Encoder/Decoder].RegStruct to speed up local Coder.
 	2.[Encoder/Decoder].RegSerializer to speed up BinarySerializer search.
 	3.reg interface to using BinarySerializer interface.
+
+***
+
+## CopyRight
+
+CopyRight 2017 @Ally Dale. All rights reserved.
+
+Author  : [Ally Dale(vipally@gmail.com)](mailto://vipally@gmail.com)
+
+Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
+
+Site    : [https://github.com/vipally](https://github.com/vipally)
 
 ****
 
