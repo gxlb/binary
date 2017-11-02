@@ -974,22 +974,64 @@ func TestPackedInts(t *testing.T) {
 		F uint64   `binary:"packed"`
 		G []uint64 `binary:"packed"`
 	}
-	var ints = packedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}}
+	var data = packedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}}
 	RegStruct((*packedInts)(nil))
-	b, err := Encode(ints, nil)
+	b, err := Encode(data, nil)
 	if err != nil {
 		t.Error(err)
 	}
-	var ints2 packedInts
-	err = Decode(b, &ints2)
-	if err != nil {
-		t.Error(err)
-	}
-	if s := Sizeof(ints); s != len(b) {
+	if s := Sizeof(data); s != len(b) {
 		t.Errorf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, s)
 	}
-	if !reflect.DeepEqual(ints2, ints) {
-		t.Errorf("PackedInts got %+v\nneed %+v\n", ints2, ints)
+	check := []byte{0x2, 0x4, 0x6, 0x4, 0x5, 0x6, 0x3, 0x7, 0x8, 0x9}
+	if !reflect.DeepEqual(b, check) {
+		t.Errorf("PackedInts %#v\n got %+v\nneed %+v\n", data, b, check)
 	}
-	//fmt.Printf("size=%d %#v\n%#v\n", Sizeof(ints), ints, b)
+
+	var dataDecode packedInts
+	err = Decode(b, &dataDecode)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(dataDecode, data) {
+		t.Errorf("PackedInts got %+v\nneed %+v\n", dataDecode, data)
+	}
+}
+
+func TestBools(t *testing.T) {
+	type boolset struct {
+		A uint8   //0x11
+		B bool    //true
+		C uint8   //0x22
+		D []bool  //[]bool{true, false, true}
+		E bool    //true
+		F *uint32 //false
+		G bool    //true
+		H uint8   //0x33
+	}
+	var data = boolset{
+		0x11, true, 0x22, []bool{true, false, true}, true, nil, true, 0x33,
+	}
+	b, err := Encode(data, nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	size := Sizeof(data)
+	if size != len(b) {
+		fmt.Printf("EncodeBools got %#v %+v\nneed %+v\n", len(b), b, size)
+	}
+	check := []byte{0x11, 0xb, 0x22, 0x3, 0x5, 0x33}
+	if !reflect.DeepEqual(b, check) {
+		t.Errorf("EncodeBools %#v\n got %+v\nneed %+v\n", data, b, check)
+	}
+
+	var dataDecode boolset
+	err = Decode(b, &dataDecode)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(dataDecode, data) {
+		t.Errorf("EncodeBools got %+v\nneed %+v\n", dataDecode, data)
+	}
 }

@@ -202,7 +202,10 @@ func bitsOfUnfixedArray(v reflect.Value, packed bool) int {
 }
 
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
-func bitsOfValue(v reflect.Value, topLevel bool, packed bool) int {
+func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
+	//	defer func() {
+	//		fmt.Printf("bitsOfValue(%#v)=%d\n", v.Interface(), r)
+	//	}()
 	bits := 0
 	if v.Kind() == reflect.Ptr { //nil is not aviable
 		if !topLevel {
@@ -219,7 +222,9 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) int {
 	v = reflect.Indirect(v) //redrect pointer to it's value
 	t := v.Type()
 	if s := fixedTypeSize(t); s > 0 { //fixed size
-		if packedType := packedIntsType(t); packedType > 0 && packed {
+		if t.Kind() == reflect.Bool {
+			return 1 + bits
+		} else if packedType := packedIntsType(t); packedType > 0 && packed {
 			switch packedType {
 			case _SignedInts:
 				return SizeofVarint(v.Int())*8 + bits
