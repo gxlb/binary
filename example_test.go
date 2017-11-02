@@ -278,7 +278,7 @@ func ExampleRegStruct() {
 	// Output:
 }
 
-func ExampleRegStruct_PackedInts() {
+func ExampleRegStruct_packedInts() {
 	type regedPackedInts struct {
 		A int16    `binary:"packed"`
 		B int32    `binary:"packed"`
@@ -296,11 +296,12 @@ func ExampleRegStruct_PackedInts() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	size := binary.Sizeof(ints)
-	if size != len(b) {
+
+	if size := binary.Sizeof(ints); size != len(b) {
 		fmt.Printf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, size)
 	}
-	fmt.Printf("Encode %+v\nsize=%d reault=%#v", ints, len(b), b)
+	fmt.Printf("Encode %+v\nsize=%d reault=%#v\n", ints, len(b), b)
+
 	// Output:
 	// Encode {A:1 B:2 C:3 D:4 E:5 F:6 G:[7 8 9] H:10}
 	// size=10 reault=[]byte{0x2, 0x4, 0x6, 0x4, 0x5, 0x6, 0x3, 0x7, 0x8, 0x9}
