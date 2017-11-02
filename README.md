@@ -1,6 +1,6 @@
 # binary 
 
-[![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-1.2.0-green.svg)
+[![Build status][travis-img]][travis-url] [![Coverage Status][coverage-img]][coverage-url] [![GoDoc][doc-img]][doc-url] ![Version][version-img] [![Go Report Card][report-img]][report-url] [![License][license-img]][license-url]
 
 ***
 
@@ -14,6 +14,12 @@
   It is designed as a common solution to easily encode/decode between go data and byte slice.
 
   It is recommended to use in net protocol serialization and go memory data serialization such as DB.
+
+***
+
+### install
+```bash
+$ go get -u github.com/vipally/binary
 
 ***
 
@@ -279,4 +285,18 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	Author  : Ally Dale<vipally@gmail.com>
 	Site    : https://github.com/vipally
 	Origin  : https://github.com/vipally/binary
+
+
+[travis-img]: https://travis-ci.org/vipally/binary.svg?branch=master
+[travis-url]: https://travis-ci.org/vipally/binary
+[coverage-img]: http://img.shields.io/badge/GoDoc-reference-blue.svg?style=flat-square
+[coverage-url]: https://godoc.org/github.com/vipally/binary
+[license-img]: http://img.shields.io/badge/license-MIT-green.svg?style=flat-square
+[license-url]: http://opensource.org/licenses/MIT
+[doc-img]: http://img.shields.io/badge/GoDoc-reference-blue.svg?style=flat-square
+[doc-img2]: https://godoc.org/github.com/vipally/binary?status.svg
+[doc-url]: https://godoc.org/github.com/vipally/binary
+[report-img]: https://goreportcard.com/badge/github.com/vipally/binary
+[report-url]: https://goreportcard.com/report/github.com/vipally/binary
+[version-img]: https://img.shields.io/badge/version-1.2.0-green.svg
 
