@@ -1,6 +1,6 @@
 # binary 
 
-[![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-1.1.0-green.svg)
+[![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-1.2.0-green.svg)
 
 ***
 
@@ -25,6 +25,30 @@ Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
 
 Site    : [https://github.com/vipally](https://github.com/vipally)
 
+****
+# change log:
+## v1.2.0
+	1.use field tag `binary:"packed"` to encode ints value as varint/uvarint 
+	  for reged structs.
+	2.add method Encoder.ResizeBuffer.
+## v1.1.0
+	1.fix issue#1 nil pointer encode/decode error.
+	2.pack 8 bool values as bits in one byte.
+	3.put one bool bit for pointer fields to check if it is a nil pointer.
+	4.rename Pack/Unpack to Encode/Decode.
+## v1.0.0
+	1.full-type support like gob.
+	2.light-weight as std.binary.
+	3.high-performance as std.binary and gob.
+	4.encoding with fower bytes than std.binary and gob.
+	5.use RegStruct to improve performance of struct encoding/decoding.
+	6.take both advantages of std.binary and gob.
+	7.recommended using in net protocol serialization and DB serialization.
+
+# TODO:
+	1.[Encoder/Decoder].RegStruct to speed up local Coder.
+	2.[Encoder/Decoder].RegSerializer to speed up BinarySerializer search.
+	3.reg interface to using BinarySerializer interface.
 ****
 
 # 1. Support all serialize-able basic types:

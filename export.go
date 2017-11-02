@@ -161,7 +161,7 @@ type BinarySizer interface {
 }
 
 // BinaryEncoder is an interface to define go data Encode method.
-// buffer is nil-able
+// buffer is nil-able.
 type BinaryEncoder interface {
 	Encode(buffer []byte) ([]byte, error)
 }
@@ -201,7 +201,7 @@ func Decode(buffer []byte, data interface{}) error {
 	return decoder.Value(data)
 }
 
-// MakeEncodeBuffer create enough buffer to encode data
+// MakeEncodeBuffer create enough buffer to encode data.
 // nil buffer is aviable, it will create new buffer if necessary.
 func MakeEncodeBuffer(data interface{}, buffer []byte) ([]byte, error) {
 	size := Sizeof(data)
