@@ -1,6 +1,6 @@
 # binary 
 
-[![Build status][travis-img]][travis-url] [![Coverage Status][coverage-img]][coverage-url] [![GoDoc][doc-img]][doc-url] [![GoDoc][doc-img2]][doc-url] ![Version][version-img] [![Go Report Card][report-img]][report-url] [![License][license-img]][license-url]
+![Version][version-img] [![Build status][travis-img]][travis-url] [![Coverage Status][coverage-img]][coverage-url] [![Go Report Card][report-img]][report-url] [![GoDoc][doc-img]][doc-url] [![License][license-img]][license-url]
 
 ***
 
@@ -297,12 +297,12 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 
 [travis-img]: https://travis-ci.org/vipally/binary.svg?branch=master
 [travis-url]: https://travis-ci.org/vipally/binary
-[coverage-img]: http://img.shields.io/badge/GoDoc-reference-blue.svg?style=flat-square
-[coverage-url]: https://godoc.org/github.com/vipally/binary
+[coverage-img]: https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master
+[coverage-url]: https://coveralls.io/github/vipally/binary?branch=master
 [license-img]: http://img.shields.io/badge/license-MIT-green.svg?style=flat-square
 [license-url]: http://opensource.org/licenses/MIT
-[doc-img]: http://img.shields.io/badge/GoDoc-reference-blue.svg?style=flat-square
-[doc-img2]: https://godoc.org/github.com/vipally/binary?status.svg
+[doc-img2]: http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square
+[doc-img]: https://godoc.org/github.com/vipally/binary?status.svg
 [doc-url]: https://godoc.org/github.com/vipally/binary
 [report-img]: https://goreportcard.com/badge/github.com/vipally/binary
 [report-url]: https://goreportcard.com/report/github.com/vipally/binary
