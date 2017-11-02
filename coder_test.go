@@ -610,6 +610,26 @@ func TestDecoderSkip(t *testing.T) {
 	}
 }
 
+//func TestDecoderSkipError(t *testing.T) {
+//	//	defer func() {
+//	//		if msg := recover(); msg == nil {
+//	//			t.Fatal("did not panic")
+//	//		} else {
+//	//			fmt.Println(msg)
+//	//		}
+//	//	}()
+
+//	bytes := []byte{2, 0, 0, 0, 0}
+//	var dataDecode [0]uintptr
+//	decoder := NewDecoder(bytes)
+//	n := decoder.skipByType(reflect.TypeOf(dataDecode), false)
+//	if n >= 0 {
+//		t.Errorf("DecoderSkipError: have %d, want %d", n, -1)
+//	} else {
+//		//println(n)
+//	}
+//}
+
 func TestFastValue(t *testing.T) {
 	s := _fastValues
 	v := reflect.ValueOf(s)

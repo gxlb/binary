@@ -384,9 +384,8 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 				if i < l {
 					this.value(v.Index(i), false, packed)
 				} else {
-					if elemtype := v.Type().Elem(); this.skipByType(elemtype, packed) < 0 {
-						return fmt.Errorf("binary.Decoder.Value: skip fiail for type %s", elemtype.String())
-					}
+					skiped := this.skipByType(v.Type().Elem(), packed)
+					assert(skiped >= 0, v.Type().Elem().String()) //I'm sure here cannot find unsupported type
 				}
 			}
 		}
@@ -663,7 +662,7 @@ func (this *Decoder) skipByType(t reflect.Type, packed bool) int {
 			sum := sLen //array size
 			for i, n := 0, cnt; i < n; i++ {
 				s := this.skipByType(elemtype, packed)
-				assert(s >= 0, "skip fail"+elemtype.String()) //I'm sure here cannot find unsupported type
+				assert(s >= 0, "skip fail: "+elemtype.String()) //I'm sure here cannot find unsupported type
 				sum += s
 			}
 			return sum
