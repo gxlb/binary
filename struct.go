@@ -118,13 +118,14 @@ func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	return nil
 }
 
-func (this *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type) int {
+func (this *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packed bool) int {
 	//assert(t.Kind() == reflect.Struct, t.String())
 	sum := 0
 	for i, n := 0, t.NumField(); i < n; i++ {
-		ft := this.field(i).Type(i, t)
-		s := decoder.skipByType(ft)
-		assert(s >= 0, "") //I'm sure here cannot find unsupported type
+		f := this.field(i)
+		ft := f.Type(i, t)
+		s := decoder.skipByType(ft, f.packed())
+		assert(s >= 0, "skip struct field fail:"+ft.String()) //I'm sure here cannot find unsupported type
 		sum += s
 	}
 	return sum

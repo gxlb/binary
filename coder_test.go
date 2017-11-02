@@ -559,7 +559,7 @@ func TestByteReaderWriter(t *testing.T) {
 }
 
 func TestDecoderSkip(t *testing.T) {
-	type s struct {
+	type skipedStruct struct {
 		S         string
 		I         int
 		U         uint
@@ -568,8 +568,15 @@ func TestDecoderSkip(t *testing.T) {
 		U16Array  [5]uint16
 		StrArray  [5]string
 		Struct    struct{ A uint8 }
+		Bool1     bool
+		Pointer   *uint32
+		Bool2     bool
+		Packed1   uint32 `binary:"packed"`
+		Packed2   int64  `binary:"packed"`
 	}
-	var w [5]s
+	RegStruct((*skipedStruct)(nil))
+
+	var w [5]skipedStruct
 	for i := len(w) - 1; i >= 0; i-- {
 		w[i].S = fmt.Sprintf("%d", i)
 		w[i].I = i
@@ -578,9 +585,15 @@ func TestDecoderSkip(t *testing.T) {
 		w[i].Struct.A = uint8(i)
 		w[i].U16Array[i] = uint16(i)
 		w[i].BoolArray[i] = true
+		w[i].Bool2 = true
+		w[i].Packed1 = uint32(i)
+		w[i].Packed2 = int64(i * 2)
+		if i%2 == 0 {
+			w[i].Pointer = new(uint32)
+		}
 	}
 
-	var r [4]s
+	var r [3]skipedStruct
 	b, err := Encode(&w, nil)
 	if err != nil {
 		t.Error(err)
@@ -676,7 +689,7 @@ func TestDecoder(t *testing.T) {
 	if got != -1 {
 		t.Errorf("Decoder: have %d, want %d", got, -1)
 	}
-	n := decoder.skipByType(reflect.TypeOf(uintptr(0)))
+	n := decoder.skipByType(reflect.TypeOf(uintptr(0)), false)
 	if n != -1 {
 		t.Errorf("Decoder: have %d, want %d", n, -1)
 	}

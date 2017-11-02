@@ -222,9 +222,7 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 	v = reflect.Indirect(v) //redrect pointer to it's value
 	t := v.Type()
 	if s := fixedTypeSize(t); s > 0 { //fixed size
-		if t.Kind() == reflect.Bool {
-			return 1 + bits
-		} else if packedType := packedIntsType(t); packedType > 0 && packed {
+		if packedType := packedIntsType(t); packedType > 0 && packed {
 			switch packedType {
 			case _SignedInts:
 				return SizeofVarint(v.Int())*8 + bits
@@ -236,22 +234,25 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 		}
 	}
 	switch t := v.Type(); t.Kind() {
+	case reflect.Bool:
+		return 1 + bits
 	case reflect.Int:
 		return SizeofVarint(v.Int())*8 + bits
 	case reflect.Uint:
 		return SizeofUvarint(v.Uint())*8 + bits
 	case reflect.Slice, reflect.Array:
 		arrayLen := v.Len()
-		if s := fixedTypeSize(t.Elem()); s > 0 {
-			if t.Elem().Kind() == reflect.Bool {
-				return sizeofBoolArray(arrayLen)*8 + bits
-			}
-			if packedIntsType(t.Elem()) > 0 && packed {
+		elemtype := t.Elem()
+		if s := fixedTypeSize(elemtype); s > 0 {
+			if packedIntsType(elemtype) > 0 && packed {
 				return bitsOfUnfixedArray(v, packed) + bits
 			} else {
 				return sizeofFixArray(arrayLen, s)*8 + bits
 			}
 		} else {
+			if elemtype.Kind() == reflect.Bool {
+				return sizeofBoolArray(arrayLen)*8 + bits
+			}
 			return bitsOfUnfixedArray(v, packed) + bits
 		}
 	case reflect.Map:
@@ -287,6 +288,10 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 	return -1
 }
 
+//BUG:
+// bool as a byte, but not bit
+// always use this functin to verify if Type is valid
+// and do not care the value of return bytes
 func sizeofNilPointer(t reflect.Type) int {
 	tt := t
 	if tt.Kind() == reflect.Ptr {
@@ -296,6 +301,8 @@ func sizeofNilPointer(t reflect.Type) int {
 		return s
 	}
 	switch tt.Kind() {
+	case reflect.Bool:
+		return 1
 	case reflect.Int, reflect.Uint: //zero varint will be encoded as 1 byte
 		return 1
 	case reflect.String:
@@ -346,7 +353,7 @@ func packedIntsType(t reflect.Type) int {
 
 func fixedTypeSize(t reflect.Type) int {
 	switch t.Kind() {
-	case reflect.Bool, reflect.Int8, reflect.Uint8:
+	case reflect.Int8, reflect.Uint8:
 		return 1
 	case reflect.Int16, reflect.Uint16:
 		return 2

@@ -384,7 +384,9 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 				if i < l {
 					this.value(v.Index(i), false, packed)
 				} else {
-					this.skipByType(v.Type().Elem())
+					if elemtype := v.Type().Elem(); this.skipByType(elemtype, packed) < 0 {
+						return fmt.Errorf("binary.Decoder.Value: skip fiail for type %s", elemtype.String())
+					}
 				}
 			}
 		}
@@ -594,12 +596,44 @@ func (this *Decoder) fastValue(x interface{}) bool {
 	return true
 }
 
-func (this *Decoder) skipByType(t reflect.Type) int {
+func (this *Decoder) skipByType(t reflect.Type, packed bool) int {
+	//	pos := this.pos
+	//	boolPos := this.boolPos
+	//	boolBit := this.boolBit
+	//	buff := this.buff[this.pos:]
+	//	fmt.Printf("before skip %s\n%d [% x]\n", t.String(), len(buff), buff)
+	//	if l := len(buff); l > 4 {
+	//		buff = buff[:4]
+	//	}
+	//
+	//	defer func() {
+	//		fmt.Printf("after skipByType %s bytes=[% x] pos=%d,%d,%d->%d,%d,%d\n", t.String(), buff, pos, boolPos, boolBit, this.pos, this.boolPos, this.boolBit)
+	//	}()
+
 	if s := fixedTypeSize(t); s > 0 {
-		this.Skip(s)
-		return s
+		if packedType := packedIntsType(t); packedType > 0 && packed {
+			switch packedType {
+			case _SignedInts:
+				_, n := this.Varint()
+				return n
+			case _UnsignedInts:
+				_, n := this.Uvarint()
+				return n
+			}
+		} else {
+			this.Skip(s)
+			return s
+		}
 	}
 	switch t.Kind() {
+	case reflect.Ptr:
+		if isNotNil := this.Bool(); isNotNil {
+			return this.skipByType(t.Elem(), packed) + 1
+		}
+		return 1
+	case reflect.Bool:
+		this.Bool()
+		return 1
 	case reflect.Int:
 		_, n := this.Varint()
 		return n
@@ -614,23 +648,22 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 	case reflect.Slice, reflect.Array:
 		s, sLen := this.Uvarint()
 		cnt := int(s)
-		e := t.Elem()
-		if s := fixedTypeSize(e); s > 0 {
-			if t.Elem().Kind() == reflect.Bool { //compressed bool array
+		elemtype := t.Elem()
+		if s := fixedTypeSize(elemtype); s > 0 {
+			size := cnt * s
+			this.Skip(size)
+			return size
+		} else {
+			if elemtype.Kind() == reflect.Bool { //compressed bool array
 				totalSize := sizeofBoolArray(cnt)
 				size := totalSize - SizeofUvarint(uint64(cnt)) //cnt has been read
 				this.Skip(size)
 				return totalSize
-			} else {
-				size := cnt * s
-				this.Skip(size)
-				return size
 			}
-		} else {
 			sum := sLen //array size
 			for i, n := 0, cnt; i < n; i++ {
-				s := this.skipByType(e)
-				assert(s >= 0, "") //I'm sure here cannot find unsupported type
+				s := this.skipByType(elemtype, packed)
+				assert(s >= 0, "skip fail"+elemtype.String()) //I'm sure here cannot find unsupported type
 				sum += s
 			}
 			return sum
@@ -642,13 +675,13 @@ func (this *Decoder) skipByType(t reflect.Type) int {
 		vt := t.Elem()
 		sum := sLen //array size
 		for i, n := 0, cnt; i < n; i++ {
-			sum += this.skipByType(kt)
-			sum += this.skipByType(vt)
+			sum += this.skipByType(kt, packed)
+			sum += this.skipByType(vt, packed)
 		}
 		return sum
 
 	case reflect.Struct:
-		return queryStruct(t).decodeSkipByType(this, t)
+		return queryStruct(t).decodeSkipByType(this, t, packed)
 	}
 	return -1
 }
