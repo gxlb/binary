@@ -17,22 +17,26 @@
 
 ***
 
-### install
+## install
 
 ```bash
 $ go get -u github.com/vipally/binary
+```
+	import(
+		"github.com/vipally/binary"
+	)
 
 ***
 
-CopyRight 2017 @Ally Dale. All rights reserved.
+	CopyRight 2017 @Ally Dale. All rights reserved.
 	
-Author  : [Ally Dale(vipally@gmail.com)](mailto://vipally@gmail.com)
+	Author  : [Ally Dale(vipally@gmail.com)](mailto://vipally@gmail.com)
 
-Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
+	Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
 
-Site    : [https://github.com/vipally](https://github.com/vipally)
+	Site    : [https://github.com/vipally](https://github.com/vipally)
 
-****
+***
 
 # change log:
 ## v1.2.0
@@ -282,12 +286,12 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	}
 
 # License.
-Under MIT license.
-
-Copyright (c) 2017 Ally Dale<vipally@gmail.com>
-Author  : Ally Dale<vipally@gmail.com>
-Site    : https://github.com/vipally
-Origin  : https://github.com/vipally/binary
+	Under MIT license.
+	
+	Copyright (c) 2017 Ally Dale<vipally@gmail.com>
+	Author  : Ally Dale<vipally@gmail.com>
+	Site    : https://github.com/vipally
+	Origin  : https://github.com/vipally/binary
 
 [travis-img]: https://travis-ci.org/vipally/binary.svg?branch=master
 [travis-url]: https://travis-ci.org/vipally/binary
