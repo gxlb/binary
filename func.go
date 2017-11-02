@@ -317,14 +317,14 @@ func sizeofNilPointer(t reflect.Type) int {
 			return SizeofUvarint(0)
 		}
 	case reflect.Array:
-		elem := tt.Elem()
-		if s := fixedTypeSize(elem); s > 0 {
-			if elem.Kind() == reflect.Bool {
-				return sizeofBoolArray(tt.Len())
-			}
+		elemtype := tt.Elem()
+		if s := fixedTypeSize(elemtype); s > 0 {
 			return sizeofFixArray(tt.Len(), s)
 		} else {
-			size := sizeofNilPointer(elem)
+			if elemtype.Kind() == reflect.Bool {
+				return sizeofBoolArray(tt.Len())
+			}
+			size := sizeofNilPointer(elemtype)
 			if size > 0 { //verify element type valid
 				return sizeofFixArray(tt.Len(), size)
 			}

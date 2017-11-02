@@ -595,19 +595,6 @@ func (this *Decoder) fastValue(x interface{}) bool {
 }
 
 func (this *Decoder) skipByType(t reflect.Type, packed bool) int {
-	//	pos := this.pos
-	//	boolPos := this.boolPos
-	//	boolBit := this.boolBit
-	//	buff := this.buff[this.pos:]
-	//	fmt.Printf("before skip %s\n%d [% x]\n", t.String(), len(buff), buff)
-	//	if l := len(buff); l > 4 {
-	//		buff = buff[:4]
-	//	}
-	//
-	//	defer func() {
-	//		fmt.Printf("after skipByType %s bytes=[% x] pos=%d,%d,%d->%d,%d,%d\n", t.String(), buff, pos, boolPos, boolBit, this.pos, this.boolPos, this.boolBit)
-	//	}()
-
 	if s := fixedTypeSize(t); s > 0 {
 		if packedType := packedIntsType(t); packedType > 0 && packed {
 			switch packedType {

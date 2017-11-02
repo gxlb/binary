@@ -90,18 +90,6 @@ func (this *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 	return nil
 }
 
-//func (this *structInfo) encodeNilPointer(encoder *Encoder, t reflect.Type) int {
-//	sum := 0
-//	for i, n := 0, this.fieldNum(t); i < n; i++ {
-//		s := encoder.nilPointer(this.fieldType(i, t))
-//		if s < 0 {
-//			return -1
-//		}
-//		sum += s
-//	}
-//	return sum
-//}
-
 func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct, t.String())
@@ -166,15 +154,6 @@ func (this *structInfo) sizeofNilPointer(t reflect.Type) int {
 func (this *structInfo) fieldValid(i int, t reflect.Type) bool {
 	return this.field(i).valid(i, t)
 }
-
-//func (this *structInfo) fieldType(i int, t reflect.Type) reflect.Type {
-//	if this == nil {
-//		return t.Field(i).Type
-
-//	} else {
-//		return this.field(i).field.Type
-//	}
-//}
 
 func (this *structInfo) fieldNum(t reflect.Type) int {
 	if this == nil {
