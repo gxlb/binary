@@ -239,7 +239,7 @@ func (this *Decoder) Uvarint() (uint64, int) {
 		bit += 7
 	}
 	//return 0, 0
-	panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d).", this.Len(), this.Cap()))
+	panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d)", this.Len(), this.Cap()))
 }
 
 // Value decode an interface value from Encoder buffer.
@@ -381,7 +381,7 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 			l := v.Len()
 			for i := 0; i < size; i++ {
 				if i < l {
-					this.value(v.Index(i), false, packed)
+					assert(this.value(v.Index(i), false, packed) == nil, "")
 				} else {
 					skiped := this.skipByType(v.Type().Elem(), packed)
 					assert(skiped >= 0, v.Type().Elem().String()) //I'm sure here cannot find unsupported type
@@ -407,8 +407,8 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 		for i := 0; i < size; i++ {
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
-			this.value(key, false, packed)
-			this.value(value, false, packed)
+			assert(this.value(key, false, packed) == nil, "")
+			assert(this.value(value, false, packed) == nil, "")
 			v.SetMapIndex(key, value)
 		}
 	case reflect.Struct:
