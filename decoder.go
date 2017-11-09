@@ -47,9 +47,9 @@ func (decoder *Decoder) reserve(size int) []byte {
 			panic(io.ErrUnexpectedEOF)
 		}
 		return buff
-	} else { //decode from bytes buffer
-		return decoder.coder.reserve(size)
 	}
+
+	return decoder.coder.reserve(size) //decode from bytes buffer
 }
 
 // Init initialize Encoder with buffer and endian.
@@ -94,9 +94,9 @@ func (decoder *Decoder) Int16(packed bool) int16 {
 	if packed {
 		x, _ := decoder.Varint()
 		return int16(x)
-	} else {
-		return int16(decoder.Uint16(false))
 	}
+
+	return int16(decoder.Uint16(false))
 }
 
 // Uint16 decode a uint16 value from Decoder buffer.
@@ -105,11 +105,11 @@ func (decoder *Decoder) Uint16(packed bool) uint16 {
 	if packed {
 		x, _ := decoder.Uvarint()
 		return uint16(x)
-	} else {
-		b := decoder.reserve(2)
-		x := decoder.endian.Uint16(b)
-		return x
 	}
+
+	b := decoder.reserve(2)
+	x := decoder.endian.Uint16(b)
+	return x
 }
 
 // Int32 decode an int32 value from Decoder buffer.
@@ -118,9 +118,9 @@ func (decoder *Decoder) Int32(packed bool) int32 {
 	if packed {
 		x, _ := decoder.Varint()
 		return int32(x)
-	} else {
-		return int32(decoder.Uint32(false))
 	}
+
+	return int32(decoder.Uint32(false))
 }
 
 // Uint32 decode a uint32 value from Decoder buffer.
@@ -129,11 +129,11 @@ func (decoder *Decoder) Uint32(packed bool) uint32 {
 	if packed {
 		x, _ := decoder.Uvarint()
 		return uint32(x)
-	} else {
-		b := decoder.reserve(4)
-		x := decoder.endian.Uint32(b)
-		return x
 	}
+
+	b := decoder.reserve(4)
+	x := decoder.endian.Uint32(b)
+	return x
 }
 
 // Int64 decode an int64 value from Decoder buffer.
@@ -141,10 +141,10 @@ func (decoder *Decoder) Uint32(packed bool) uint32 {
 func (decoder *Decoder) Int64(packed bool) int64 {
 	if packed {
 		x, _ := decoder.Varint()
-		return int64(x)
-	} else {
-		return int64(decoder.Uint64(false))
+		return x
 	}
+
+	return int64(decoder.Uint64(false))
 }
 
 // Uint64 decode a uint64 value from Decoder buffer.
@@ -152,12 +152,12 @@ func (decoder *Decoder) Int64(packed bool) int64 {
 func (decoder *Decoder) Uint64(packed bool) uint64 {
 	if packed {
 		x, _ := decoder.Uvarint()
-		return uint64(x)
-	} else {
-		b := decoder.reserve(8)
-		x := decoder.endian.Uint64(b)
 		return x
 	}
+
+	b := decoder.reserve(8)
+	x := decoder.endian.Uint64(b)
+	return x
 }
 
 // Float32 decode a float32 value from Decoder buffer.
@@ -224,9 +224,9 @@ func (decoder *Decoder) Varint() (int64, int) {
 // It will panic if buffer is not enough.
 // It will return n <= 0 if varint error
 func (decoder *Decoder) Uvarint() (uint64, int) {
-	var x uint64 = 0
-	var bit uint = 0
-	i := 0
+	var x uint64
+	var bit uint
+	var i int
 	for i = 0; i < MaxVarintLen64; i++ {
 		b := decoder.Uint8()
 		x |= uint64(b&0x7f) << bit
@@ -279,20 +279,20 @@ func (decoder *Decoder) Value(x interface{}) (err error) {
 		}
 		decoder.reserve(size)
 		return nil
-	} else {
-		if _, _ok := x.(BinarySizer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
-		}
-		if _, _ok := x.(BinaryEncoder); _ok { //interface verification
-			panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
-		}
+	}
+
+	if _, _ok := x.(BinarySizer); _ok { //interface verification
+		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
+	}
+	if _, _ok := x.(BinaryEncoder); _ok { //interface verification
+		panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
 	}
 
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
 		return decoder.value(v, true, false)
-	} else {
-		return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
 	}
+
+	return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
 }
 
 func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
@@ -638,21 +638,22 @@ func (decoder *Decoder) skipByType(t reflect.Type, packed bool) int {
 			size := cnt * s
 			decoder.Skip(size)
 			return size
-		} else {
-			if elemtype.Kind() == reflect.Bool { //compressed bool array
-				totalSize := sizeofBoolArray(cnt)
-				size := totalSize - SizeofUvarint(uint64(cnt)) //cnt has been read
-				decoder.Skip(size)
-				return totalSize
-			}
-			sum := sLen //array size
-			for i, n := 0, cnt; i < n; i++ {
-				s := decoder.skipByType(elemtype, packed)
-				assert(s >= 0, "skip fail: "+elemtype.String()) //I'm sure here cannot find unsupported type
-				sum += s
-			}
-			return sum
 		}
+
+		if elemtype.Kind() == reflect.Bool { //compressed bool array
+			totalSize := sizeofBoolArray(cnt)
+			size := totalSize - SizeofUvarint(uint64(cnt)) //cnt has been read
+			decoder.Skip(size)
+			return totalSize
+		}
+
+		sum := sLen //array size
+		for i, n := 0, cnt; i < n; i++ {
+			s := decoder.skipByType(elemtype, packed)
+			assert(s >= 0, "skip fail: "+elemtype.String()) //I'm sure here cannot find unsupported type
+			sum += s
+		}
+		return sum
 	case reflect.Map:
 		s, sLen := decoder.Uvarint()
 		cnt := int(s)

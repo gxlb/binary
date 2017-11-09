@@ -134,7 +134,7 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 
 	var encoder Encoder
 	encoder.buff = bs
-	encoder.endian = endian
+	encoder.setEndian(endian)
 	encoder.pos = 0
 
 	err := encoder.Value(data)
@@ -160,7 +160,7 @@ type BinaryDecoder interface {
 	Decode(buffer []byte) error
 }
 
-// interface BinarySerializer defines the go data Size/Encode/Decode method
+// BinarySerializer defines the go data Size/Encode/Decode method
 type BinarySerializer interface {
 	BinarySizer
 	BinaryEncoder

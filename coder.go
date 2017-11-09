@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	// ErrNotEnoughSpace buffer not enough
 	ErrNotEnoughSpace = errors.New("not enough space")
 )
 
@@ -17,6 +18,10 @@ type coder struct {
 	boolPos int  //index of last bool set in buff
 	boolBit byte //bit of next aviable bool
 	endian  Endian
+}
+
+func (cder *coder) setEndian(endian Endian) {
+	cder.endian = endian
 }
 
 // Buffer returns the byte slice that has been encoding/decoding.
@@ -81,7 +86,7 @@ func (cder *coder) reserve(size int) []byte {
 	return nil
 }
 
-// bytes as Reader
+// BytesReader transform bytes as Reader
 type BytesReader []byte
 
 // Read from bytes
@@ -94,7 +99,7 @@ func (p *BytesReader) Read(data []byte) (n int, err error) {
 	return
 }
 
-// bytes as Writer
+// BytesWriter transform bytes as Writer
 type BytesWriter []byte
 
 // Write to bytes

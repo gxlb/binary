@@ -79,8 +79,8 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 	for i, n := 0, v.NumField(); i < n; i++ {
 		// see comment for corresponding code in decoder.value()
 		finfo := info.field(i)
-		if f := v.Field(i); finfo.valid(i, t) {
-			if err := encoder.value(f, finfo.packed()); err != nil {
+		if f := v.Field(i); finfo.isValid(i, t) {
+			if err := encoder.value(f, finfo.isPacked()); err != nil {
 				return err
 			}
 		} else {
@@ -95,8 +95,8 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	//assert(t.Kind() == reflect.Struct, t.String())
 	for i, n := 0, v.NumField(); i < n; i++ {
 		finfo := info.field(i)
-		if f := v.Field(i); finfo.valid(i, t) {
-			if err := decoder.value(f, false, finfo.packed()); err != nil {
+		if f := v.Field(i); finfo.isValid(i, t) {
+			if err := decoder.value(f, false, finfo.isPacked()); err != nil {
 				return err
 			}
 		} else {
@@ -112,7 +112,7 @@ func (info *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packe
 	for i, n := 0, t.NumField(); i < n; i++ {
 		f := info.field(i)
 		ft := f.Type(i, t)
-		s := decoder.skipByType(ft, f.packed())
+		s := decoder.skipByType(ft, f.isPacked())
 		assert(s >= 0, "skip struct field fail:"+ft.String()) //I'm sure here cannot find unsupported type
 		sum += s
 	}
@@ -125,8 +125,8 @@ func (info *structInfo) bitsOfValue(v reflect.Value) int {
 	sum := 0
 	for i, n := 0, v.NumField(); i < n; i++ {
 
-		if finfo := info.field(i); finfo.valid(i, t) {
-			if s := bitsOfValue(v.Field(i), false, finfo.packed()); s >= 0 {
+		if finfo := info.field(i); finfo.isValid(i, t) {
+			if s := bitsOfValue(v.Field(i), false, finfo.isPacked()); s >= 0 {
 				sum += s
 			} else {
 				return -1 //invalid field type
@@ -152,7 +152,7 @@ func (info *structInfo) sizeofNilPointer(t reflect.Type) int {
 
 //check if field i of t valid for encoding/decoding
 func (info *structInfo) fieldValid(i int, t reflect.Type) bool {
-	return info.field(i).valid(i, t)
+	return info.field(i).isValid(i, t)
 }
 
 func (info *structInfo) fieldNum(t reflect.Type) int {
@@ -173,7 +173,7 @@ func (info *structInfo) parse(t reflect.Type) bool {
 		field.field = f
 		tag := f.Tag.Get("binary")
 		field.ignore = !isExported(f.Name) || tag == "ignore"
-		field.packed_ = tag == "packed"
+		field.packed = tag == "packed"
 
 		info.fields = append(info.fields, field)
 
@@ -203,9 +203,9 @@ func (info *structInfo) numField() int {
 
 //informatin of a struct field
 type fieldInfo struct {
-	field   reflect.StructField
-	ignore  bool //if this field is ignored
-	packed_ bool //if this ints field encode as varint/uvarint
+	field  reflect.StructField
+	ignore bool //if this field is ignored
+	packed bool //if this ints field encode as varint/uvarint
 }
 
 func (field *fieldInfo) Type(i int, t reflect.Type) reflect.Type {
@@ -216,7 +216,7 @@ func (field *fieldInfo) Type(i int, t reflect.Type) reflect.Type {
 	}
 }
 
-func (field *fieldInfo) valid(i int, t reflect.Type) bool {
+func (field *fieldInfo) isValid(i int, t reflect.Type) bool {
 	if field != nil {
 		return !field.ignore
 	} else {
@@ -227,8 +227,8 @@ func (field *fieldInfo) valid(i int, t reflect.Type) bool {
 	}
 }
 
-func (field *fieldInfo) packed() bool {
-	return field != nil && field.packed_
+func (field *fieldInfo) isPacked() bool {
+	return field != nil && field.packed
 }
 
 func queryStruct(t reflect.Type) *structInfo {

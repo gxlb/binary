@@ -11,7 +11,7 @@ func NewEncoder(size int) *Encoder {
 	return NewEncoderEndian(size, DefaultEndian)
 }
 
-// NewEncoder make a new Encoder object with buffer.
+// NewEncoderBuffer make a new Encoder object with buffer.
 func NewEncoderBuffer(buffer []byte) *Encoder {
 	p := &Encoder{}
 	//assert(buffer != nil, "nil buffer")
@@ -126,7 +126,7 @@ func (encoder *Encoder) Uint32(x uint32, packed bool) {
 // It will panic if buffer is not enough.
 func (encoder *Encoder) Int64(x int64, packed bool) {
 	if packed {
-		encoder.Varint(int64(x))
+		encoder.Varint(x)
 	} else {
 		encoder.Uint64(uint64(x), false)
 	}
@@ -136,7 +136,7 @@ func (encoder *Encoder) Int64(x int64, packed bool) {
 // It will panic if buffer is not enough.
 func (encoder *Encoder) Uint64(x uint64, packed bool) {
 	if packed {
-		encoder.Uvarint(uint64(x))
+		encoder.Uvarint(x)
 	} else {
 		b := encoder.reserve(8)
 		encoder.endian.PutUint64(b, x)
@@ -240,10 +240,10 @@ func (encoder *Encoder) Value(x interface{}) (err error) {
 			encoder.reserve(len(r))
 		}
 		return err
-	} else {
-		if _, _ok := x.(BinarySizer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
-		}
+	}
+
+	if _, _ok := x.(BinarySizer); _ok { //interface verification
+		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
 	}
 
 	return encoder.value(reflect.Indirect(v), false)
@@ -469,7 +469,7 @@ func (encoder *Encoder) value(v reflect.Value, packed bool) error {
 			l := v.Len()
 			encoder.Uvarint(uint64(l))
 			for i := 0; i < l; i++ {
-				encoder.value(v.Index(i), packed)
+				assert(encoder.value(v.Index(i), packed) == nil, "")
 			}
 		}
 	case reflect.Map:
@@ -486,8 +486,8 @@ func (encoder *Encoder) value(v reflect.Value, packed bool) error {
 		encoder.Uvarint(uint64(l))
 		for i := 0; i < l; i++ {
 			key := keys[i]
-			encoder.value(key, packed)
-			encoder.value(v.MapIndex(key), packed)
+			assert(encoder.value(key, packed) == nil, "")
+			assert(encoder.value(v.MapIndex(key), packed) == nil, "")
 		}
 	case reflect.Struct:
 		return queryStruct(v.Type()).encode(encoder, v)

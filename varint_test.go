@@ -106,9 +106,9 @@ func TestUvarint(t *testing.T) {
 }
 
 func TestBufferTooSmall(t *testing.T) {
-	buf := []byte{0x80, 0x80, 0x80, 0x80}
-	for i := 0; i <= len(buf); i++ {
-		buf := buf[0:i]
+	buffer := []byte{0x80, 0x80, 0x80, 0x80}
+	for i := 0; i <= len(buffer); i++ {
+		buf := buffer[0:i]
 		x, n := Uvarint(buf)
 		if x != 0 || n != 0 {
 			t.Errorf("Uvarint(%v): got x = %d, n = %d", buf, x, n)
