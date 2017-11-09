@@ -398,7 +398,7 @@ func newPtr(v reflect.Value, decoder *Decoder, topLevel bool) bool {
 
 // NOTE:
 // This function will make the encode/decode of struct slow down.
-// It is recommeded to use RegStruct to improve this case.
+// It is recommended to use RegStruct to improve this case.
 func validField(f reflect.StructField) bool {
 	if isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
 		return true
