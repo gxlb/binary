@@ -24,15 +24,15 @@ type structInfoMgr struct {
 	reg map[string]*structInfo
 }
 
-func (this *structInfoMgr) init() {
-	this.reg = make(map[string]*structInfo)
+func (mgr *structInfoMgr) init() {
+	mgr.reg = make(map[string]*structInfo)
 }
-func (this *structInfoMgr) regist(t reflect.Type) error {
-	if _t, _, err := this.deepStructType(t, true); err == nil {
-		if this.query(_t) == nil {
+func (mgr *structInfoMgr) regist(t reflect.Type) error {
+	if _t, _, err := mgr.deepStructType(t, true); err == nil {
+		if mgr.query(_t) == nil {
 			p := &structInfo{}
 			if p.parse(_t) {
-				this.reg[p.identify] = p
+				mgr.reg[p.identify] = p
 			}
 		} else {
 			return fmt.Errorf("binary: regist duplicate type %s", _t.String())
@@ -43,16 +43,16 @@ func (this *structInfoMgr) regist(t reflect.Type) error {
 	return nil
 }
 
-func (this *structInfoMgr) query(t reflect.Type) *structInfo {
-	if _t, _ok, _ := this.deepStructType(t, false); _ok {
-		if p, ok := this.reg[_t.String()]; ok {
+func (mgr *structInfoMgr) query(t reflect.Type) *structInfo {
+	if _t, _ok, _ := mgr.deepStructType(t, false); _ok {
+		if p, ok := mgr.reg[_t.String()]; ok {
 			return p
 		}
 	}
 	return nil
 }
 
-func (this *structInfoMgr) deepStructType(t reflect.Type, needErr bool) (reflect.Type, bool, error) {
+func (mgr *structInfoMgr) deepStructType(t reflect.Type, needErr bool) (reflect.Type, bool, error) {
 	_t := t
 	for _t.Kind() == reflect.Ptr {
 		_t = _t.Elem()
@@ -73,12 +73,12 @@ type structInfo struct {
 	fields   []*fieldInfo
 }
 
-func (this *structInfo) encode(encoder *Encoder, v reflect.Value) error {
+func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 	//assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
 		// see comment for corresponding code in decoder.value()
-		finfo := this.field(i)
+		finfo := info.field(i)
 		if f := v.Field(i); finfo.valid(i, t) {
 			if err := encoder.value(f, finfo.packed()); err != nil {
 				return err
@@ -90,11 +90,11 @@ func (this *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 	return nil
 }
 
-func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
+func (info *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct, t.String())
 	for i, n := 0, v.NumField(); i < n; i++ {
-		finfo := this.field(i)
+		finfo := info.field(i)
 		if f := v.Field(i); finfo.valid(i, t) {
 			if err := decoder.value(f, false, finfo.packed()); err != nil {
 				return err
@@ -106,11 +106,11 @@ func (this *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	return nil
 }
 
-func (this *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packed bool) int {
+func (info *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packed bool) int {
 	//assert(t.Kind() == reflect.Struct, t.String())
 	sum := 0
 	for i, n := 0, t.NumField(); i < n; i++ {
-		f := this.field(i)
+		f := info.field(i)
 		ft := f.Type(i, t)
 		s := decoder.skipByType(ft, f.packed())
 		assert(s >= 0, "skip struct field fail:"+ft.String()) //I'm sure here cannot find unsupported type
@@ -119,13 +119,13 @@ func (this *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packe
 	return sum
 }
 
-func (this *structInfo) bitsOfValue(v reflect.Value) int {
+func (info *structInfo) bitsOfValue(v reflect.Value) int {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct,t.String())
 	sum := 0
 	for i, n := 0, v.NumField(); i < n; i++ {
 
-		if finfo := this.field(i); finfo.valid(i, t) {
+		if finfo := info.field(i); finfo.valid(i, t) {
 			if s := bitsOfValue(v.Field(i), false, finfo.packed()); s >= 0 {
 				sum += s
 			} else {
@@ -136,11 +136,11 @@ func (this *structInfo) bitsOfValue(v reflect.Value) int {
 	return sum
 }
 
-func (this *structInfo) sizeofNilPointer(t reflect.Type) int {
+func (info *structInfo) sizeofNilPointer(t reflect.Type) int {
 	sum := 0
-	for i, n := 0, this.fieldNum(t); i < n; i++ {
-		if this.fieldValid(i, t) {
-			if s := sizeofNilPointer(this.field(i).Type(i, t)); s >= 0 {
+	for i, n := 0, info.fieldNum(t); i < n; i++ {
+		if info.fieldValid(i, t) {
+			if s := sizeofNilPointer(info.field(i).Type(i, t)); s >= 0 {
 				sum += s
 			} else {
 				return -1 //invalid field type
@@ -151,21 +151,21 @@ func (this *structInfo) sizeofNilPointer(t reflect.Type) int {
 }
 
 //check if field i of t valid for encoding/decoding
-func (this *structInfo) fieldValid(i int, t reflect.Type) bool {
-	return this.field(i).valid(i, t)
+func (info *structInfo) fieldValid(i int, t reflect.Type) bool {
+	return info.field(i).valid(i, t)
 }
 
-func (this *structInfo) fieldNum(t reflect.Type) int {
-	if this == nil {
+func (info *structInfo) fieldNum(t reflect.Type) int {
+	if info == nil {
 		return t.NumField()
 	} else {
-		return this.numField()
+		return info.numField()
 	}
 }
 
-func (this *structInfo) parse(t reflect.Type) bool {
+func (info *structInfo) parse(t reflect.Type) bool {
 	//assert(t.Kind() == reflect.Struct, t.String())
-	this.identify = t.String()
+	info.identify = t.String()
 	for i, n := 0, t.NumField(); i < n; i++ {
 		f := t.Field(i)
 
@@ -175,7 +175,7 @@ func (this *structInfo) parse(t reflect.Type) bool {
 		field.ignore = !isExported(f.Name) || tag == "ignore"
 		field.packed_ = tag == "packed"
 
-		this.fields = append(this.fields, field)
+		info.fields = append(info.fields, field)
 
 		//deep regist if field is a struct
 		if _t, ok, _ := _structInfoMgr.deepStructType(f.Type, false); ok {
@@ -187,16 +187,16 @@ func (this *structInfo) parse(t reflect.Type) bool {
 	return true
 }
 
-func (this *structInfo) field(i int) *fieldInfo {
-	if nil != this && i >= 0 && i < this.numField() {
-		return this.fields[i]
+func (info *structInfo) field(i int) *fieldInfo {
+	if nil != info && i >= 0 && i < info.numField() {
+		return info.fields[i]
 	}
 	return nil
 }
 
-func (this *structInfo) numField() int {
-	if nil != this {
-		return len(this.fields)
+func (info *structInfo) numField() int {
+	if nil != info {
+		return len(info.fields)
 	}
 	return 0
 }
@@ -208,17 +208,17 @@ type fieldInfo struct {
 	packed_ bool //if this ints field encode as varint/uvarint
 }
 
-func (this *fieldInfo) Type(i int, t reflect.Type) reflect.Type {
-	if this != nil {
-		return this.field.Type
+func (field *fieldInfo) Type(i int, t reflect.Type) reflect.Type {
+	if field != nil {
+		return field.field.Type
 	} else {
 		return t.Field(i).Type
 	}
 }
 
-func (this *fieldInfo) valid(i int, t reflect.Type) bool {
-	if this != nil {
-		return !this.ignore
+func (field *fieldInfo) valid(i int, t reflect.Type) bool {
+	if field != nil {
+		return !field.ignore
 	} else {
 		// NOTE:
 		// creating the StructField info for each field is costly
@@ -227,8 +227,8 @@ func (this *fieldInfo) valid(i int, t reflect.Type) bool {
 	}
 }
 
-func (this *fieldInfo) packed() bool {
-	return this != nil && this.packed_
+func (field *fieldInfo) packed() bool {
+	return field != nil && field.packed_
 }
 
 func queryStruct(t reflect.Type) *structInfo {
