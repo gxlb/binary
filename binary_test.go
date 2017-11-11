@@ -147,8 +147,10 @@ func TestWriteSlice(t *testing.T) {
 }
 
 func TestReadBool(t *testing.T) {
-	var res bool
-	var err error
+	var (
+		res bool
+		err error
+	)
 	err = Read(bytes.NewReader([]byte{0}), BigEndian, &res)
 	checkResult(t, "ReadBool", BigEndian, err, res, false)
 	res = false
@@ -403,10 +405,10 @@ func testPutUint64SmallSliceLengthPanics() (panicked bool) {
 }
 
 func TestEarlyBoundsChecks(t *testing.T) {
-	if testUint64SmallSliceLengthPanics() != true {
+	if !testUint64SmallSliceLengthPanics() {
 		t.Errorf("binary.LittleEndian.Uint64 expected to panic for small slices, but didn't")
 	}
-	if testPutUint64SmallSliceLengthPanics() != true {
+	if !testPutUint64SmallSliceLengthPanics() {
 		t.Errorf("binary.LittleEndian.PutUint64 expected to panic for small slices, but didn't")
 	}
 }

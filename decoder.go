@@ -29,206 +29,206 @@ type Decoder struct {
 // Skip ignore the next size of bytes for encoding/decoding.
 // It will panic If space not enough.
 // It will return -1 if size <= 0.
-func (this *Decoder) Skip(size int) int {
-	if nil == this.reserve(size) {
+func (decoder *Decoder) Skip(size int) int {
+	if nil == decoder.reserve(size) {
 		return -1
 	}
 	return size
 }
 
 // reserve returns next size bytes for encoding/decoding.
-func (this *Decoder) reserve(size int) []byte {
-	if this.reader != nil { //decode from reader
-		if size > len(this.buff) {
-			this.buff = make([]byte, size)
+func (decoder *Decoder) reserve(size int) []byte {
+	if decoder.reader != nil { //decode from reader
+		if size > len(decoder.buff) {
+			decoder.buff = make([]byte, size)
 		}
-		buff := this.buff[:size]
-		if n, _ := this.reader.Read(buff); n < size {
+		buff := decoder.buff[:size]
+		if n, _ := decoder.reader.Read(buff); n < size {
 			panic(io.ErrUnexpectedEOF)
 		}
 		return buff
-	} else { //decode from bytes buffer
-		return this.coder.reserve(size)
 	}
+
+	return decoder.coder.reserve(size) //decode from bytes buffer
 }
 
 // Init initialize Encoder with buffer and endian.
-func (this *Decoder) Init(buffer []byte, endian Endian) {
-	this.buff = buffer
-	this.pos = 0
-	this.endian = endian
+func (decoder *Decoder) Init(buffer []byte, endian Endian) {
+	decoder.buff = buffer
+	decoder.pos = 0
+	decoder.endian = endian
 }
 
 // Bool decode a bool value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Bool() bool {
-	if this.boolBit == 0 {
-		b := this.reserve(1)
-		this.boolValue = b[0]
+func (decoder *Decoder) Bool() bool {
+	if decoder.boolBit == 0 {
+		b := decoder.reserve(1)
+		decoder.boolValue = b[0]
 	}
 
-	mask := byte(1 << this.boolBit)
-	this.boolBit = (this.boolBit + 1) % 8
+	mask := byte(1 << decoder.boolBit)
+	decoder.boolBit = (decoder.boolBit + 1) % 8
 
-	x := ((this.boolValue & mask) != 0)
+	x := ((decoder.boolValue & mask) != 0)
 	return x
 }
 
 // Int8 decode an int8 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Int8() int8 {
-	return int8(this.Uint8())
+func (decoder *Decoder) Int8() int8 {
+	return int8(decoder.Uint8())
 }
 
 // Uint8 decode a uint8 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Uint8() uint8 {
-	b := this.reserve(1)
+func (decoder *Decoder) Uint8() uint8 {
+	b := decoder.reserve(1)
 	x := b[0]
 	return x
 }
 
 // Int16 decode an int16 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Int16(packed bool) int16 {
+func (decoder *Decoder) Int16(packed bool) int16 {
 	if packed {
-		x, _ := this.Varint()
+		x, _ := decoder.Varint()
 		return int16(x)
-	} else {
-		return int16(this.Uint16(false))
 	}
+
+	return int16(decoder.Uint16(false))
 }
 
 // Uint16 decode a uint16 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Uint16(packed bool) uint16 {
+func (decoder *Decoder) Uint16(packed bool) uint16 {
 	if packed {
-		x, _ := this.Uvarint()
+		x, _ := decoder.Uvarint()
 		return uint16(x)
-	} else {
-		b := this.reserve(2)
-		x := this.endian.Uint16(b)
-		return x
 	}
+
+	b := decoder.reserve(2)
+	x := decoder.endian.Uint16(b)
+	return x
 }
 
 // Int32 decode an int32 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Int32(packed bool) int32 {
+func (decoder *Decoder) Int32(packed bool) int32 {
 	if packed {
-		x, _ := this.Varint()
+		x, _ := decoder.Varint()
 		return int32(x)
-	} else {
-		return int32(this.Uint32(false))
 	}
+
+	return int32(decoder.Uint32(false))
 }
 
 // Uint32 decode a uint32 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Uint32(packed bool) uint32 {
+func (decoder *Decoder) Uint32(packed bool) uint32 {
 	if packed {
-		x, _ := this.Uvarint()
+		x, _ := decoder.Uvarint()
 		return uint32(x)
-	} else {
-		b := this.reserve(4)
-		x := this.endian.Uint32(b)
-		return x
 	}
+
+	b := decoder.reserve(4)
+	x := decoder.endian.Uint32(b)
+	return x
 }
 
 // Int64 decode an int64 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Int64(packed bool) int64 {
+func (decoder *Decoder) Int64(packed bool) int64 {
 	if packed {
-		x, _ := this.Varint()
-		return int64(x)
-	} else {
-		return int64(this.Uint64(false))
+		x, _ := decoder.Varint()
+		return x
 	}
+
+	return int64(decoder.Uint64(false))
 }
 
 // Uint64 decode a uint64 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Uint64(packed bool) uint64 {
+func (decoder *Decoder) Uint64(packed bool) uint64 {
 	if packed {
-		x, _ := this.Uvarint()
-		return uint64(x)
-	} else {
-		b := this.reserve(8)
-		x := this.endian.Uint64(b)
+		x, _ := decoder.Uvarint()
 		return x
 	}
+
+	b := decoder.reserve(8)
+	x := decoder.endian.Uint64(b)
+	return x
 }
 
 // Float32 decode a float32 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Float32() float32 {
-	x := math.Float32frombits(this.Uint32(false))
+func (decoder *Decoder) Float32() float32 {
+	x := math.Float32frombits(decoder.Uint32(false))
 	return x
 }
 
 // Float64 decode a float64 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Float64() float64 {
-	x := math.Float64frombits(this.Uint64(false))
+func (decoder *Decoder) Float64() float64 {
+	x := math.Float64frombits(decoder.Uint64(false))
 	return x
 }
 
 // Complex64 decode a complex64 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Complex64() complex64 {
-	x := complex(this.Float32(), this.Float32())
+func (decoder *Decoder) Complex64() complex64 {
+	x := complex(decoder.Float32(), decoder.Float32())
 	return x
 }
 
 // Complex128 decode a complex128 value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) Complex128() complex128 {
-	x := complex(this.Float64(), this.Float64())
+func (decoder *Decoder) Complex128() complex128 {
+	x := complex(decoder.Float64(), decoder.Float64())
 	return x
 }
 
 // String decode a string value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (this *Decoder) String() string {
-	s, _ := this.Uvarint()
+func (decoder *Decoder) String() string {
+	s, _ := decoder.Uvarint()
 	size := int(s)
-	b := this.reserve(size)
+	b := decoder.reserve(size)
 	return string(b)
 }
 
 // Int decode an int value from Decoder buffer.
 // It will panic if buffer is not enough.
 // It use Varint() to decode as varint(1~10 bytes)
-func (this *Decoder) Int() int {
-	n, _ := this.Varint()
+func (decoder *Decoder) Int() int {
+	n, _ := decoder.Varint()
 	return int(n)
 }
 
 // Uint decode a uint value from Decoder buffer.
 // It will panic if buffer is not enough.
 // It use Uvarint() to decode as uvarint(1~10 bytes)
-func (this *Decoder) Uint() uint {
-	n, _ := this.Uvarint()
+func (decoder *Decoder) Uint() uint {
+	n, _ := decoder.Uvarint()
 	return uint(n)
 }
 
 // Varint decode an int64 value from Decoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
-func (this *Decoder) Varint() (int64, int) {
-	ux, n := this.Uvarint() // ok to continue in presence of error
+func (decoder *Decoder) Varint() (int64, int) {
+	ux, n := decoder.Uvarint() // ok to continue in presence of error
 	return ToVarint(ux), n
 }
 
 // Uvarint decode a uint64 value from Decoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
 // It will return n <= 0 if varint error
-func (this *Decoder) Uvarint() (uint64, int) {
-	var x uint64 = 0
-	var bit uint = 0
-	i := 0
+func (decoder *Decoder) Uvarint() (uint64, int) {
+	var x uint64
+	var bit uint
+	var i int
 	for i = 0; i < MaxVarintLen64; i++ {
-		b := this.Uint8()
+		b := decoder.Uint8()
 		x |= uint64(b&0x7f) << bit
 		if b < 0x80 {
 			if i > 9 || i == 9 && b > 1 {
@@ -239,7 +239,7 @@ func (this *Decoder) Uvarint() (uint64, int) {
 		bit += 7
 	}
 	//return 0, 0
-	panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d).", this.Len(), this.Cap()))
+	panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d)", decoder.Len(), decoder.Cap()))
 }
 
 // Value decode an interface value from Encoder buffer.
@@ -247,7 +247,7 @@ func (this *Decoder) Uvarint() (uint64, int) {
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
-func (this *Decoder) Value(x interface{}) (err error) {
+func (decoder *Decoder) Value(x interface{}) (err error) {
 	defer func() {
 		if info := recover(); info != nil {
 			err = info.(error)
@@ -255,9 +255,9 @@ func (this *Decoder) Value(x interface{}) (err error) {
 		}
 	}()
 
-	this.resetBoolCoder() //reset bool reader
+	decoder.resetBoolCoder() //reset bool reader
 
-	if this.fastValue(x) { //fast value path
+	if decoder.fastValue(x) { //fast value path
 		return nil
 	}
 
@@ -273,31 +273,31 @@ func (this *Decoder) Value(x interface{}) (err error) {
 		if _, _ok := x.(BinaryEncoder); !_ok { //interface verification
 			panic(fmt.Errorf("unexpect but not BinaryEncoder: %s", v.Type().String()))
 		}
-		err := p.Decode(this.buff[this.pos:])
+		err := p.Decode(decoder.buff[decoder.pos:])
 		if err != nil {
 			return err
 		}
-		this.reserve(size)
+		decoder.reserve(size)
 		return nil
-	} else {
-		if _, _ok := x.(BinarySizer); _ok { //interface verification
-			panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
-		}
-		if _, _ok := x.(BinaryEncoder); _ok { //interface verification
-			panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
-		}
+	}
+
+	if _, _ok := x.(BinarySizer); _ok { //interface verification
+		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
+	}
+	if _, _ok := x.(BinaryEncoder); _ok { //interface verification
+		panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
 	}
 
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return this.value(v, true, false)
-	} else {
-		return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
+		return decoder.value(v, true, false)
 	}
+
+	return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
 }
 
-func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
+func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 	// check Packer interface for every value is perfect
-	// but this is too costly
+	// but decoder is too costly
 	//
 	//	if t := v.Type(); t.Implements(tUnpacker) {
 	//		if !t.Implements(tPacker) { //interface verification
@@ -309,11 +309,11 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 
 	//		unpacker := v.Interface().(PackUnpacker)
 	//		size := unpacker.Size()
-	//		err := unpacker.Unpack(this.buff[this.pos:])
+	//		err := unpacker.Unpack(decoder.buff[decoder.pos:])
 	//		if err != nil {
 	//			return err
 	//		}
-	//		this.reserve(size)
+	//		decoder.reserve(size)
 	//		return nil
 	//	} else {
 	//		//interface verification
@@ -327,51 +327,51 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 
 	switch k := v.Kind(); k {
 	case reflect.Int:
-		v.SetInt(int64(this.Int()))
+		v.SetInt(int64(decoder.Int()))
 	case reflect.Uint:
-		v.SetUint(uint64(this.Uint()))
+		v.SetUint(uint64(decoder.Uint()))
 
 	case reflect.Bool:
-		v.SetBool(this.Bool())
+		v.SetBool(decoder.Bool())
 
 	case reflect.Int8:
-		v.SetInt(int64(this.Int8()))
+		v.SetInt(int64(decoder.Int8()))
 	case reflect.Int16:
-		v.SetInt(int64(this.Int16(packed)))
+		v.SetInt(int64(decoder.Int16(packed)))
 	case reflect.Int32:
-		v.SetInt(int64(this.Int32(packed)))
+		v.SetInt(int64(decoder.Int32(packed)))
 	case reflect.Int64:
-		v.SetInt(this.Int64(packed))
+		v.SetInt(decoder.Int64(packed))
 
 	case reflect.Uint8:
-		v.SetUint(uint64(this.Uint8()))
+		v.SetUint(uint64(decoder.Uint8()))
 	case reflect.Uint16:
-		v.SetUint(uint64(this.Uint16(packed)))
+		v.SetUint(uint64(decoder.Uint16(packed)))
 	case reflect.Uint32:
-		v.SetUint(uint64(this.Uint32(packed)))
+		v.SetUint(uint64(decoder.Uint32(packed)))
 	case reflect.Uint64:
-		v.SetUint(this.Uint64(packed))
+		v.SetUint(decoder.Uint64(packed))
 
 	case reflect.Float32:
-		v.SetFloat(float64(this.Float32()))
+		v.SetFloat(float64(decoder.Float32()))
 	case reflect.Float64:
-		v.SetFloat(this.Float64())
+		v.SetFloat(decoder.Float64())
 
 	case reflect.Complex64:
-		v.SetComplex(complex128(this.Complex64()))
+		v.SetComplex(complex128(decoder.Complex64()))
 
 	case reflect.Complex128:
-		v.SetComplex(this.Complex128())
+		v.SetComplex(decoder.Complex128())
 
 	case reflect.String:
-		v.SetString(this.String())
+		v.SetString(decoder.String())
 
 	case reflect.Slice, reflect.Array:
 		if !validUserType(v.Type().Elem()) { //verify array element is valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
-		if this.boolArray(v) < 0 { //deal with bool array first
-			s, _ := this.Uvarint()
+		if decoder.boolArray(v) < 0 { //deal with bool array first
+			s, _ := decoder.Uvarint()
 			size := int(s)
 			if size > 0 && k == reflect.Slice { //make a new slice
 				ns := reflect.MakeSlice(v.Type(), size, size)
@@ -381,9 +381,9 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 			l := v.Len()
 			for i := 0; i < size; i++ {
 				if i < l {
-					this.value(v.Index(i), false, packed)
+					assert(decoder.value(v.Index(i), false, packed) == nil, "")
 				} else {
-					skiped := this.skipByType(v.Type().Elem(), packed)
+					skiped := decoder.skipByType(v.Type().Elem(), packed)
 					assert(skiped >= 0, v.Type().Elem().String()) //I'm sure here cannot find unsupported type
 				}
 			}
@@ -402,22 +402,22 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 			v.Set(newmap)
 		}
 
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		size := int(s)
 		for i := 0; i < size; i++ {
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
-			this.value(key, false, packed)
-			this.value(value, false, packed)
+			assert(decoder.value(key, false, packed) == nil, "")
+			assert(decoder.value(value, false, packed) == nil, "")
 			v.SetMapIndex(key, value)
 		}
 	case reflect.Struct:
-		return queryStruct(v.Type()).decode(this, v)
+		return queryStruct(v.Type()).decode(decoder, v)
 
 	default:
-		if newPtr(v, this, topLevel) {
+		if newPtr(v, decoder, topLevel) {
 			if !v.IsNil() {
-				return this.value(v.Elem(), false, packed)
+				return decoder.value(v.Elem(), false, packed)
 			}
 		} else {
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
@@ -426,49 +426,49 @@ func (this *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
 	return nil
 }
 
-func (this *Decoder) fastValue(x interface{}) bool {
+func (decoder *Decoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
 	case *int:
-		*d = this.Int()
+		*d = decoder.Int()
 	case *uint:
-		*d = this.Uint()
+		*d = decoder.Uint()
 
 	case *bool:
-		*d = this.Bool()
+		*d = decoder.Bool()
 	case *int8:
-		*d = this.Int8()
+		*d = decoder.Int8()
 	case *uint8:
-		*d = this.Uint8()
+		*d = decoder.Uint8()
 
 	case *int16:
-		*d = this.Int16(false)
+		*d = decoder.Int16(false)
 	case *uint16:
-		*d = this.Uint16(false)
+		*d = decoder.Uint16(false)
 
 	case *int32:
-		*d = this.Int32(false)
+		*d = decoder.Int32(false)
 	case *uint32:
-		*d = this.Uint32(false)
+		*d = decoder.Uint32(false)
 	case *float32:
-		*d = this.Float32()
+		*d = decoder.Float32()
 
 	case *int64:
-		*d = this.Int64(false)
+		*d = decoder.Int64(false)
 	case *uint64:
-		*d = this.Uint64(false)
+		*d = decoder.Uint64(false)
 	case *float64:
-		*d = this.Float64()
+		*d = decoder.Float64()
 	case *complex64:
-		*d = this.Complex64()
+		*d = decoder.Complex64()
 
 	case *complex128:
-		*d = this.Complex128()
+		*d = decoder.Complex128()
 
 	case *string:
-		*d = this.String()
+		*d = decoder.String()
 
 	case *[]bool:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]bool, l)
 		var b []byte
@@ -476,117 +476,117 @@ func (this *Decoder) fastValue(x interface{}) bool {
 			_, bit := i/8, i%8
 			mask := byte(1 << uint(bit))
 			if bit == 0 {
-				b = this.reserve(1)
+				b = decoder.reserve(1)
 			}
 			x := ((b[0] & mask) != 0)
 			(*d)[i] = x
 		}
 
 	case *[]int:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]int, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Int()
+			(*d)[i] = decoder.Int()
 		}
 	case *[]uint:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]uint, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Uint()
+			(*d)[i] = decoder.Uint()
 		}
 
 	case *[]int8:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]int8, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Int8()
+			(*d)[i] = decoder.Int8()
 		}
 	case *[]uint8:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]uint8, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Uint8()
+			(*d)[i] = decoder.Uint8()
 		}
 	case *[]int16:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]int16, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Int16(false)
+			(*d)[i] = decoder.Int16(false)
 		}
 	case *[]uint16:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]uint16, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Uint16(false)
+			(*d)[i] = decoder.Uint16(false)
 		}
 	case *[]int32:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]int32, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Int32(false)
+			(*d)[i] = decoder.Int32(false)
 		}
 	case *[]uint32:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]uint32, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Uint32(false)
+			(*d)[i] = decoder.Uint32(false)
 		}
 	case *[]int64:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]int64, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Int64(false)
+			(*d)[i] = decoder.Int64(false)
 		}
 	case *[]uint64:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]uint64, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Uint64(false)
+			(*d)[i] = decoder.Uint64(false)
 		}
 	case *[]float32:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]float32, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Float32()
+			(*d)[i] = decoder.Float32()
 		}
 	case *[]float64:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]float64, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Float64()
+			(*d)[i] = decoder.Float64()
 		}
 	case *[]complex64:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]complex64, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Complex64()
+			(*d)[i] = decoder.Complex64()
 		}
 	case *[]complex128:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]complex128, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.Complex128()
+			(*d)[i] = decoder.Complex128()
 		}
 	case *[]string:
-		s, _ := this.Uvarint()
+		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]string, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = this.String()
+			(*d)[i] = decoder.String()
 		}
 	default:
 		return false
@@ -594,88 +594,89 @@ func (this *Decoder) fastValue(x interface{}) bool {
 	return true
 }
 
-func (this *Decoder) skipByType(t reflect.Type, packed bool) int {
+func (decoder *Decoder) skipByType(t reflect.Type, packed bool) int {
 	if s := fixedTypeSize(t); s > 0 {
 		if packedType := packedIntsType(t); packedType > 0 && packed {
 			switch packedType {
 			case _SignedInts:
-				_, n := this.Varint()
+				_, n := decoder.Varint()
 				return n
 			case _UnsignedInts:
-				_, n := this.Uvarint()
+				_, n := decoder.Uvarint()
 				return n
 			}
 		} else {
-			this.Skip(s)
+			decoder.Skip(s)
 			return s
 		}
 	}
 	switch t.Kind() {
 	case reflect.Ptr:
-		if isNotNil := this.Bool(); isNotNil {
-			return this.skipByType(t.Elem(), packed) + 1
+		if isNotNil := decoder.Bool(); isNotNil {
+			return decoder.skipByType(t.Elem(), packed) + 1
 		}
 		return 1
 	case reflect.Bool:
-		this.Bool()
+		decoder.Bool()
 		return 1
 	case reflect.Int:
-		_, n := this.Varint()
+		_, n := decoder.Varint()
 		return n
 	case reflect.Uint:
-		_, n := this.Uvarint()
+		_, n := decoder.Uvarint()
 		return n
 	case reflect.String:
-		s, n := this.Uvarint()
+		s, n := decoder.Uvarint()
 		size := int(s) //string length and data
-		this.Skip(size)
+		decoder.Skip(size)
 		return size + n
 	case reflect.Slice, reflect.Array:
-		s, sLen := this.Uvarint()
+		s, sLen := decoder.Uvarint()
 		cnt := int(s)
 		elemtype := t.Elem()
 		if s := fixedTypeSize(elemtype); s > 0 {
 			size := cnt * s
-			this.Skip(size)
+			decoder.Skip(size)
 			return size
-		} else {
-			if elemtype.Kind() == reflect.Bool { //compressed bool array
-				totalSize := sizeofBoolArray(cnt)
-				size := totalSize - SizeofUvarint(uint64(cnt)) //cnt has been read
-				this.Skip(size)
-				return totalSize
-			}
-			sum := sLen //array size
-			for i, n := 0, cnt; i < n; i++ {
-				s := this.skipByType(elemtype, packed)
-				assert(s >= 0, "skip fail: "+elemtype.String()) //I'm sure here cannot find unsupported type
-				sum += s
-			}
-			return sum
 		}
+
+		if elemtype.Kind() == reflect.Bool { //compressed bool array
+			totalSize := sizeofBoolArray(cnt)
+			size := totalSize - SizeofUvarint(uint64(cnt)) //cnt has been read
+			decoder.Skip(size)
+			return totalSize
+		}
+
+		sum := sLen //array size
+		for i, n := 0, cnt; i < n; i++ {
+			s := decoder.skipByType(elemtype, packed)
+			assert(s >= 0, "skip fail: "+elemtype.String()) //I'm sure here cannot find unsupported type
+			sum += s
+		}
+		return sum
 	case reflect.Map:
-		s, sLen := this.Uvarint()
+		s, sLen := decoder.Uvarint()
 		cnt := int(s)
 		kt := t.Key()
 		vt := t.Elem()
 		sum := sLen //array size
 		for i, n := 0, cnt; i < n; i++ {
-			sum += this.skipByType(kt, packed)
-			sum += this.skipByType(vt, packed)
+			sum += decoder.skipByType(kt, packed)
+			sum += decoder.skipByType(vt, packed)
 		}
 		return sum
 
 	case reflect.Struct:
-		return queryStruct(t).decodeSkipByType(this, t, packed)
+		return queryStruct(t).decodeSkipByType(decoder, t, packed)
 	}
 	return -1
 }
 
 // decode bool array
-func (this *Decoder) boolArray(v reflect.Value) int {
+func (decoder *Decoder) boolArray(v reflect.Value) int {
 	if k := v.Kind(); k == reflect.Slice || k == reflect.Array {
 		if v.Type().Elem().Kind() == reflect.Bool {
-			_l, _ := this.Uvarint()
+			_l, _ := decoder.Uvarint()
 			l := int(_l)
 			if k == reflect.Slice && l > 0 { //make a new slice
 				v.Set(reflect.MakeSlice(v.Type(), l, l))
@@ -685,7 +686,7 @@ func (this *Decoder) boolArray(v reflect.Value) int {
 				_, bit := i/8, i%8
 				mask := byte(1 << uint(bit))
 				if bit == 0 {
-					b = this.reserve(1)
+					b = decoder.reserve(1)
 				}
 				x := ((b[0] & mask) != 0)
 				v.Index(i).SetBool(x)

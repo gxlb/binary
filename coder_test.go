@@ -361,6 +361,33 @@ func TestEncode(t *testing.T) {
 	//}
 }
 
+func TestEncodeBig(t *testing.T) {
+	v := reflect.ValueOf(full)
+	vt := v.Type()
+	n := v.NumField()
+	check := bigFull
+	for i := 0; i < n; i++ {
+		if !validField(vt.Field(i)) {
+			continue
+		}
+		size := Sizeof(v.Field(i).Interface())
+		encoder := NewEncoderEndian(size, BigEndian)
+		err := encoder.Value(v.Field(i).Interface())
+		b := encoder.Buffer()
+		c := check[:len(b)]
+		check = check[len(b):]
+		if err != nil {
+			t.Error(err)
+		}
+		//fmt.Printf("//field#%d|%s|%#v\n$% x,\n", i+1, vt.Field(i).Name, v.Field(i).Interface(), b)
+		if vt.Field(i).Type.Kind() != reflect.Map && //map keys will be got as unspecified order, byte order may change but it doesn't matter
+			!reflect.DeepEqual(b, c) {
+			//fmt.Printf("%d %s\ngot%#v\n%need#v\n", i, vt.Field(i).Type.String(), b, c)
+			t.Errorf("field %d %s got %+v\nneed %+v\n", i, vt.Field(i).Name, b, c)
+		}
+	}
+}
+
 func TestDecode(t *testing.T) {
 	var v fullStruct
 	err := Decode(littleFullAll, &v)
@@ -819,17 +846,17 @@ func TestDecodeUvarintOverflow(t *testing.T) {
 
 type sizerOnly struct{ A uint8 }
 
-func (this sizerOnly) Size() int { return 1 }
+func (obj sizerOnly) Size() int { return 1 }
 
 type encoderOnly struct{ B uint8 }
 
-func (this encoderOnly) Encode(buffer []byte) ([]byte, error) { return nil, nil }
+func (obj encoderOnly) Encode(buffer []byte) ([]byte, error) { return nil, nil }
 
 type decoderOnly struct {
 	C uint8
 }
 
-func (this *decoderOnly) Decode(buffer []byte) error { return nil }
+func (obj *decoderOnly) Decode(buffer []byte) error { return nil }
 
 type sizeencoderOnly struct {
 	sizerOnly
@@ -852,7 +879,7 @@ type fullSerializerError struct {
 	fullSerializer
 }
 
-func (this *fullSerializerError) Decode(buffer []byte) error {
+func (obj *fullSerializerError) Decode(buffer []byte) error {
 	return fmt.Errorf("expected error")
 }
 

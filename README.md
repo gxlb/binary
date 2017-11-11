@@ -1,6 +1,6 @@
 # binary 
 
-[![Build Status](https://travis-ci.org/vipally/binary.svg?branch=master)](https://travis-ci.org/vipally/binary) [![Coverage Status](https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master)](https://coveralls.io/github/vipally/binary?branch=master) [![GoDoc](https://godoc.org/github.com/vipally/binary?status.svg)](https://godoc.org/github.com/vipally/binary) ![Version](https://img.shields.io/badge/version-1.2.0-green.svg)
+![Version][version-img] [![Build status][travis-img]][travis-url] [![Coverage Status][coverage-img]][coverage-url] [![Go Report Card][report-img]][report-url] [![GoDoc][doc-img]][doc-url] [![License][license-img]][license-url]
 
 ***
 
@@ -17,16 +17,18 @@
 
 ***
 
-CopyRight 2017 @Ally Dale. All rights reserved.
-	
-Author  : [Ally Dale(vipally@gmail.com)](mailto://vipally@gmail.com)
+## Install
 
-Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
+```bash
+$ go get -u github.com/vipally/binary
+```
+	import(
+		"github.com/vipally/binary"
+	)
 
-Site    : [https://github.com/vipally](https://github.com/vipally)
+***
 
-****
-# change log:
+# Change log:
 ## v1.2.0
 	1.use field tag `binary:"packed"` to encode ints value as varint/uvarint 
 	  for reged structs.
@@ -45,10 +47,23 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 	6.take both advantages of std.binary and gob.
 	7.recommended using in net protocol serialization and DB serialization.
 
-# TODO:
+# Todo:
 	1.[Encoder/Decoder].RegStruct to speed up local Coder.
 	2.[Encoder/Decoder].RegSerializer to speed up BinarySerializer search.
 	3.reg interface to using BinarySerializer interface.
+
+***
+
+## CopyRight
+
+CopyRight 2017 @Ally Dale. All rights reserved.
+
+Author  : [Ally Dale(vipally@gmail.com)](mailto://vipally@gmail.com)
+
+Blog    : [http://blog.csdn.net/vipally](http://blog.csdn.net/vipally)
+
+Site    : [https://github.com/vipally](https://github.com/vipally)
+
 ****
 
 # 1. Support all serialize-able basic types:
@@ -274,9 +289,22 @@ Site    : [https://github.com/vipally](https://github.com/vipally)
 
 # License.
 	Under MIT license.
-
+	
 	Copyright (c) 2017 Ally Dale<vipally@gmail.com>
 	Author  : Ally Dale<vipally@gmail.com>
 	Site    : https://github.com/vipally
 	Origin  : https://github.com/vipally/binary
+
+[travis-img]: https://travis-ci.org/vipally/binary.svg?branch=master
+[travis-url]: https://travis-ci.org/vipally/binary
+[coverage-img]: https://coveralls.io/repos/github/vipally/binary/badge.svg?branch=master
+[coverage-url]: https://coveralls.io/github/vipally/binary?branch=master
+[license-img]: http://img.shields.io/badge/license-MIT-green.svg?style=flat-square
+[license-url]: http://opensource.org/licenses/MIT
+[doc-img2]: http://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square
+[doc-img]: https://godoc.org/github.com/vipally/binary?status.svg
+[doc-url]: https://godoc.org/github.com/vipally/binary
+[report-img]: https://goreportcard.com/badge/github.com/vipally/binary
+[report-url]: https://goreportcard.com/report/github.com/vipally/binary
+[version-img]: https://img.shields.io/badge/version-1.2.0-green.svg
 

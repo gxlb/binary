@@ -168,20 +168,20 @@ func BenchmarkUnackString(b *testing.B) {
 	testBenchDecode(b, &data, &strW, "BenchmarkUnackString")
 }
 
-func newSame(v reflect.Value) (value reflect.Value) {
-	vv := reflect.Indirect(v)
-	t := vv.Type()
-	switch t.Kind() {
-	case reflect.Bool, reflect.Int8, reflect.Uint8, reflect.Int16,
-		reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64,
-		reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
-		reflect.Complex128, reflect.String, reflect.Array, reflect.Struct:
-		value = reflect.New(t)
-	case reflect.Slice:
-		value = reflect.MakeSlice(t, 0, 0).Addr() //make a default slice
-	}
-	return
-}
+//func newSame(v reflect.Value) (value reflect.Value) {
+//	vv := reflect.Indirect(v)
+//	t := vv.Type()
+//	switch t.Kind() {
+//	case reflect.Bool, reflect.Int8, reflect.Uint8, reflect.Int16,
+//		reflect.Uint16, reflect.Int32, reflect.Uint32, reflect.Int64,
+//		reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
+//		reflect.Complex128, reflect.String, reflect.Array, reflect.Struct:
+//		value = reflect.New(t)
+//	case reflect.Slice:
+//		value = reflect.MakeSlice(t, 0, 0).Addr() //make a default slice
+//	}
+//	return
+//}
 
 func testBenchGobEncode(b *testing.B, data interface{}, caseName string) {
 	buffer.Reset()

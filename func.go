@@ -246,15 +246,15 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 		if s := fixedTypeSize(elemtype); s > 0 {
 			if packedIntsType(elemtype) > 0 && packed {
 				return bitsOfUnfixedArray(v, packed) + bits
-			} else {
-				return sizeofFixArray(arrayLen, s)*8 + bits
 			}
-		} else {
-			if elemtype.Kind() == reflect.Bool {
-				return sizeofBoolArray(arrayLen)*8 + bits
-			}
-			return bitsOfUnfixedArray(v, packed) + bits
+
+			return sizeofFixArray(arrayLen, s)*8 + bits
 		}
+
+		if elemtype.Kind() == reflect.Bool {
+			return sizeofBoolArray(arrayLen)*8 + bits
+		}
+		return bitsOfUnfixedArray(v, packed) + bits
 	case reflect.Map:
 		mapLen := v.Len()
 		sum := SizeofUvarint(uint64(mapLen))*8 + bits //array size
@@ -320,14 +320,14 @@ func sizeofNilPointer(t reflect.Type) int {
 		elemtype := tt.Elem()
 		if s := fixedTypeSize(elemtype); s > 0 {
 			return sizeofFixArray(tt.Len(), s)
-		} else {
-			if elemtype.Kind() == reflect.Bool {
-				return sizeofBoolArray(tt.Len())
-			}
-			size := sizeofNilPointer(elemtype)
-			if size > 0 { //verify element type valid
-				return sizeofFixArray(tt.Len(), size)
-			}
+		}
+
+		if elemtype.Kind() == reflect.Bool {
+			return sizeofBoolArray(tt.Len())
+		}
+		size := sizeofNilPointer(elemtype)
+		if size > 0 { //verify element type valid
+			return sizeofFixArray(tt.Len(), size)
 		}
 	case reflect.Struct:
 		return queryStruct(tt).sizeofNilPointer(tt)
@@ -398,7 +398,7 @@ func newPtr(v reflect.Value, decoder *Decoder, topLevel bool) bool {
 
 // NOTE:
 // This function will make the encode/decode of struct slow down.
-// It is recommeded to use RegStruct to improve this case.
+// It is recommended to use RegStruct to improve this case.
 func validField(f reflect.StructField) bool {
 	if isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
 		return true

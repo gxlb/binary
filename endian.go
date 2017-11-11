@@ -1,6 +1,6 @@
 package binary
 
-// A ByteOrder specifies how to convert byte sequences into
+// Endian is a ByteOrder specifies how to convert byte sequences into
 // 16-, 32-, or 64-bit unsigned integers.
 type Endian interface {
 	Uint16([]byte) uint16

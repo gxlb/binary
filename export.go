@@ -81,11 +81,12 @@ func Sizeof(data interface{}) int {
 			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
 		}
 		return p.Size()
-	} else {
-		if _, _ok := data.(BinaryEncoder); _ok { //interface verification
-			panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
-		}
 	}
+
+	if _, _ok := data.(BinaryEncoder); _ok { //interface verification
+		panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
+	}
+
 	return sizeof(data)
 }
 
@@ -134,7 +135,7 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 
 	var encoder Encoder
 	encoder.buff = bs
-	encoder.endian = endian
+	encoder.setEndian(endian)
 	encoder.pos = 0
 
 	err := encoder.Value(data)
@@ -160,7 +161,7 @@ type BinaryDecoder interface {
 	Decode(buffer []byte) error
 }
 
-// interface BinarySerializer defines the go data Size/Encode/Decode method
+// BinarySerializer defines the go data Size/Encode/Decode method
 type BinarySerializer interface {
 	BinarySizer
 	BinaryEncoder
