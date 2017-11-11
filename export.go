@@ -81,11 +81,12 @@ func Sizeof(data interface{}) int {
 			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
 		}
 		return p.Size()
-	} else {
-		if _, _ok := data.(BinaryEncoder); _ok { //interface verification
-			panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
-		}
 	}
+
+	if _, _ok := data.(BinaryEncoder); _ok { //interface verification
+		panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
+	}
+
 	return sizeof(data)
 }
 

@@ -46,7 +46,7 @@ func (cder *coder) Cap() int {
 func (cder *coder) Skip(size int) int {
 	newPos := cder.pos + size
 	if size >= 0 && newPos <= cder.Cap() {
-		for i, b := int(size-1), cder.buff[cder.pos:newPos]; i >= 0; i-- { //zero skiped bytes
+		for i, b := size-1, cder.buff[cder.pos:newPos]; i >= 0; i-- { //zero skiped bytes
 			b[i] = 0
 		}
 		cder.pos = newPos
@@ -58,7 +58,7 @@ func (cder *coder) Skip(size int) int {
 // Reset move the read/write pointer to the beginning of buffer
 // and set all reseted bytes to 0.
 func (cder *coder) Reset() {
-	for i := int(cder.pos - 1); i >= 0; i-- { //zero encoded bytes
+	for i := cder.pos - 1; i >= 0; i-- { //zero encoded bytes
 		cder.buff[i] = 0
 	}
 	cder.pos = 0

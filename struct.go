@@ -60,9 +60,9 @@ func (mgr *structInfoMgr) deepStructType(t reflect.Type, needErr bool) (reflect.
 	if _t.Kind() != reflect.Struct {
 		if needErr {
 			return _t, false, fmt.Errorf("binary: only struct is aviable for regist, but got %s", t.String())
-		} else {
-			return _t, false, nil
 		}
+
+		return _t, false, nil
 	}
 	return _t, true, nil
 }
@@ -83,8 +83,6 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 			if err := encoder.value(f, finfo.isPacked()); err != nil {
 				return err
 			}
-		} else {
-			//do nothing
 		}
 	}
 	return nil
@@ -99,8 +97,6 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 			if err := decoder.value(f, false, finfo.isPacked()); err != nil {
 				return err
 			}
-		} else {
-			//do nothing
 		}
 	}
 	return nil
@@ -158,9 +154,9 @@ func (info *structInfo) fieldValid(i int, t reflect.Type) bool {
 func (info *structInfo) fieldNum(t reflect.Type) int {
 	if info == nil {
 		return t.NumField()
-	} else {
-		return info.numField()
 	}
+
+	return info.numField()
 }
 
 func (info *structInfo) parse(t reflect.Type) bool {
@@ -181,6 +177,7 @@ func (info *structInfo) parse(t reflect.Type) bool {
 		if _t, ok, _ := _structInfoMgr.deepStructType(f.Type, false); ok {
 			if err := _structInfoMgr.regist(_t); err != nil {
 				//fmt.Printf("binary: internal regist duplicate type %s\n", _t.String())
+				continue
 			}
 		}
 	}
@@ -211,20 +208,20 @@ type fieldInfo struct {
 func (field *fieldInfo) Type(i int, t reflect.Type) reflect.Type {
 	if field != nil {
 		return field.field.Type
-	} else {
-		return t.Field(i).Type
 	}
+
+	return t.Field(i).Type
 }
 
 func (field *fieldInfo) isValid(i int, t reflect.Type) bool {
 	if field != nil {
 		return !field.ignore
-	} else {
-		// NOTE:
-		// creating the StructField info for each field is costly
-		// use RegStruct((*someStruct)(nil)) to aboid this path
-		return validField(t.Field(i)) // slow way to access field info
 	}
+
+	// NOTE:
+	// creating the StructField info for each field is costly
+	// use RegStruct((*someStruct)(nil)) to aboid this path
+	return validField(t.Field(i)) // slow way to access field info
 }
 
 func (field *fieldInfo) isPacked() bool {
