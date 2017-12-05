@@ -417,7 +417,7 @@ func ExampleShowString() {
 	//     },
 	// }
 }
-func ExampleShowSingLineString() {
+func ExampleShowSingleLineString() {
 	type X struct {
 		A int
 		B string
@@ -450,6 +450,7 @@ func ExampleShowSingLineString() {
 		},
 	}
 	fmt.Println(binary.ShowSingleLineString(z))
+
 	// Output:
 	// binary_test.Z{G: binary_test.Y{D: binary_test.X{A: 1,B: `"a"=1`,},E: `"b"=2`,},H: `zzz`,I: []string{`c:\x\y\z`,`d:\a\b\c`,},J: map[string]int{`abc`: 1,},}
 	//

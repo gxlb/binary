@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// use "%##v" to format a Go syntax value with multi-line style
 const (
 	maxArrayElemInLine = 5
 )
