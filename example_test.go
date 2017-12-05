@@ -364,3 +364,93 @@ func ExampleRegStruct() {
 	// {A:1 B:2 C:hello D:3}
 	// size=8 result=[]byte{0x2, 0x5, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x3}
 }
+
+func ExampleShowString() {
+	type X struct {
+		A int
+		B string
+	}
+	type Y struct {
+		D X
+		E string
+	}
+	type Z struct {
+		G Y
+		H string
+		I []string
+		J map[string]int
+	}
+	var z = Z{
+		G: Y{
+			D: X{
+				A: 1,
+				B: `"a"=1`,
+			},
+			E: `"b"=2`,
+		},
+		H: `zzz`,
+		I: []string{
+			`c:\x\y\z`,
+			`d:\a\b\c`,
+		},
+		J: map[string]int{
+			`abc`: 1,
+		},
+	}
+	fmt.Println(binary.ShowString(z))
+	// Output:
+	// binary_test.Z{
+	//     G: binary_test.Y{
+	//         D: binary_test.X{
+	//             A: 1,
+	//             B: `"a"=1`,
+	//         },
+	//         E: `"b"=2`,
+	//     },
+	//     H: `zzz`,
+	//     I: []string{
+	//         `c:\x\y\z`,
+	//         `d:\a\b\c`,
+	//     },
+	//     J: map[string]int{
+	//         `abc`: 1,
+	//     },
+	// }
+}
+func ExampleShowSingLineString() {
+	type X struct {
+		A int
+		B string
+	}
+	type Y struct {
+		D X
+		E string
+	}
+	type Z struct {
+		G Y
+		H string
+		I []string
+		J map[string]int
+	}
+	var z = Z{
+		G: Y{
+			D: X{
+				A: 1,
+				B: `"a"=1`,
+			},
+			E: `"b"=2`,
+		},
+		H: `zzz`,
+		I: []string{
+			`c:\x\y\z`,
+			`d:\a\b\c`,
+		},
+		J: map[string]int{
+			`abc`: 1,
+		},
+	}
+	fmt.Println(binary.ShowSingleLineString(z))
+	// Output:
+	// binary_test.Z{G: binary_test.Y{D: binary_test.X{A: 1,B: `"a"=1`,},E: `"b"=2`,},H: `zzz`,I: []string{`c:\x\y\z`,`d:\a\b\c`,},J: map[string]int{`abc`: 1,},}
+	//
+}

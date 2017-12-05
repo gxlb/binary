@@ -2,7 +2,6 @@ package binary
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"strconv"
 )
@@ -24,7 +23,7 @@ func ShowString(data interface{}) string {
 	return p.ShowString(data)
 }
 
-func ShowSingLineString(data interface{}) string {
+func ShowSingleLineString(data interface{}) string {
 	var p Printer
 	p.Init(OptionSingleLine)
 	return p.ShowString(data)
@@ -86,9 +85,9 @@ func (p *Printer) show(v reflect.Value, depth int) {
 				lines++
 				p.newLine(depth + 1)
 			}
-			p.show(v.Index(i), depth)
+			p.show(v.Index(i), depth+1)
 			p.buff.WriteByte(',')
-			p.buff.WriteByte(' ')
+			//p.buff.WriteByte(' ')
 		}
 		if lines > 0 {
 			p.newLine(depth)
@@ -104,8 +103,10 @@ func (p *Printer) show(v reflect.Value, depth int) {
 			key := keys[i]
 			p.show(key, depth+1)
 			p.buff.WriteByte(':')
+			p.buff.WriteByte(' ')
 			p.show(v.MapIndex(key), depth+1)
 			p.buff.WriteByte(',')
+			//p.buff.WriteByte(' ')
 
 		}
 		p.newLine(depth)
@@ -123,6 +124,7 @@ func (p *Printer) show(v reflect.Value, depth int) {
 			p.buff.WriteByte(' ')
 			p.show(f, depth+1)
 			p.buff.WriteByte(',')
+			//p.buff.WriteByte(' ')
 		}
 		p.newLine(depth)
 		p.buff.WriteByte('}')
@@ -166,7 +168,6 @@ func (p *Printer) newLineInArray(elemKind reflect.Kind, index, size int) bool {
 }
 
 func (p *Printer) newLine(depth int) {
-	fmt.Println(p.option, OptionSingleLine, p.option&OptionSingleLine)
 	if p.option&OptionSingleLine != 0 { //single line
 		return
 	}
