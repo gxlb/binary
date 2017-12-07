@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// use "%##v" "%++v" to format a value with indented-multi-line style string
+// use "%##v" "%++v" to format a value with indented-multi-lines style string to extends "%#v" "%+v"
 const (
 	maxArrayElemInLine = 5
 )
