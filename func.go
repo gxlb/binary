@@ -183,6 +183,15 @@ func bitsOfUnfixedArray(v reflect.Value, packed bool) int {
 	return sum
 }
 
+func bitsOfSerializer(v reflect.Value) int {
+	x := v.Interface()
+	if p, ok := x.(BinarySizer); ok {
+		size := p.Size()
+		return size * 8
+	}
+	return -1
+}
+
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
 func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 	//	defer func() {
@@ -203,6 +212,11 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 
 	v = reflect.Indirect(v) //redrect pointer to it's value
 	t := v.Type()
+
+	if querySerializer(t) {
+		return bitsOfSerializer(v)
+	}
+
 	if s := fixedTypeSize(t); s > 0 { //fixed size
 		if packedType := packedIntsType(t); packedType > 0 && packed {
 			switch packedType {
@@ -380,7 +394,7 @@ func newPtr(v reflect.Value, decoder *Decoder, topLevel bool) bool {
 
 // NOTE:
 // This function will make the encode/decode of struct slow down.
-// It is recommended to use RegStruct to improve this case.
+// It is recommended to use RegisterType to improve this case.
 func validField(f reflect.StructField) bool {
 	if isExported(f.Name) && f.Tag.Get("binary") != "ignore" {
 		return true

@@ -17,18 +17,19 @@ func RegsterType(x interface{}) error {
 }
 
 var (
-	//tSizer        reflect.Type //BinarySizer
 	//tDecoder      reflect.Type //BinaryDecoder
+	tSizer        reflect.Type //BinarySizer
 	tEncoder      reflect.Type //BinaryEncoder
 	tSerializer   reflect.Type //BinarySerializer
 	_regedTypeMgr regedTypeMgr //reged type manager
 )
 
 func init() {
-	//var sizer BinarySizer
 	//var decoder BinaryDecoder
-	//tSizer = reflect.TypeOf(&sizer).Elem()
 	//tDecoder = reflect.TypeOf(&decoder).Elem()
+
+	var sizer BinarySizer
+	tSizer = reflect.TypeOf(&sizer).Elem()
 	var encoder BinaryEncoder
 	var serializer BinarySerializer
 	tEncoder = reflect.TypeOf(&encoder).Elem()
@@ -114,9 +115,9 @@ func (mgr *regedTypeMgr) deepRegableType(t reflect.Type, needErr bool) (deept re
 		_t = _t.Elem()
 	}
 
-	if _pt := reflect.PtrTo(_t); _t.Implements(tEncoder) || _pt.Implements(tEncoder) {
+	if _pt := reflect.PtrTo(_t); _pt.Implements(tSizer) || _pt.Implements(tEncoder) {
 		if !_pt.Implements(tSerializer) {
-			return t, false, false, typeError("binary: unexpected BinaryEncoder, expect implements BinarySerializer, type %s", t, needErr)
+			return t, false, false, typeError("binary: unexpected BinarySizer or BinaryEncoder, expect implements BinarySerializer, type %s", t, needErr)
 		}
 		isSerializer = true
 	}

@@ -230,21 +230,21 @@ func (encoder *Encoder) Value(x interface{}) (err error) {
 
 	v := reflect.ValueOf(x)
 
-	if p, ok := x.(BinaryEncoder); ok {
-		if _, _ok := x.(BinarySizer); !_ok { //interface verification
-			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
-		}
+	//	if p, ok := x.(BinaryEncoder); ok {
+	//		if _, _ok := x.(BinarySizer); !_ok { //interface verification
+	//			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
+	//		}
 
-		r, err := p.Encode(encoder.buff[encoder.pos:])
-		if err == nil {
-			encoder.reserve(len(r))
-		}
-		return err
-	}
+	//		r, err := p.Encode(encoder.buff[encoder.pos:])
+	//		if err == nil {
+	//			encoder.reserve(len(r))
+	//		}
+	//		return err
+	//	}
 
-	if _, _ok := x.(BinarySizer); _ok { //interface verification
-		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
-	}
+	//	if _, _ok := x.(BinarySizer); _ok { //interface verification
+	//		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
+	//	}
 
 	return encoder.value(reflect.Indirect(v), false)
 }
@@ -398,6 +398,20 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 
 }
 
+// use BinarySerializer interface to encode this value
+func (encoder *Encoder) useSerializer(v reflect.Value) error {
+	x := v.Interface()
+	if p, ok := x.(BinaryEncoder); ok {
+		r, err := p.Encode(encoder.buff[encoder.pos:])
+		if err == nil {
+			encoder.reserve(len(r))
+		}
+		return err
+	}
+
+	panic(typeError("expect BinarySerializer %s", v.Type(), true))
+}
+
 func (encoder *Encoder) value(v reflect.Value, packed bool) error {
 	// check Packer interface for every value is perfect
 	// but encoder is too costly
@@ -418,7 +432,12 @@ func (encoder *Encoder) value(v reflect.Value, packed bool) error {
 	//		}
 	//	}
 
-	switch k := v.Kind(); k {
+	k := v.Kind()
+	if k != reflect.Ptr && querySerializer(v.Type()) {
+		return encoder.useSerializer(v)
+	}
+
+	switch k {
 	case reflect.Int:
 		encoder.Int(int(v.Int()))
 	case reflect.Uint:

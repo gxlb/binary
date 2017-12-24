@@ -263,36 +263,50 @@ func (decoder *Decoder) Value(x interface{}) (err error) {
 
 	v := reflect.ValueOf(x)
 
-	if p, ok := x.(BinaryDecoder); ok {
-		size := 0
-		if sizer, _ok := x.(BinarySizer); _ok { //interface verification
-			size = sizer.Size()
-		} else {
-			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
-		}
-		if _, _ok := x.(BinaryEncoder); !_ok { //interface verification
-			panic(fmt.Errorf("unexpect but not BinaryEncoder: %s", v.Type().String()))
-		}
-		err := p.Decode(decoder.buff[decoder.pos:])
-		if err != nil {
-			return err
-		}
-		decoder.reserve(size)
-		return nil
-	}
-
-	if _, _ok := x.(BinarySizer); _ok { //interface verification
-		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
-	}
-	if _, _ok := x.(BinaryEncoder); _ok { //interface verification
-		panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
-	}
+	//	if p, ok := x.(BinaryDecoder); ok {
+	//		size := 0
+	//		if sizer, _ok := x.(BinarySizer); _ok { //interface verification
+	//			size = sizer.Size()
+	//		} else {
+	//			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
+	//		}
+	//		if _, _ok := x.(BinaryEncoder); !_ok { //interface verification
+	//			panic(fmt.Errorf("unexpect but not BinaryEncoder: %s", v.Type().String()))
+	//		}
+	//		err := p.Decode(decoder.buff[decoder.pos:])
+	//		if err != nil {
+	//			return err
+	//		}
+	//		decoder.reserve(size)
+	//		return nil
+	//	}
+	//	if _, _ok := x.(BinarySizer); _ok { //interface verification
+	//		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
+	//	}
+	//	if _, _ok := x.(BinaryEncoder); _ok { //interface verification
+	//		panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
+	//	}
 
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
 		return decoder.value(v, true, false)
 	}
 
 	return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
+}
+
+// use BinarySerializer interface to decode this value
+func (decoder *Decoder) useSerializer(v reflect.Value) error {
+	x := v.Interface()
+	if p, ok := x.(BinarySerializer); ok {
+		size := p.Size()
+		if err := p.Decode(decoder.buff[decoder.pos:]); err != nil {
+			return err
+		}
+		decoder.reserve(size)
+		return nil
+	}
+
+	panic(typeError("expect BinarySerializer %s", v.Type(), true))
 }
 
 func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
@@ -325,7 +339,12 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 	//		}
 	//	}
 
-	switch k := v.Kind(); k {
+	k := v.Kind()
+	if k != reflect.Ptr && querySerializer(v.Type()) {
+		return decoder.useSerializer(v.Addr())
+	}
+
+	switch k {
 	case reflect.Int:
 		v.SetInt(int64(decoder.Int()))
 	case reflect.Uint:
