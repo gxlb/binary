@@ -717,7 +717,7 @@ func TestEncodeDonotSupportedType(t *testing.T) {
 			//fmt.Printf("Decode error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
 
-		if err := decoder.value(tv.Field(i), true, false); err == nil {
+		if err := decoder.value(tv.Field(i), true, false, true); err == nil {
 			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
@@ -935,7 +935,7 @@ func TestBinarySerializer(t *testing.T) {
 		if got != v.err {
 			t.Errorf("case %d %#v wanterror=%v got err=%v", i+1, v.data, v.err, err)
 		} else {
-			fmt.Println(i+1, err)
+			//fmt.Println(i+1, err)
 		}
 	}
 }

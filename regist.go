@@ -8,10 +8,10 @@ import (
 	"reflect"
 )
 
-// RegsterType regist type info to improve encoding/decoding efficiency.
+// RegisterType regist type info to improve encoding/decoding efficiency.
 // Only BinarySerializer or struct is regable.
 // Regist by a nil pointer is aviable.
-// RegsterType((*SomeType)(nil)) is recommended usage.
+// RegisterType((*SomeType)(nil)) is recommended usage.
 func RegisterType(x interface{}) error {
 	return _regedTypeMgr.regist(reflect.TypeOf(x), true)
 }
@@ -25,7 +25,6 @@ var (
 )
 
 func init() {
-
 	var sizer BinarySizer
 	tSizer = reflect.TypeOf(&sizer).Elem()
 	var encoder BinaryEncoder
@@ -111,8 +110,8 @@ func typeError(fmt_ string, t reflect.Type, needErr bool) error {
 
 //informatin of a struct
 type structInfo struct {
-	identify string //reflect.Type.String()
-	fields   []*fieldInfo
+	t      reflect.Type //type of this struct(for debug)
+	fields []*fieldInfo
 }
 
 func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
@@ -122,7 +121,7 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 		// see comment for corresponding code in decoder.value()
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := encoder.value(f, finfo.isPacked()); err != nil {
+			if err := encoder.value(f, finfo.isPacked(), finfo.checkSerializer()); err != nil {
 				return err
 			}
 		}
@@ -136,7 +135,7 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value) error {
 	for i, n := 0, v.NumField(); i < n; i++ {
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := decoder.value(f, false, finfo.isPacked()); err != nil {
+			if err := decoder.value(f, false, finfo.isPacked(), finfo.checkSerializer()); err != nil {
 				return err
 			}
 		}
@@ -203,7 +202,7 @@ func (info *structInfo) fieldNum(t reflect.Type) int {
 
 func (info *structInfo) parse(mgr *regedTypeMgr, t reflect.Type) bool {
 	//assert(t.Kind() == reflect.Struct, t.String())
-	info.identify = t.String()
+	info.t = t
 	for i, n := 0, t.NumField(); i < n; i++ {
 		f := t.Field(i)
 
@@ -212,6 +211,7 @@ func (info *structInfo) parse(mgr *regedTypeMgr, t reflect.Type) bool {
 		tag := f.Tag.Get("binary")
 		field.ignore = !isExported(f.Name) || tag == "ignore"
 		field.packed = tag == "packed"
+		_, field.serializer, _, _ = deepRegableType(f.Type, false)
 
 		info.fields = append(info.fields, field)
 
@@ -237,9 +237,10 @@ func (info *structInfo) numField() int {
 
 //informatin of a struct field
 type fieldInfo struct {
-	field  reflect.StructField
-	ignore bool //if this field is ignored
-	packed bool //if this ints field encode as varint/uvarint
+	field      reflect.StructField
+	ignore     bool //if this field is ignored
+	packed     bool //if this ints field encode as varint/uvarint
+	serializer bool //if this filed implements BinarySerializer
 }
 
 func (field *fieldInfo) Type(i int, t reflect.Type) reflect.Type {
@@ -263,6 +264,10 @@ func (field *fieldInfo) isValid(i int, t reflect.Type) bool {
 
 func (field *fieldInfo) isPacked() bool {
 	return field != nil && field.packed
+}
+
+func (field *fieldInfo) checkSerializer() bool {
+	return !(field != nil && !field.serializer)
 }
 
 func deepRegableType(t reflect.Type, needErr bool) (deept reflect.Type, isSerializer, ok bool, err error) {

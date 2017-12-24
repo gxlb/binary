@@ -288,7 +288,7 @@ func (decoder *Decoder) Value(x interface{}) (err error) {
 	//	}
 
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return decoder.value(v, true, false)
+		return decoder.value(v, true, false, true)
 	}
 
 	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
@@ -309,7 +309,7 @@ func (decoder *Decoder) useSerializer(v reflect.Value) error {
 	panic(typeError("expect BinarySerializer %s", v.Type(), true))
 }
 
-func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error {
+func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed, checkSerializer bool) error {
 	// check Packer interface for every value is perfect
 	// but decoder is too costly
 	//
@@ -340,7 +340,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 	//	}
 
 	k := v.Kind()
-	if k != reflect.Ptr && querySerializer(v.Type()) {
+	if checkSerializer && k != reflect.Ptr && querySerializer(v.Type()) {
 		return decoder.useSerializer(v.Addr())
 	}
 
@@ -386,9 +386,12 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 		v.SetString(decoder.String())
 
 	case reflect.Slice, reflect.Array:
-		if !validUserType(v.Type().Elem()) { //verify array element is valid
+		elemT := v.Type().Elem()
+		if !validUserType(elemT) { //verify array element is valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
+
+		elemSerializer := querySerializer(indirectType(elemT))
 		if decoder.boolArray(v) < 0 { //deal with bool array first
 			s, _ := decoder.Uvarint()
 			size := int(s)
@@ -400,7 +403,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 			l := v.Len()
 			for i := 0; i < size; i++ {
 				if i < l {
-					assert(decoder.value(v.Index(i), false, packed) == nil, "")
+					assert(decoder.value(v.Index(i), false, packed, elemSerializer) == nil, "")
 				} else {
 					skiped := decoder.skipByType(v.Type().Elem(), packed)
 					assert(skiped >= 0, v.Type().Elem().String()) //I'm sure here cannot find unsupported type
@@ -421,13 +424,16 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 			v.Set(newmap)
 		}
 
+		keySerilaizer := querySerializer(indirectType(kt))
+		valueSerilaizer := querySerializer(indirectType(vt))
+
 		s, _ := decoder.Uvarint()
 		size := int(s)
 		for i := 0; i < size; i++ {
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
-			assert(decoder.value(key, false, packed) == nil, "")
-			assert(decoder.value(value, false, packed) == nil, "")
+			assert(decoder.value(key, false, packed, keySerilaizer) == nil, "")
+			assert(decoder.value(value, false, packed, valueSerilaizer) == nil, "")
 			v.SetMapIndex(key, value)
 		}
 	case reflect.Struct:
@@ -436,7 +442,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 	default:
 		if newPtr(v, decoder, topLevel) {
 			if !v.IsNil() {
-				return decoder.value(v.Elem(), false, packed)
+				return decoder.value(v.Elem(), false, packed, checkSerializer)
 			}
 		} else {
 			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)
