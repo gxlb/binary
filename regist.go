@@ -11,28 +11,29 @@ import (
 // RegsterType regist type info to improve encoding/decoding efficiency.
 // Only BinarySerializer or struct is regable.
 // Regist by a nil pointer is aviable.
-// RegStruct((*SomeType)(nil)) is recommended usage.
+// RegsterType((*SomeType)(nil)) is recommended usage.
 func RegsterType(x interface{}) error {
 	return _regedTypeMgr.regist(reflect.TypeOf(x), true)
 }
 
 var (
-	tSizer        reflect.Type //BinarySizer
+	//tSizer        reflect.Type //BinarySizer
+	//tDecoder      reflect.Type //BinaryDecoder
 	tEncoder      reflect.Type //BinaryEncoder
-	tDecoder      reflect.Type //BinaryDecoder
 	tSerializer   reflect.Type //BinarySerializer
 	_regedTypeMgr regedTypeMgr //reged type manager
 )
 
 func init() {
-	var sizer BinarySizer
+	//var sizer BinarySizer
+	//var decoder BinaryDecoder
+	//tSizer = reflect.TypeOf(&sizer).Elem()
+	//tDecoder = reflect.TypeOf(&decoder).Elem()
 	var encoder BinaryEncoder
-	var decoder BinaryDecoder
 	var serializer BinarySerializer
-	tSizer = reflect.TypeOf(&sizer).Elem()
 	tEncoder = reflect.TypeOf(&encoder).Elem()
-	tDecoder = reflect.TypeOf(&decoder).Elem()
 	tSerializer = reflect.TypeOf(&serializer).Elem()
+
 	_regedTypeMgr.init()
 }
 
@@ -108,21 +109,14 @@ func typeError(fmt_ string, t reflect.Type, needErr bool) error {
 }
 
 func (mgr *regedTypeMgr) deepRegableType(t reflect.Type, needErr bool) (deept reflect.Type, isSerializer, ok bool, err error) {
-	if t.Kind() != reflect.Ptr {
-		return t, false, false, typeError("binary: expect Regist by pointer, but got %s", t, needErr)
-	}
-
-	_pt := t
-	_t := t.Elem()
+	_t := t
 	for _t.Kind() == reflect.Ptr {
-		_pt = _t
 		_t = _t.Elem()
 	}
 
-	isSerializer = false
-	if _t.Implements(tEncoder) {
+	if _pt := reflect.PtrTo(_t); _t.Implements(tEncoder) || _pt.Implements(tEncoder) {
 		if !_pt.Implements(tSerializer) {
-			return t, false, false, typeError("binary: unexpected BinaryEncoder, expect implements BinarySerializer, got type %s", t, needErr)
+			return t, false, false, typeError("binary: unexpected BinaryEncoder, expect implements BinarySerializer, type %s", t, needErr)
 		}
 		isSerializer = true
 	}
@@ -131,7 +125,7 @@ func (mgr *regedTypeMgr) deepRegableType(t reflect.Type, needErr bool) (deept re
 		return _t, isSerializer, true, nil
 	}
 
-	return t, false, false, typeError("binary: expect Regist by BinarySerializer or struct, got type %s", t, needErr)
+	return t, false, false, typeError("binary: expect Regist by BinarySerializer or struct, type %s", t, needErr)
 }
 
 //informatin of a struct
