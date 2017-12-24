@@ -5,7 +5,6 @@ import (
 	"io"
 	"reflect"
 	"testing"
-	"time"
 	"unsafe"
 )
 
@@ -328,52 +327,6 @@ var littleFullAll = []byte{
 	0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01,
 }
 
-var (
-	typeMap = make(map[reflect.Type]string)
-	strMap  = make(map[string]string)
-)
-
-func TestRegType(t *testing.T) {
-	tp := reflect.TypeOf(full)
-	typeMap[tp] = tp.String()
-	strMap[tp.String()] = tp.String()
-
-	types := []reflect.Type{
-		tp,
-		reflect.TypeOf("hello"),
-		reflect.TypeOf(full.BaseStruct),
-		reflect.TypeOf(full.BoolSlice),
-		reflect.TypeOf(full.Float64Slice),
-		reflect.TypeOf(full.Map2),
-		reflect.TypeOf(full.LittleStruct),
-	}
-
-	n := 100
-	start := time.Now()
-	find := 0
-	for i := 0; i < n; i++ {
-		for _, v := range types {
-			if _, ok := typeMap[v]; ok {
-				find++
-			}
-		}
-	}
-	dur := time.Now().Sub(start)
-	fmt.Printf("find typeMap n=%d*%d %d cost=%s find=%d\n", n, len(types), n*len(types), dur.String(), find)
-
-	//	start = time.Now()
-	//	find = 0
-	//	for i := 0; i < n; i++ {
-	//		for _, v := range types {
-	//			if _, ok := strMap[v.String()]; ok {
-	//				find++
-	//			}
-	//		}
-	//	}
-	//	dur = time.Now().Sub(start)
-	//	fmt.Printf("find strMap n=%d*%d %d cost=%s find=%d\n", n, len(types), n*len(types), dur.String(), find)
-}
-
 func TestEncode(t *testing.T) {
 	v := reflect.ValueOf(full)
 	vt := v.Type()
@@ -648,7 +601,7 @@ func TestDecoderSkip(t *testing.T) {
 		Packed1   uint32 `binary:"packed"`
 		Packed2   int64  `binary:"packed"`
 	}
-	RegsterType((*skipedStruct)(nil))
+	RegisterType((*skipedStruct)(nil))
 
 	var w [5]skipedStruct
 	for i := len(w) - 1; i >= 0; i-- {
@@ -800,7 +753,7 @@ func TestAssert(t *testing.T) {
 	assert(false, message)
 }
 
-func TestRegStruct(t *testing.T) {
+func TestRegisterType(t *testing.T) {
 	type StructForReg struct {
 		A int
 		B uint `binary:"ignore"`
@@ -821,8 +774,8 @@ func TestRegStruct(t *testing.T) {
 			B string
 		}
 	}
-	RegsterType((*StructForReg)(nil))
-	if err := RegsterType((*StructForReg)(nil)); err == nil { //duplicate regist
+	RegisterType((*StructForReg)(nil))
+	if err := RegisterType((*StructForReg)(nil)); err == nil { //duplicate regist
 		t.Errorf("RegStruct: have err == nil, want non-nil")
 	}
 	var a = StructForReg{
@@ -854,8 +807,8 @@ func TestRegStruct(t *testing.T) {
 	}
 }
 
-func TestRegistStructUnsupported(t *testing.T) {
-	err := RegsterType(int(0))
+func TestRegisterTypeUnsupported(t *testing.T) {
+	err := RegisterType(int(0))
 	if err == nil {
 		t.Errorf("RegistStructUnsupported: have err == nil, want non-nil")
 	}
@@ -895,15 +848,27 @@ type sizerOnly struct{ A uint8 }
 
 func (obj sizerOnly) Size() int { return 1 }
 
+type sizerOnPtr struct{ A uint8 }
+
+func (obj *sizerOnPtr) Size() int { return 1 }
+
 type encoderOnly struct{ B uint8 }
 
 func (obj encoderOnly) Encode(buffer []byte) ([]byte, error) { return nil, nil }
+
+type encoderOnPtr struct{ B uint8 }
+
+func (obj *encoderOnPtr) Encode(buffer []byte) ([]byte, error) { return nil, nil }
 
 type decoderOnly struct {
 	C uint8
 }
 
 func (obj *decoderOnly) Decode(buffer []byte) error { return nil }
+
+type decoderOnObj decoderOnly
+
+func (obj decoderOnObj) Decode(buffer []byte) error { return nil }
 
 type sizeencoderOnly struct {
 	sizerOnly
@@ -922,87 +887,56 @@ type fullSerializer struct {
 	encoderOnly
 	decoderOnly
 }
-type fullSerializerError struct {
-	fullSerializer
+type fullSerializerSizeOnPtr struct {
+	sizerOnPtr
+	encoderOnly
+	decoderOnly
 }
+type fullSerializerEncodeOnPtr struct {
+	sizerOnly
+	encoderOnPtr
+	decoderOnly
+}
+
+type fullSerializerDecodeOnObj struct {
+	sizerOnly
+	encoderOnly
+	decoderOnObj
+}
+
+type fullSerializerError fullSerializer
 
 func (obj *fullSerializerError) Decode(buffer []byte) error {
 	return fmt.Errorf("expected error")
 }
 
 func TestBinarySerializer(t *testing.T) {
-	var a sizerOnly
-	var b encoderOnly
-	var c decoderOnly
-	var d sizeencoderOnly
-	var e sizedecoderOnly
-	var f encodedecoderOnly
-	var g fullSerializerError
-	var h fullSerializer
+	type testCase struct {
+		data interface{}
+		err  bool
+	}
+	testCases := []*testCase{
+		&testCase{(*sizerOnly)(nil), true},
+		&testCase{(*encoderOnly)(nil), true},
+		&testCase{(*decoderOnly)(nil), true},
+		&testCase{(*sizeencoderOnly)(nil), true},
+		&testCase{(*sizedecoderOnly)(nil), true},
+		&testCase{(*fullSerializerDecodeOnObj)(nil), true},
+		&testCase{(*fullSerializerSizeOnPtr)(nil), true},
+		&testCase{(*fullSerializerEncodeOnPtr)(nil), true},
 
-	testCase := func(data interface{}, testcase int) (info interface{}) {
-		defer func() {
+		&testCase{(*fullSerializerError)(nil), false},
+		&testCase{(*fullSerializer)(nil), false},
+	}
 
-			_info := recover()
-			if _info != nil && info == nil {
-				info = _info
-				//fmt.Println(info)
-			}
-		}()
-		switch testcase {
-		case 1:
-			Sizeof(data)
-		case 2:
-			if _, err := Encode(data, nil); err != nil {
-				info = err
-			}
-
-		case 3:
-			buff := make([]byte, 1000)
-			if err := Decode(buff, data); err != nil {
-				info = err
-			}
-		case 4:
-			encoder := NewEncoder(100)
-			if err := encoder.Value(data); err != nil {
-				info = err
-			}
+	for i, v := range testCases {
+		err := RegisterType(v.data)
+		got := err != nil
+		if got != v.err {
+			t.Errorf("case %d %#v wanterror=%v got err=%v", i+1, v.data, v.err, err)
+		} else {
+			fmt.Println(i+1, err)
 		}
-		return
-	}
-
-	testCode := func(data interface{}) (info interface{}) {
-		for i := 1; i <= 4; i++ {
-			if _info := testCase(data, i); _info != nil && info == nil {
-				info = _info
-			}
-		}
-		return
-	}
-
-	if info := testCode(&a); info == nil {
-		t.Errorf("BinarySerializer: have err == nil, want none-nil")
-	}
-	if info := testCode(&b); info == nil {
-		t.Errorf("BinarySerializer: have err == nil, want none-nil")
-	}
-	if info := testCode(&c); info == nil {
-		t.Errorf("BinarySerializer: have err == nil, want none-nil")
-	}
-	if info := testCode(&d); info == nil {
-		t.Errorf("BinarySerializer: have err == nil, want none-nil")
-	}
-	if info := testCode(&e); info == nil {
-		t.Errorf("BinarySerializer: have err == nil, want none-nil")
-	}
-	if info := testCode(&f); info == nil {
-		t.Errorf("BinarySerializer: have err == nil, want none-nil")
-	}
-	if info := testCode(&g); info == nil {
-		t.Errorf("BinarySerializer: have err == nil, want none-nil")
-	}
-	if info := testCode(&h); info != nil {
-		t.Errorf("BinarySerializer: have err == %#v, want nil", info)
 	}
 }
 
@@ -1082,7 +1016,7 @@ func TestPackedInts(t *testing.T) {
 		G []uint64 `binary:"packed"`
 	}
 	var data = packedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}}
-	RegsterType((*packedInts)(nil))
+	RegisterType((*packedInts)(nil))
 	b, err := Encode(data, nil)
 	if err != nil {
 		t.Error(err)
@@ -1142,3 +1076,49 @@ func TestBools(t *testing.T) {
 		t.Errorf("EncodeBools got %+v\nneed %+v\n", dataDecode, data)
 	}
 }
+
+//var (
+//	typeMap = make(map[reflect.Type]string)
+//	strMap  = make(map[string]string)
+//)
+
+//func TestRegType(t *testing.T) {
+//	tp := reflect.TypeOf(full)
+//	typeMap[tp] = tp.String()
+//	strMap[tp.String()] = tp.String()
+
+//	types := []reflect.Type{
+//		tp,
+//		reflect.TypeOf("hello"),
+//		reflect.TypeOf(full.BaseStruct),
+//		reflect.TypeOf(full.BoolSlice),
+//		reflect.TypeOf(full.Float64Slice),
+//		reflect.TypeOf(full.Map2),
+//		reflect.TypeOf(full.LittleStruct),
+//	}
+
+//	n := 100
+//	start := time.Now()
+//	find := 0
+//	for i := 0; i < n; i++ {
+//		for _, v := range types {
+//			if _, ok := typeMap[v]; ok {
+//				find++
+//			}
+//		}
+//	}
+//	dur := time.Now().Sub(start)
+//	fmt.Printf("find typeMap n=%d*%d %d cost=%s find=%d\n", n, len(types), n*len(types), dur.String(), find)
+
+//	//	start = time.Now()
+//	//	find = 0
+//	//	for i := 0; i < n; i++ {
+//	//		for _, v := range types {
+//	//			if _, ok := strMap[v.String()]; ok {
+//	//				find++
+//	//			}
+//	//		}
+//	//	}
+//	//	dur = time.Now().Sub(start)
+//	//	fmt.Printf("find strMap n=%d*%d %d cost=%s find=%d\n", n, len(types), n*len(types), dur.String(), find)
+//}

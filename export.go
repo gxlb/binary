@@ -57,7 +57,6 @@
 package binary
 
 import (
-	"errors"
 	"io"
 	"reflect"
 )
@@ -76,16 +75,16 @@ func Size(data interface{}) int {
 // If data implements interface BinarySizer, it will use data.Size first.
 // It will panic if data implements interface BinarySizer or BinaryEncoder only.
 func Sizeof(data interface{}) int {
-	if p, ok := data.(BinarySizer); ok {
-		if _, _ok := data.(BinaryEncoder); !_ok { //interface verification
-			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
-		}
-		return p.Size()
-	}
+	//	if p, ok := data.(BinarySizer); ok {
+	//		if _, _ok := data.(BinaryEncoder); !_ok { //interface verification
+	//			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
+	//		}
+	//		return p.Size()
+	//	}
 
-	if _, _ok := data.(BinaryEncoder); _ok { //interface verification
-		panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
-	}
+	//	if _, _ok := data.(BinaryEncoder); _ok { //interface verification
+	//		panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
+	//	}
 
 	return sizeof(data)
 }
@@ -123,7 +122,7 @@ func Read(r io.Reader, endian Endian, data interface{}) error {
 func Write(w io.Writer, endian Endian, data interface{}) error {
 	size := Sizeof(data)
 	if size < 0 {
-		return errors.New("binary.Write: invalid type " + reflect.TypeOf(data).String())
+		return typeError("binary.Write: invalid type %s", reflect.TypeOf(data), true)
 	}
 	var b [16]byte
 	var bs []byte
@@ -196,7 +195,7 @@ func Decode(buffer []byte, data interface{}) error {
 func MakeEncodeBuffer(data interface{}, buffer []byte) ([]byte, error) {
 	size := Sizeof(data)
 	if size < 0 {
-		return nil, errors.New("binary.MakeEncodeBuffer: invalid type " + reflect.TypeOf(data).String())
+		return nil, typeError("binary.MakeEncodeBuffer: invalid type %s", reflect.TypeOf(data), true)
 	}
 
 	buff := buffer

@@ -164,7 +164,7 @@ func ExampleEncode_packedInts() {
 		G []uint64 `binary:"packed"`
 		H uint     `binary:"ignore"`
 	}
-	binary.RegsterType((*regedPackedInts)(nil))
+	binary.RegisterType((*regedPackedInts)(nil))
 
 	var data = regedPackedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}, 10}
 	b, err := binary.Encode(data, nil)
@@ -232,11 +232,11 @@ type S struct {
 	C string
 }
 
-func (this *S) Size() int {
+func (this S) Size() int {
 	size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
 	return size
 }
-func (this *S) Encode(buffer []byte) ([]byte, error) {
+func (this S) Encode(buffer []byte) ([]byte, error) {
 	buff, err := binary.MakeEncodeBuffer(this, buffer)
 	if err != nil {
 		return nil, err
@@ -261,11 +261,11 @@ func ExampleBinarySerializer() {
 			B int
 			C string
 		}
-		func (this *S) Size() int {
+		func (this S) Size() int {
 			size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
 			return size
 		}
-		func (this *S) Encode() ([]byte, error) {
+		func (this S) Encode() ([]byte, error) {
 			encoder := binary.NewEncoder(this.Size())
 			encoder.Value(this.A)
 			encoder.Int16(int16(this.B), false)
@@ -285,6 +285,9 @@ func ExampleBinarySerializer() {
 	data.B = -5
 	data.C = "hello"
 
+	if err := binary.RegisterType((*S)(nil)); err != nil {
+		fmt.Println(err)
+	}
 	b, err := binary.Encode(&data, nil)
 	if err != nil {
 		fmt.Println("binary.Encode failed:", err)
@@ -338,14 +341,14 @@ func ExampleSizeof() {
 	// gob Size(s)= 412
 }
 
-func ExampleRegsterType() {
+func ExampleRegisterType() {
 	type someRegedStruct struct {
 		A int    `binary:"ignore"`
 		B uint64 `binary:"packed"`
 		C string
 		D uint
 	}
-	binary.RegsterType((*someRegedStruct)(nil))
+	binary.RegisterType((*someRegedStruct)(nil))
 
 	var data = someRegedStruct{1, 2, "hello", 3}
 	b, err := binary.Encode(data, nil)

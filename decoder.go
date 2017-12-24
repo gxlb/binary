@@ -291,7 +291,7 @@ func (decoder *Decoder) Value(x interface{}) (err error) {
 		return decoder.value(v, true, false)
 	}
 
-	return fmt.Errorf("binary.Decoder.Value: non-pointer type %s", v.Type().String())
+	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
 }
 
 // use BinarySerializer interface to decode this value
@@ -413,7 +413,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 		vt := t.Elem()
 		if !validUserType(kt) ||
 			!validUserType(vt) { //verify map key and value type are both valid
-			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
+			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)
 		}
 
 		if v.IsNil() {
@@ -439,7 +439,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed bool) error
 				return decoder.value(v.Elem(), false, packed)
 			}
 		} else {
-			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
+			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)
 		}
 	}
 	return nil

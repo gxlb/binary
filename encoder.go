@@ -529,7 +529,7 @@ func (encoder *Encoder) value(v reflect.Value, packed bool) error {
 		//	case reflect.Invalid://BUG: it will panic to get zero.Type
 		//		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Kind().String())
 	default:
-		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())
+		return typeError("binary.Encoder.Value: unsupported type [%s]", v.Type(), true)
 	}
 	return nil
 }
