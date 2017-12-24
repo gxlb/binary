@@ -1,4 +1,5 @@
 // cache struct info to improve encoding/decoding efficiency.
+// regist serializer type to improve type checking efficiency.
 
 package binary
 
