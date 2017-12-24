@@ -164,7 +164,7 @@ func ExampleEncode_packedInts() {
 		G []uint64 `binary:"packed"`
 		H uint     `binary:"ignore"`
 	}
-	binary.RegStruct((*regedPackedInts)(nil))
+	binary.RegsterType((*regedPackedInts)(nil))
 
 	var data = regedPackedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}, 10}
 	b, err := binary.Encode(data, nil)
@@ -338,14 +338,14 @@ func ExampleSizeof() {
 	// gob Size(s)= 412
 }
 
-func ExampleRegStruct() {
+func ExampleRegsterType() {
 	type someRegedStruct struct {
 		A int    `binary:"ignore"`
 		B uint64 `binary:"packed"`
 		C string
 		D uint
 	}
-	binary.RegStruct((*someRegedStruct)(nil))
+	binary.RegsterType((*someRegedStruct)(nil))
 
 	var data = someRegedStruct{1, 2, "hello", 3}
 	b, err := binary.Encode(data, nil)

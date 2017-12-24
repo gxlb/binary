@@ -5,6 +5,7 @@ import (
 	"io"
 	"reflect"
 	"testing"
+	"time"
 	"unsafe"
 )
 
@@ -327,6 +328,52 @@ var littleFullAll = []byte{
 	0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01,
 }
 
+var (
+	typeMap = make(map[reflect.Type]string)
+	strMap  = make(map[string]string)
+)
+
+func TestRegType(t *testing.T) {
+	tp := reflect.TypeOf(full)
+	typeMap[tp] = tp.String()
+	strMap[tp.String()] = tp.String()
+
+	types := []reflect.Type{
+		tp,
+		reflect.TypeOf("hello"),
+		reflect.TypeOf(full.BaseStruct),
+		reflect.TypeOf(full.BoolSlice),
+		reflect.TypeOf(full.Float64Slice),
+		reflect.TypeOf(full.Map2),
+		reflect.TypeOf(full.LittleStruct),
+	}
+
+	n := 100
+	start := time.Now()
+	find := 0
+	for i := 0; i < n; i++ {
+		for _, v := range types {
+			if _, ok := typeMap[v]; ok {
+				find++
+			}
+		}
+	}
+	dur := time.Now().Sub(start)
+	fmt.Printf("find typeMap n=%d*%d %d cost=%s find=%d\n", n, len(types), n*len(types), dur.String(), find)
+
+	//	start = time.Now()
+	//	find = 0
+	//	for i := 0; i < n; i++ {
+	//		for _, v := range types {
+	//			if _, ok := strMap[v.String()]; ok {
+	//				find++
+	//			}
+	//		}
+	//	}
+	//	dur = time.Now().Sub(start)
+	//	fmt.Printf("find strMap n=%d*%d %d cost=%s find=%d\n", n, len(types), n*len(types), dur.String(), find)
+}
+
 func TestEncode(t *testing.T) {
 	v := reflect.ValueOf(full)
 	vt := v.Type()
@@ -601,7 +648,7 @@ func TestDecoderSkip(t *testing.T) {
 		Packed1   uint32 `binary:"packed"`
 		Packed2   int64  `binary:"packed"`
 	}
-	RegStruct((*skipedStruct)(nil))
+	RegsterType((*skipedStruct)(nil))
 
 	var w [5]skipedStruct
 	for i := len(w) - 1; i >= 0; i-- {
@@ -774,8 +821,8 @@ func TestRegStruct(t *testing.T) {
 			B string
 		}
 	}
-	RegStruct((*StructForReg)(nil))
-	if err := RegStruct((*StructForReg)(nil)); err == nil { //duplicate regist
+	RegsterType((*StructForReg)(nil))
+	if err := RegsterType((*StructForReg)(nil)); err == nil { //duplicate regist
 		t.Errorf("RegStruct: have err == nil, want non-nil")
 	}
 	var a = StructForReg{
@@ -808,7 +855,7 @@ func TestRegStruct(t *testing.T) {
 }
 
 func TestRegistStructUnsupported(t *testing.T) {
-	err := RegStruct(int(0))
+	err := RegsterType(int(0))
 	if err == nil {
 		t.Errorf("RegistStructUnsupported: have err == nil, want non-nil")
 	}
@@ -1035,7 +1082,7 @@ func TestPackedInts(t *testing.T) {
 		G []uint64 `binary:"packed"`
 	}
 	var data = packedInts{1, 2, 3, 4, 5, 6, []uint64{7, 8, 9}}
-	RegStruct((*packedInts)(nil))
+	RegsterType((*packedInts)(nil))
 	b, err := Encode(data, nil)
 	if err != nil {
 		t.Error(err)

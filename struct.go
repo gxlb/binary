@@ -7,64 +7,130 @@ import (
 	"reflect"
 )
 
-// RegStruct regist struct info to improve encoding/decoding efficiency.
+// RegsterType regist type info to improve encoding/decoding efficiency.
+// Only BinarySerializer or struct is regable.
 // Regist by a nil pointer is aviable.
-// RegStruct((*someStruct)(nil)) is recommended usage.
-func RegStruct(data interface{}) error {
-	return _structInfoMgr.regist(reflect.TypeOf(data))
+// RegStruct((*SomeType)(nil)) is recommended usage.
+func RegsterType(x interface{}) error {
+	return _regedTypeMgr.regist(reflect.TypeOf(x), true)
 }
 
-var _structInfoMgr structInfoMgr
+var (
+	tSizer        reflect.Type //BinarySizer
+	tEncoder      reflect.Type //BinaryEncoder
+	tDecoder      reflect.Type //BinaryDecoder
+	tSerializer   reflect.Type //BinarySerializer
+	_regedTypeMgr regedTypeMgr //reged type manager
+)
 
 func init() {
-	_structInfoMgr.init()
+	var sizer BinarySizer
+	var encoder BinaryEncoder
+	var decoder BinaryDecoder
+	var serializer BinarySerializer
+	tSizer = reflect.TypeOf(&sizer).Elem()
+	tEncoder = reflect.TypeOf(&encoder).Elem()
+	tDecoder = reflect.TypeOf(&decoder).Elem()
+	tSerializer = reflect.TypeOf(&serializer).Elem()
+	_regedTypeMgr.init()
 }
 
-type structInfoMgr struct {
-	reg map[string]*structInfo
+type regedTypeMgr struct {
+	regedStruct     map[reflect.Type]*structInfo
+	regedSerializer map[reflect.Type]bool
 }
 
-func (mgr *structInfoMgr) init() {
-	mgr.reg = make(map[string]*structInfo)
+func (mgr *regedTypeMgr) init() {
+	mgr.regedStruct = make(map[reflect.Type]*structInfo)
+	mgr.regedSerializer = make(map[reflect.Type]bool)
 }
-func (mgr *structInfoMgr) regist(t reflect.Type) error {
-	if _t, _, err := mgr.deepStructType(t, true); err == nil {
-		if mgr.query(_t) == nil {
-			p := &structInfo{}
-			if p.parse(_t) {
-				mgr.reg[p.identify] = p
-			}
-		} else {
-			return fmt.Errorf("binary: regist duplicate type %s", _t.String())
+
+func (mgr *regedTypeMgr) regist(t reflect.Type, needError bool) (err error) {
+	_t, isSerializer, ok, _err := mgr.deepRegableType(t, needError)
+	if err = _err; ok {
+		if _t.Kind() == reflect.Struct {
+			err = mgr.regstruct(_t, needError)
 		}
-	} else {
-		return err
+		if isSerializer {
+			err = mgr.regserializer(_t, needError)
+		}
+	}
+	return
+}
+
+func (mgr *regedTypeMgr) regstruct(t reflect.Type, needError bool) error {
+	if mgr.queryStruct(t) == nil {
+		p := &structInfo{}
+		if p.parse(mgr, t) {
+			mgr.regedStruct[t] = p
+		}
+		needError = false
+	}
+	return typeError("binary: regist duplicate type %s", t, needError)
+}
+func (mgr *regedTypeMgr) regserializer(t reflect.Type, needError bool) error {
+	if !mgr.querySerializer(t) {
+		mgr.regedSerializer[t] = true
+		needError = false
+
+		//reg sub data type for data-set
+		switch t.Kind() {
+		case reflect.Struct: //struct has reged by regstruct
+		case reflect.Map:
+			mgr.regist(t.Key(), false)
+			mgr.regist(t.Elem(), false)
+		case reflect.Slice, reflect.Array:
+			mgr.regist(t.Elem(), false)
+		}
+	}
+
+	return typeError("binary: regist duplicate BinarySerializer %s", t, needError)
+}
+
+func (mgr *regedTypeMgr) querySerializer(t reflect.Type) bool {
+	_, ok := mgr.regedSerializer[t]
+	return ok
+}
+
+func (mgr *regedTypeMgr) queryStruct(t reflect.Type) *structInfo {
+	if p, ok := mgr.regedStruct[t]; ok {
+		return p
 	}
 	return nil
 }
 
-func (mgr *structInfoMgr) query(t reflect.Type) *structInfo {
-	if _t, _ok, _ := mgr.deepStructType(t, false); _ok {
-		if p, ok := mgr.reg[_t.String()]; ok {
-			return p
-		}
+func typeError(fmt_ string, t reflect.Type, needErr bool) error {
+	if needErr {
+		return fmt.Errorf(fmt_, t.String())
 	}
 	return nil
 }
 
-func (mgr *structInfoMgr) deepStructType(t reflect.Type, needErr bool) (reflect.Type, bool, error) {
-	_t := t
+func (mgr *regedTypeMgr) deepRegableType(t reflect.Type, needErr bool) (deept reflect.Type, isSerializer, ok bool, err error) {
+	if t.Kind() != reflect.Ptr {
+		return t, false, false, typeError("binary: expect Regist by pointer, but got %s", t, needErr)
+	}
+
+	_pt := t
+	_t := t.Elem()
 	for _t.Kind() == reflect.Ptr {
+		_pt = _t
 		_t = _t.Elem()
 	}
-	if _t.Kind() != reflect.Struct {
-		if needErr {
-			return _t, false, fmt.Errorf("binary: only struct is aviable for regist, but got %s", t.String())
-		}
 
-		return _t, false, nil
+	isSerializer = false
+	if _t.Implements(tEncoder) {
+		if !_pt.Implements(tSerializer) {
+			return t, false, false, typeError("binary: unexpected BinaryEncoder, expect implements BinarySerializer, got type %s", t, needErr)
+		}
+		isSerializer = true
 	}
-	return _t, true, nil
+
+	if isSerializer || _t.Kind() == reflect.Struct {
+		return _t, isSerializer, true, nil
+	}
+
+	return t, false, false, typeError("binary: expect Regist by BinarySerializer or struct, got type %s", t, needErr)
 }
 
 //informatin of a struct
@@ -159,7 +225,7 @@ func (info *structInfo) fieldNum(t reflect.Type) int {
 	return info.numField()
 }
 
-func (info *structInfo) parse(t reflect.Type) bool {
+func (info *structInfo) parse(mgr *regedTypeMgr, t reflect.Type) bool {
 	//assert(t.Kind() == reflect.Struct, t.String())
 	info.identify = t.String()
 	for i, n := 0, t.NumField(); i < n; i++ {
@@ -173,13 +239,8 @@ func (info *structInfo) parse(t reflect.Type) bool {
 
 		info.fields = append(info.fields, field)
 
-		//deep regist if field is a struct
-		if _t, ok, _ := _structInfoMgr.deepStructType(f.Type, false); ok {
-			if err := _structInfoMgr.regist(_t); err != nil {
-				//fmt.Printf("binary: internal regist duplicate type %s\n", _t.String())
-				continue
-			}
-		}
+		//deep regist field type
+		mgr.regist(f.Type, false)
 	}
 	return true
 }
@@ -229,5 +290,9 @@ func (field *fieldInfo) isPacked() bool {
 }
 
 func queryStruct(t reflect.Type) *structInfo {
-	return _structInfoMgr.query(t)
+	return _regedTypeMgr.queryStruct(t)
+}
+
+func querySerializer(t reflect.Type) bool {
+	return _regedTypeMgr.querySerializer(t)
 }

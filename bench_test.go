@@ -42,7 +42,7 @@ var (
 )
 
 func init() {
-	RegStruct((*regedStruct)(nil))
+	RegsterType((*regedStruct)(nil))
 	for i := len(u32Array1000) - 1; i >= 0; i-- {
 		u32Array1000[i] = uint32(i)*7368787 + 2750159 //rand number
 	}

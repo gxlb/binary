@@ -7,24 +7,6 @@ import (
 	"unicode/utf8"
 )
 
-//var (
-//	tSizer        reflect.Type
-//	tPacker       reflect.Type
-//	tUnpacker     reflect.Type
-//	tPackUnpacker reflect.Type
-//)
-
-//func init() {
-//	var sizer Sizer
-//	var packer Packer
-//	var unpacker Unpacker
-//	var packUnpacker PackUnpacker
-//	tSizer = reflect.TypeOf(&sizer).Elem()
-//	tPacker = reflect.TypeOf(&packer).Elem()
-//	tUnpacker = reflect.TypeOf(&unpacker).Elem()
-//	tPackUnpacker = reflect.TypeOf(&packUnpacker).Elem()
-//}
-
 func sizeof(data interface{}) int {
 	if s := fastSizeof(data); s >= 0 {
 		return s
