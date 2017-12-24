@@ -91,7 +91,7 @@ func ExampleEncode_withbuffer() {
 	data.A = 0x11223344
 	data.B = -5
 	data.C = "hello"
-	size := binary.Sizeof(data)
+	size := binary.Size(data)
 	buffer := make([]byte, size)
 
 	b, err := binary.Encode(data, buffer)
@@ -124,7 +124,7 @@ func ExampleEncode_bools() {
 		fmt.Println(err)
 	}
 
-	if size := binary.Sizeof(data); size != len(b) {
+	if size := binary.Size(data); size != len(b) {
 		fmt.Printf("Encode got %#v %+v\nneed %+v\n", len(b), b, size)
 	}
 	fmt.Printf("Encode bools:\n%+v\nsize=%d result=%#v", data, len(b), b)
@@ -142,7 +142,7 @@ func ExampleEncode_boolArray() {
 		fmt.Println(err)
 	}
 
-	if size := binary.Sizeof(data); size != len(b) {
+	if size := binary.Size(data); size != len(b) {
 		fmt.Printf("Encode bool array:\ngot %#v %+v\nneed %+v\n", len(b), b, size)
 	}
 	fmt.Printf("Encode bool array:\n%#v\nsize=%d result=%#v", data, len(b), b)
@@ -172,7 +172,7 @@ func ExampleEncode_packedInts() {
 		fmt.Println(err)
 	}
 
-	if size := binary.Sizeof(data); size != len(b) {
+	if size := binary.Size(data); size != len(b) {
 		fmt.Printf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, size)
 	}
 
@@ -233,7 +233,7 @@ type S struct {
 }
 
 func (this S) Size() int {
-	size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
+	size := binary.Size(this.A) + binary.Size(this.C) + binary.Size(int16(this.B))
 	return size
 }
 func (this S) Encode(buffer []byte) ([]byte, error) {
@@ -254,6 +254,7 @@ func (this *S) Decode(buffer []byte) error {
 	decoder.Value(&this.C)
 	return nil
 }
+
 func ExampleBinarySerializer() {
 	/*
 		type S struct {
@@ -331,7 +332,7 @@ func ExampleSizeof() {
 	gobSize := len(buf.Bytes())
 
 	stdSize := std.Size(s)
-	size := binary.Sizeof(s)
+	size := binary.Size(s)
 
 	fmt.Printf("Sizeof(s)  = %d\nstd Size(s)= %d\ngob Size(s)= %d", size, stdSize, gobSize)
 
@@ -356,7 +357,7 @@ func ExampleRegisterType() {
 		fmt.Println(err)
 	}
 
-	if size := binary.Sizeof(data); size != len(b) {
+	if size := binary.Size(data); size != len(b) {
 		fmt.Printf("RegedStruct got %+v %+v\nneed %+v\n", len(b), b, size)
 	}
 

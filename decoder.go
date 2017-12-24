@@ -248,6 +248,16 @@ func (decoder *Decoder) Uvarint() (uint64, int) {
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (decoder *Decoder) Value(x interface{}) (err error) {
+	return decoder.ValueX(x, true)
+}
+
+// ValueX decode an interface value from Encoder buffer.
+// x must be interface of pointer for modify.
+// checkSerializer switch if need check BinarySerilizer at top level
+// It will return none-nil error if x contains unsupported types
+// or buffer is not enough.
+// It will check if x implements interface BinaryEncoder and use x.Encode first.
+func (decoder *Decoder) ValueX(x interface{}, checkSerializer bool) (err error) {
 	defer func() {
 		if info := recover(); info != nil {
 			err = info.(error)
@@ -288,7 +298,7 @@ func (decoder *Decoder) Value(x interface{}) (err error) {
 	//	}
 
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return decoder.value(v, true, false, true)
+		return decoder.value(v, true, false, checkSerializer)
 	}
 
 	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
@@ -414,8 +424,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed, checkSeria
 		t := v.Type()
 		kt := t.Key()
 		vt := t.Elem()
-		if !validUserType(kt) ||
-			!validUserType(vt) { //verify map key and value type are both valid
+		if !validUserType(kt) || !validUserType(vt) { //verify map key and value type are both valid
 			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)
 		}
 

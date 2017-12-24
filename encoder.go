@@ -216,6 +216,15 @@ func (encoder *Encoder) Uvarint(x uint64) int {
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (encoder *Encoder) Value(x interface{}) (err error) {
+	return encoder.ValueX(x, true)
+}
+
+// ValueX encode an interface value to Encoder buffer.
+// checkSerializer switch if need check BinarySerilizer at top level
+// It will return none-nil error if x contains unsupported types
+// or buffer is not enough.
+// It will check if x implements interface BinaryEncoder and use x.Encode first.
+func (encoder *Encoder) ValueX(x interface{}, checkSerializer bool) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = e.(error)
@@ -246,7 +255,7 @@ func (encoder *Encoder) Value(x interface{}) (err error) {
 	//		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
 	//	}
 
-	return encoder.value(reflect.Indirect(v), false, true)
+	return encoder.value(reflect.Indirect(v), false, checkSerializer)
 }
 
 func (encoder *Encoder) fastValue(x interface{}) bool {
@@ -497,8 +506,7 @@ func (encoder *Encoder) value(v reflect.Value, packed, checkSerializer bool) err
 		t := v.Type()
 		kt := t.Key()
 		vt := t.Elem()
-		if !validUserType(kt) ||
-			!validUserType(vt) { //verify map key and value type are both valid
+		if !validUserType(kt) || !validUserType(vt) { //verify map key and value type are both valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 

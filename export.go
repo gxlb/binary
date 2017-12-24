@@ -61,20 +61,20 @@ import (
 	"reflect"
 )
 
-// Size is same to Sizeof.
 // Size returns how many bytes Write would generate to encode the value v, which
 // must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 func Size(data interface{}) int {
-	return Sizeof(data)
+	return sizeof(data, true)
 }
 
-// Sizeof returns how many bytes Write would generate to encode the value v, which
+// SizeX returns how many bytes Write would generate to encode the value v, which
+// checkSerializer switch if need check BinarySerilizer at top level
 // must be a serialize-able value or a slice/map/struct of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 // If data implements interface BinarySizer, it will use data.Size first.
 // It will panic if data implements interface BinarySizer or BinaryEncoder only.
-func Sizeof(data interface{}) int {
+func SizeX(data interface{}, checkSerializer bool) int {
 	//	if p, ok := data.(BinarySizer); ok {
 	//		if _, _ok := data.(BinaryEncoder); !_ok { //interface verification
 	//			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
@@ -86,7 +86,7 @@ func Sizeof(data interface{}) int {
 	//		panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
 	//	}
 
-	return sizeof(data)
+	return sizeof(data, checkSerializer)
 }
 
 // Read reads structured binary data from r into data.
@@ -120,7 +120,7 @@ func Read(r io.Reader, endian Endian, data interface{}) error {
 // When writing structs, zero values are written for fields
 // with blank (_) field names.
 func Write(w io.Writer, endian Endian, data interface{}) error {
-	size := Sizeof(data)
+	size := Size(data)
 	if size < 0 {
 		return typeError("binary.Write: invalid type %s", reflect.TypeOf(data), true)
 	}
@@ -168,8 +168,16 @@ type BinarySerializer interface {
 }
 
 // Encode marshal go data to byte array.
+// checkSerializer switch if need check BinarySerilizer at top level
 // nil buffer is aviable, it will create new buffer if necessary.
 func Encode(data interface{}, buffer []byte) ([]byte, error) {
+	return EncodeX(data, buffer, true)
+}
+
+// EncodeX marshal go data to byte array.
+// checkSerializer switch if need check BinarySerilizer at top level
+// nil buffer is aviable, it will create new buffer if necessary.
+func EncodeX(data interface{}, buffer []byte, checkSerializer bool) ([]byte, error) {
 	buff, err := MakeEncodeBuffer(data, buffer)
 	if err != nil {
 		return nil, err
@@ -177,7 +185,7 @@ func Encode(data interface{}, buffer []byte) ([]byte, error) {
 
 	encoder := NewEncoderBuffer(buff)
 
-	err = encoder.Value(data)
+	err = encoder.ValueX(data, checkSerializer)
 	return encoder.Buffer(), err
 }
 
@@ -185,15 +193,23 @@ func Encode(data interface{}, buffer []byte) ([]byte, error) {
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
 func Decode(buffer []byte, data interface{}) error {
+	return DecodeX(buffer, data, true)
+}
+
+// DecodeX unmarshal go data from byte array.
+// checkSerializer switch if need check BinarySerilizer at top level
+// data must be interface of pointer for modify.
+// It will make new pointer or slice/map for nil-field of data.
+func DecodeX(buffer []byte, data interface{}, checkSerializer bool) error {
 	var decoder Decoder
 	decoder.Init(buffer, DefaultEndian)
-	return decoder.Value(data)
+	return decoder.ValueX(data, checkSerializer)
 }
 
 // MakeEncodeBuffer create enough buffer to encode data.
 // nil buffer is aviable, it will create new buffer if necessary.
 func MakeEncodeBuffer(data interface{}, buffer []byte) ([]byte, error) {
-	size := Sizeof(data)
+	size := Size(data)
 	if size < 0 {
 		return nil, typeError("binary.MakeEncodeBuffer: invalid type %s", reflect.TypeOf(data), true)
 	}

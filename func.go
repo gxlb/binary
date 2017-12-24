@@ -7,12 +7,12 @@ import (
 	"unicode/utf8"
 )
 
-func sizeof(data interface{}) int {
+func sizeof(data interface{}, checkSerializer bool) int {
 	if s := fastSizeof(data); s >= 0 {
 		return s
 	}
 
-	s := bitsOfValue(reflect.ValueOf(data), true, false)
+	s := bitsOfValue(reflect.ValueOf(data), true, false, checkSerializer)
 	if s < 0 {
 		return -1
 	}
@@ -174,9 +174,10 @@ func bitsOfUnfixedArray(v reflect.Value, packed bool) int {
 	}
 
 	arrayLen := v.Len()
+	elemSerializer := querySerializer(indirectType(v.Type().Elem()))
 	sum := SizeofUvarint(uint64(arrayLen)) * 8 //array size bytes num
 	for i, n := 0, arrayLen; i < n; i++ {
-		s := bitsOfValue(v.Index(i), false, packed)
+		s := bitsOfValue(v.Index(i), false, packed, elemSerializer)
 		//assert(s >= 0, v.Type().String()) //element size must not error
 		sum += s
 	}
@@ -193,7 +194,7 @@ func bitsOfSerializer(v reflect.Value) int {
 }
 
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
-func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
+func bitsOfValue(v reflect.Value, topLevel, packed, checkSerializer bool) (r int) {
 	//	defer func() {
 	//		fmt.Printf("bitsOfValue(%#v)=%d\n", v.Interface(), r)
 	//	}()
@@ -213,7 +214,7 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 	v = reflect.Indirect(v) //redrect pointer to it's value
 	t := v.Type()
 
-	if querySerializer(t) {
+	if checkSerializer && querySerializer(t) {
 		return bitsOfSerializer(v)
 	}
 
@@ -256,19 +257,24 @@ func bitsOfValue(v reflect.Value, topLevel bool, packed bool) (r int) {
 		sum := SizeofUvarint(uint64(mapLen))*8 + bits //array size
 		keys := v.MapKeys()
 
-		if !validUserType(t.Key()) ||
-			!validUserType(t.Elem()) { //check if map key and value type valid
+		kt := t.Key()
+		vt := t.Elem()
+
+		if !validUserType(kt) || !validUserType(vt) { //check if map key and value type valid
 			return -1
 		}
 
+		keySerilaizer := querySerializer(indirectType(kt))
+		valueSerilaizer := querySerializer(indirectType(vt))
+
 		for i := 0; i < mapLen; i++ {
 			key := keys[i]
-			sizeKey := bitsOfValue(key, false, packed)
+			sizeKey := bitsOfValue(key, false, packed, keySerilaizer)
 			//assert(sizeKey >= 0, key.Type().Kind().String()) //key size must not error
 
 			sum += sizeKey
 			value := v.MapIndex(key)
-			sizeValue := bitsOfValue(value, false, packed)
+			sizeValue := bitsOfValue(value, false, packed, valueSerilaizer)
 			//assert(sizeValue >= 0, value.Type().Kind().String()) //key size must not error
 
 			sum += sizeValue

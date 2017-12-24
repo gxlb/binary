@@ -91,6 +91,7 @@ func (mgr *regedTypeMgr) regserializer(t reflect.Type, needError bool) error {
 
 func (mgr *regedTypeMgr) querySerializer(t reflect.Type) bool {
 	_, ok := mgr.regedSerializer[t]
+	//println("querySerializer", t.String(), ok)
 	return ok
 }
 
@@ -163,7 +164,7 @@ func (info *structInfo) bitsOfValue(v reflect.Value) int {
 	for i, n := 0, v.NumField(); i < n; i++ {
 
 		if finfo := info.field(i); finfo.isValid(i, t) {
-			if s := bitsOfValue(v.Field(i), false, finfo.isPacked()); s >= 0 {
+			if s := bitsOfValue(v.Field(i), false, finfo.isPacked(), finfo.checkSerializer()); s >= 0 {
 				sum += s
 			} else {
 				return -1 //invalid field type

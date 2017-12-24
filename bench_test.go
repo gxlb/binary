@@ -129,7 +129,7 @@ func BenchmarkReadInt1000(b *testing.B) {
 	data := u32Array1000
 	testBenchRead(b, &data, &u32Array1000W, "BenchmarkReadInt1000")
 }
-func BenchmarkUnackInt1000(b *testing.B) {
+func BenchmarkDecodeInt1000(b *testing.B) {
 	data := u32Array1000
 	testBenchDecode(b, &data, &u32Array1000W, "BenchmarkUnackInt1000")
 }
@@ -163,7 +163,7 @@ func BenchmarkReadString(b *testing.B) {
 	data := str
 	testBenchRead(b, &data, &strW, "BenchmarkReadString")
 }
-func BenchmarkUnackString(b *testing.B) {
+func BenchmarkDecodeString(b *testing.B) {
 	data := str
 	testBenchDecode(b, &data, &strW, "BenchmarkUnackString")
 }
@@ -217,20 +217,20 @@ func testBenchStdWrite(b *testing.B, data interface{}, caseName string) {
 	b.StopTimer()
 }
 func testBenchWrite(b *testing.B, data interface{}, caseName string) {
-	b.SetBytes(int64(Sizeof(data)))
+	b.SetBytes(int64(SizeX(data, false)))
 	buffer.Reset()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		buffer.Reset()
-		Write(buffer, std.LittleEndian, data)
+		Write(buffer, LittleEndian, data)
 	}
 	b.StopTimer()
 }
 func testBenchEncode(b *testing.B, data interface{}, caseName string) {
-	b.SetBytes(int64(Sizeof(data)))
+	b.SetBytes(int64(SizeX(data, false)))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Encode(data, buff)
+		EncodeX(data, buff, false)
 	}
 	b.StopTimer()
 }
@@ -310,7 +310,7 @@ func testBenchRead(b *testing.B, data, w interface{}, caseName string) {
 	}
 }
 func testBenchDecode(b *testing.B, data, w interface{}, caseName string) {
-	buf, err := Encode(data, buff)
+	buf, err := EncodeX(data, buff, false)
 	if err != nil {
 		b.Error(caseName, err)
 	}
@@ -318,7 +318,7 @@ func testBenchDecode(b *testing.B, data, w interface{}, caseName string) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		Decode(buf, w)
+		DecodeX(buf, w, false)
 	}
 	b.StopTimer()
 	if b.N > 0 && !reflect.DeepEqual(data, w) {

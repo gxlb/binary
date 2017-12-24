@@ -370,7 +370,7 @@ func TestEncodeBig(t *testing.T) {
 		if !validField(vt.Field(i)) {
 			continue
 		}
-		size := Sizeof(v.Field(i).Interface())
+		size := Size(v.Field(i).Interface())
 		encoder := NewEncoderEndian(size, BigEndian)
 		err := encoder.Value(v.Field(i).Interface())
 		b := encoder.Buffer()
@@ -680,7 +680,7 @@ func TestFastValue(t *testing.T) {
 			t.Error(err)
 		}
 		size := decoder.Len() - oldSize
-		assert(size == Sizeof(f.Interface()), "")
+		assert(size == Size(f.Interface()), "")
 	}
 	if !reflect.DeepEqual(r, s) {
 		t.Errorf("got %+v\nneed %+v\n", r, s)
@@ -1021,7 +1021,7 @@ func TestPackedInts(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if s := Sizeof(data); s != len(b) {
+	if s := Size(data); s != len(b) {
 		t.Errorf("PackedInts got %+v %+v\nneed %+v\n", len(b), b, s)
 	}
 	check := []byte{0x2, 0x4, 0x6, 0x4, 0x5, 0x6, 0x3, 0x7, 0x8, 0x9}
@@ -1058,7 +1058,7 @@ func TestBools(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	size := Sizeof(data)
+	size := Size(data)
 	if size != len(b) {
 		fmt.Printf("EncodeBools got %#v %+v\nneed %+v\n", len(b), b, size)
 	}
