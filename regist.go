@@ -118,8 +118,8 @@ func toplvSerializer(enable bool) SerializerSwitch {
 }
 
 //CheckSerializer check if t implements BinarySerializer
-func CheckSerializer(t reflect.Type) bool {
-	return querySerializer(t)
+func CheckSerializer(x interface{}) bool {
+	return querySerializer(indirectType(reflect.TypeOf(x)))
 }
 
 //CheckSerializerDeep check if t or *t implements BinarySerializer
