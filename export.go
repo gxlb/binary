@@ -173,17 +173,16 @@ type BinarySerializer interface {
 }
 
 // Encode marshal go data to byte array.
-// checkSerializer switch if need check BinarySerilizer at top level
 // nil buffer is aviable, it will create new buffer if necessary.
 func Encode(data interface{}, buffer []byte) ([]byte, error) {
 	return EncodeX(data, buffer, defaultSerializer)
 }
 
 // EncodeX marshal go data to byte array.
-// enableSerializer switch if need check BinarySerilizer at top level
+// enableSerializer switch if need check BinarySerilizer.
 // nil buffer is aviable, it will create new buffer if necessary.
 func EncodeX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
-	buff, err := MakeEncodeBuffer(data, buffer)
+	buff, err := MakeEncodeBufferX(data, buffer, enableSerializer)
 	if err != nil {
 		return nil, err
 	}
