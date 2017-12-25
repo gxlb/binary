@@ -216,7 +216,7 @@ func (encoder *Encoder) Uvarint(x uint64) int {
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (encoder *Encoder) Value(x interface{}) (err error) {
-	return encoder.ValueX(x, true)
+	return encoder.ValueX(x, false)
 }
 
 // ValueX encode an interface value to Encoder buffer.
@@ -522,7 +522,7 @@ func (encoder *Encoder) value(v reflect.Value, packed, checkSerializer bool) err
 			assert(encoder.value(v.MapIndex(key), packed, valueSerilaizer) == nil, "")
 		}
 	case reflect.Struct:
-		return queryStruct(v.Type()).encode(encoder, v)
+		return queryStruct(v.Type()).encode(encoder, v, checkSerializer)
 
 	case reflect.Ptr:
 		if !validUserType(v.Type()) {

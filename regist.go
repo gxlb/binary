@@ -37,6 +37,53 @@ func init() {
 	_regedTypeMgr.init()
 }
 
+// SerializerSwitch defines switch of BinarySerializer check
+type SerializerSwitch byte
+
+const (
+	SerializerDisable SerializerSwitch = iota // disable Serializer
+	SerializerCheck                           // enable Serializer but need check
+	SerializerCheckOk                         // enable and do not need check
+)
+
+// String return name of this switch
+func (ss SerializerSwitch) String() string {
+	switch ss {
+	case SerializerDisable:
+		return "SerializerDisable"
+	case SerializerCheck:
+		return "SerializerCheck"
+	case SerializerCheckOk:
+		return "SerializerCheckOk"
+	}
+	panic(fmt.Errorf("SerializerUnknown"))
+}
+
+// Enable returns if BinarySerializer check is enable
+func (ss SerializerSwitch) Enable() bool {
+	return ss >= SerializerCheck
+}
+
+// NeedCheck returns if need check BinarySerializer
+func (ss SerializerSwitch) NeedCheck() bool {
+	return ss == SerializerCheck
+}
+
+// NeedCheck returns if can use BinarySerializer directly
+func (ss SerializerSwitch) CheckOk() bool {
+	return ss == SerializerCheckOk
+}
+
+// Check returns if t is a BinarySerializer when enable
+func (ss SerializerSwitch) Check(t reflect.Type) bool {
+	return ss.CheckOk() || ss.NeedCheck() && querySerializer(indirectType(t))
+}
+
+//CheckSerializer check if t implements BinarySerializer
+func CheckSerializer(t reflect.Type) bool {
+	return SerializerCheck.Check(t)
+}
+
 type regedTypeMgr struct {
 	regedStruct     map[reflect.Type]*structInfo
 	regedSerializer map[reflect.Type]bool
@@ -115,14 +162,14 @@ type structInfo struct {
 	fields []*fieldInfo
 }
 
-func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
+func (info *structInfo) encode(encoder *Encoder, v reflect.Value, checkSerializer bool) error {
 	//assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
 		// see comment for corresponding code in decoder.value()
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := encoder.value(f, finfo.isPacked(), finfo.checkSerializer()); err != nil {
+			if err := encoder.value(f, finfo.isPacked(), checkSerializer && finfo.checkSerializer()); err != nil {
 				return err
 			}
 		}
@@ -130,13 +177,13 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
 	return nil
 }
 
-func (info *structInfo) decode(decoder *Decoder, v reflect.Value) error {
+func (info *structInfo) decode(decoder *Decoder, v reflect.Value, checkSerializer bool) error {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct, t.String())
 	for i, n := 0, v.NumField(); i < n; i++ {
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := decoder.value(f, false, finfo.isPacked(), finfo.checkSerializer()); err != nil {
+			if err := decoder.value(f, false, finfo.isPacked(), checkSerializer && finfo.checkSerializer()); err != nil {
 				return err
 			}
 		}

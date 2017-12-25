@@ -171,7 +171,7 @@ type BinarySerializer interface {
 // checkSerializer switch if need check BinarySerilizer at top level
 // nil buffer is aviable, it will create new buffer if necessary.
 func Encode(data interface{}, buffer []byte) ([]byte, error) {
-	return EncodeX(data, buffer, true)
+	return EncodeX(data, buffer, false)
 }
 
 // EncodeX marshal go data to byte array.
@@ -193,7 +193,7 @@ func EncodeX(data interface{}, buffer []byte, checkSerializer bool) ([]byte, err
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
 func Decode(buffer []byte, data interface{}) error {
-	return DecodeX(buffer, data, true)
+	return DecodeX(buffer, data, false)
 }
 
 // DecodeX unmarshal go data from byte array.

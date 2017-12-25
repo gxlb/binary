@@ -289,12 +289,12 @@ func ExampleBinarySerializer() {
 	if err := binary.RegisterType((*S)(nil)); err != nil {
 		fmt.Println(err)
 	}
-	b, err := binary.Encode(&data, nil)
+	b, err := binary.EncodeX(&data, nil, true)
 	if err != nil {
 		fmt.Println("binary.Encode failed:", err)
 	}
 
-	err = binary.Decode(b, &dataDecode)
+	err = binary.DecodeX(b, &dataDecode, true)
 	if err != nil {
 		fmt.Println("binary.Decode failed:", err)
 	}

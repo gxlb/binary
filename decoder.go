@@ -248,7 +248,7 @@ func (decoder *Decoder) Uvarint() (uint64, int) {
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (decoder *Decoder) Value(x interface{}) (err error) {
-	return decoder.ValueX(x, true)
+	return decoder.ValueX(x, false)
 }
 
 // ValueX decode an interface value from Encoder buffer.
@@ -401,7 +401,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed, checkSeria
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 
-		elemSerializer := querySerializer(indirectType(elemT))
+		elemSerializer := checkSerializer && querySerializer(indirectType(elemT))
 		if decoder.boolArray(v) < 0 { //deal with bool array first
 			s, _ := decoder.Uvarint()
 			size := int(s)
@@ -433,8 +433,8 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed, checkSeria
 			v.Set(newmap)
 		}
 
-		keySerilaizer := querySerializer(indirectType(kt))
-		valueSerilaizer := querySerializer(indirectType(vt))
+		keySerilaizer := checkSerializer && querySerializer(indirectType(kt))
+		valueSerilaizer := checkSerializer && querySerializer(indirectType(vt))
 
 		s, _ := decoder.Uvarint()
 		size := int(s)
@@ -446,7 +446,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel bool, packed, checkSeria
 			v.SetMapIndex(key, value)
 		}
 	case reflect.Struct:
-		return queryStruct(v.Type()).decode(decoder, v)
+		return queryStruct(v.Type()).decode(decoder, v, checkSerializer)
 
 	default:
 		if newPtr(v, decoder, topLevel) {

@@ -724,7 +724,7 @@ func TestEncodeDonotSupportedType(t *testing.T) {
 		}
 	}
 
-	if queryStruct(tv.Type()).decode(decoder, tv) == nil {
+	if queryStruct(tv.Type()).decode(decoder, tv, true) == nil {
 		t.Errorf("decode DonotSupportedType.%v: have err == nil, want non-nil", tv.Type())
 	}
 }
