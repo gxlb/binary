@@ -1,3 +1,9 @@
+// usage:
+//pprof.exe -n=x 1~4
+//go tool pprof gb.prof
+//png
+//quit
+
 package main
 
 import (
