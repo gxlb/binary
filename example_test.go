@@ -257,17 +257,16 @@ func (this *S) Decode(buffer []byte) error {
 
 func ExampleBinarySerializer() {
 	/*
-		type S struct {
-			A uint32
-			B int
-			C string
-		}
 		func (this S) Size() int {
-			size := binary.Sizeof(this.A) + binary.Sizeof(this.C) + binary.Sizeof(int16(this.B))
+			size := binary.Size(this.A) + binary.Size(this.C) + binary.Size(int16(this.B))
 			return size
 		}
-		func (this S) Encode() ([]byte, error) {
-			encoder := binary.NewEncoder(this.Size())
+		func (this S) Encode(buffer []byte) ([]byte, error) {
+			buff, err := binary.MakeEncodeBufferX(this, buffer, true)
+			if err != nil {
+				return nil, err
+			}
+			encoder := binary.NewEncoderBuffer(buff)
 			encoder.Value(this.A)
 			encoder.Int16(int16(this.B), false)
 			encoder.Value(this.C)
