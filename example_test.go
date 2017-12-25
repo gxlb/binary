@@ -237,7 +237,7 @@ func (this S) Size() int {
 	return size
 }
 func (this S) Encode(buffer []byte) ([]byte, error) {
-	buff, err := binary.MakeEncodeBuffer(this, buffer)
+	buff, err := binary.MakeEncodeBufferX(this, buffer, true)
 	if err != nil {
 		return nil, err
 	}

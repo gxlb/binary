@@ -212,7 +212,8 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value, serializer Ser
 		// see comment for corresponding code in decoder.value()
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := encoder.value(f, finfo.isPacked(), serializer.subSwitch(finfo.isSerializer())); err != nil {
+			fieldSerializer := serializer.subSwitch(finfo.isSerializer())
+			if err := encoder.value(f, finfo.isPacked(), fieldSerializer); err != nil {
 				return err
 			}
 		}
@@ -226,7 +227,8 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value, serializer Ser
 	for i, n := 0, v.NumField(); i < n; i++ {
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := decoder.value(f, false, finfo.isPacked(), serializer.subSwitch(finfo.isSerializer())); err != nil {
+			fieldSerializer := serializer.subSwitch(finfo.isSerializer())
+			if err := decoder.value(f, false, finfo.isPacked(), fieldSerializer); err != nil {
 				return err
 			}
 		}

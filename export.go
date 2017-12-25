@@ -61,11 +61,16 @@ import (
 	"reflect"
 )
 
+const (
+	//disable BinarySerializer check by default
+	defaultSerializer = false
+)
+
 // Size returns how many bytes Write would generate to encode the value v, which
 // must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 func Size(data interface{}) int {
-	return SizeX(data, false)
+	return SizeX(data, defaultSerializer)
 }
 
 // SizeX returns how many bytes Write would generate to encode the value v, which
@@ -171,13 +176,13 @@ type BinarySerializer interface {
 // checkSerializer switch if need check BinarySerilizer at top level
 // nil buffer is aviable, it will create new buffer if necessary.
 func Encode(data interface{}, buffer []byte) ([]byte, error) {
-	return EncodeX(data, buffer, false)
+	return EncodeX(data, buffer, defaultSerializer)
 }
 
 // EncodeX marshal go data to byte array.
-// checkSerializer switch if need check BinarySerilizer at top level
+// enableSerializer switch if need check BinarySerilizer at top level
 // nil buffer is aviable, it will create new buffer if necessary.
-func EncodeX(data interface{}, buffer []byte, checkSerializer bool) ([]byte, error) {
+func EncodeX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
 	buff, err := MakeEncodeBuffer(data, buffer)
 	if err != nil {
 		return nil, err
@@ -185,7 +190,7 @@ func EncodeX(data interface{}, buffer []byte, checkSerializer bool) ([]byte, err
 
 	encoder := NewEncoderBuffer(buff)
 
-	err = encoder.ValueX(data, checkSerializer)
+	err = encoder.ValueX(data, enableSerializer)
 	return encoder.Buffer(), err
 }
 
@@ -193,23 +198,30 @@ func EncodeX(data interface{}, buffer []byte, checkSerializer bool) ([]byte, err
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
 func Decode(buffer []byte, data interface{}) error {
-	return DecodeX(buffer, data, false)
+	return DecodeX(buffer, data, defaultSerializer)
 }
 
 // DecodeX unmarshal go data from byte array.
-// checkSerializer switch if need check BinarySerilizer at top level
+// enableSerializer switch if need check BinarySerilizer at top level
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
-func DecodeX(buffer []byte, data interface{}, checkSerializer bool) error {
+func DecodeX(buffer []byte, data interface{}, enableSerializer bool) error {
 	var decoder Decoder
 	decoder.Init(buffer, DefaultEndian)
-	return decoder.ValueX(data, checkSerializer)
+	return decoder.ValueX(data, enableSerializer)
 }
 
 // MakeEncodeBuffer create enough buffer to encode data.
 // nil buffer is aviable, it will create new buffer if necessary.
 func MakeEncodeBuffer(data interface{}, buffer []byte) ([]byte, error) {
-	size := Size(data)
+	return MakeEncodeBufferX(data, buffer, defaultSerializer)
+}
+
+// MakeEncodeBufferX create enough buffer to encode data.
+// enableSerializer switch if need check BinarySerilizer at top level
+// nil buffer is aviable, it will create new buffer if necessary.
+func MakeEncodeBufferX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
+	size := SizeX(data, enableSerializer)
 	if size < 0 {
 		return nil, typeError("binary.MakeEncodeBuffer: invalid type %s", reflect.TypeOf(data), true)
 	}

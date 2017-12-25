@@ -216,7 +216,7 @@ func (encoder *Encoder) Uvarint(x uint64) int {
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (encoder *Encoder) Value(x interface{}) (err error) {
-	return encoder.ValueX(x, false)
+	return encoder.ValueX(x, defaultSerializer)
 }
 
 // ValueX encode an interface value to Encoder buffer.
