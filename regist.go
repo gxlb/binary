@@ -41,9 +41,10 @@ func init() {
 type SerializerSwitch byte
 
 const (
-	SerializerDisable SerializerSwitch = iota // disable Serializer
-	SerializerCheck                           // enable Serializer but need check
-	SerializerCheckOk                         // enable and do not need check
+	SerializerDisable    SerializerSwitch = iota // disable Serializer
+	SerializerCheck                              // enable Serializer but need check
+	SerializerCheckFalse                         // enable and do not need check,result false
+	SerializerCheckOk                            // enable and do not need check,result true
 )
 
 // String return name of this switch
@@ -69,19 +70,61 @@ func (ss SerializerSwitch) NeedCheck() bool {
 	return ss == SerializerCheck
 }
 
+// CheckFail returns if can use BinarySerializer directly
+func (ss SerializerSwitch) CheckFalse() bool {
+	return ss == SerializerCheckFalse
+}
+
 // NeedCheck returns if can use BinarySerializer directly
 func (ss SerializerSwitch) CheckOk() bool {
 	return ss == SerializerCheckOk
 }
 
-// Check returns if t is a BinarySerializer when enable
-func (ss SerializerSwitch) Check(t reflect.Type) bool {
-	return ss.CheckOk() || ss.NeedCheck() && querySerializer(indirectType(t))
+//// Check returns if t is a BinarySerializer when enable
+//func (ss SerializerSwitch) Check(t reflect.Type) bool {
+//	switch {
+//	case ss.CheckOk() || ss.NeedCheck() && querySerializer(indirectType(t)):
+//		return true
+//	case !ss.Enable() || ss.CheckFalse():
+//		fallthrough
+//	default:
+//		return false
+//	}
+//}
+
+// SubSwitch returns SerializerSwitch for sub-data of struct/map/slice/array
+func (ss SerializerSwitch) SubSwitchCheck(t reflect.Type) SerializerSwitch {
+	if !ss.Enable() {
+		return SerializerDisable
+	}
+	return ss.subSwitch(querySerializer(indirectType(t)))
+}
+
+func (ss SerializerSwitch) subSwitch(isSerializer bool) SerializerSwitch {
+	if !ss.Enable() {
+		return SerializerDisable
+	}
+	if isSerializer {
+		return SerializerCheckOk
+	}
+	return SerializerCheckFalse
+}
+
+func toplvSerializer(enable bool) SerializerSwitch {
+	if enable {
+		return SerializerCheck
+	}
+	return SerializerDisable
 }
 
 //CheckSerializer check if t implements BinarySerializer
 func CheckSerializer(t reflect.Type) bool {
-	return SerializerCheck.Check(t)
+	return querySerializer(t)
+}
+
+//CheckSerializerDeep check if t or *t implements BinarySerializer
+func CheckSerializerDeep(t reflect.Type) bool {
+	return querySerializer(indirectType(t))
 }
 
 type regedTypeMgr struct {
@@ -162,14 +205,14 @@ type structInfo struct {
 	fields []*fieldInfo
 }
 
-func (info *structInfo) encode(encoder *Encoder, v reflect.Value, checkSerializer bool) error {
+func (info *structInfo) encode(encoder *Encoder, v reflect.Value, serializer SerializerSwitch) error {
 	//assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
 		// see comment for corresponding code in decoder.value()
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := encoder.value(f, finfo.isPacked(), checkSerializer && finfo.checkSerializer()); err != nil {
+			if err := encoder.value(f, finfo.isPacked(), serializer.subSwitch(finfo.isSerializer())); err != nil {
 				return err
 			}
 		}
@@ -177,13 +220,13 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value, checkSerialize
 	return nil
 }
 
-func (info *structInfo) decode(decoder *Decoder, v reflect.Value, checkSerializer bool) error {
+func (info *structInfo) decode(decoder *Decoder, v reflect.Value, serializer SerializerSwitch) error {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct, t.String())
 	for i, n := 0, v.NumField(); i < n; i++ {
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := decoder.value(f, false, finfo.isPacked(), checkSerializer && finfo.checkSerializer()); err != nil {
+			if err := decoder.value(f, false, finfo.isPacked(), serializer.subSwitch(finfo.isSerializer())); err != nil {
 				return err
 			}
 		}
@@ -191,27 +234,27 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value, checkSerialize
 	return nil
 }
 
-func (info *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packed bool) int {
+func (info *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packed bool, serializer SerializerSwitch) int {
 	//assert(t.Kind() == reflect.Struct, t.String())
 	sum := 0
 	for i, n := 0, t.NumField(); i < n; i++ {
 		f := info.field(i)
 		ft := f.Type(i, t)
-		s := decoder.skipByType(ft, f.isPacked())
+		s := decoder.skipByType(ft, f.isPacked(), serializer.subSwitch(f.isSerializer()))
 		assert(s >= 0, "skip struct field fail:"+ft.String()) //I'm sure here cannot find unsupported type
 		sum += s
 	}
 	return sum
 }
 
-func (info *structInfo) bitsOfValue(v reflect.Value) int {
+func (info *structInfo) bitsOfValue(v reflect.Value, serializer SerializerSwitch) int {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct,t.String())
 	sum := 0
 	for i, n := 0, v.NumField(); i < n; i++ {
 
 		if finfo := info.field(i); finfo.isValid(i, t) {
-			if s := bitsOfValue(v.Field(i), false, finfo.isPacked(), finfo.checkSerializer()); s >= 0 {
+			if s := bitsOfValue(v.Field(i), false, finfo.isPacked(), serializer.subSwitch(finfo.isSerializer())); s >= 0 {
 				sum += s
 			} else {
 				return -1 //invalid field type
@@ -314,8 +357,11 @@ func (field *fieldInfo) isPacked() bool {
 	return field != nil && field.packed
 }
 
-func (field *fieldInfo) checkSerializer() bool {
-	return !(field != nil && !field.serializer)
+func (field *fieldInfo) isSerializer() bool {
+	if field == nil {
+		return false
+	}
+	return field.serializer
 }
 
 func deepRegableType(t reflect.Type, needErr bool) (deept reflect.Type, isSerializer, ok bool, err error) {

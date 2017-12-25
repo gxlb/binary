@@ -7,12 +7,12 @@ import (
 	"unicode/utf8"
 )
 
-func sizeof(data interface{}, checkSerializer bool) int {
+func sizeof(data interface{}, serializer SerializerSwitch) int {
 	if s := fastSizeof(data); s >= 0 {
 		return s
 	}
 
-	s := bitsOfValue(reflect.ValueOf(data), true, false, checkSerializer)
+	s := bitsOfValue(reflect.ValueOf(data), true, false, serializer)
 	if s < 0 {
 		return -1
 	}
@@ -168,13 +168,14 @@ func assert(b bool, msg interface{}) {
 	}
 }
 
-func bitsOfUnfixedArray(v reflect.Value, packed bool) int {
-	if !validUserType(v.Type().Elem()) { //check if array element type valid
+func bitsOfUnfixedArray(v reflect.Value, packed bool, serializer SerializerSwitch) int {
+	elemT := v.Type().Elem()
+	if !validUserType(elemT) { //check if array element type valid
 		return -1
 	}
 
 	arrayLen := v.Len()
-	elemSerializer := querySerializer(indirectType(v.Type().Elem()))
+	elemSerializer := serializer.SubSwitchCheck(elemT)
 	sum := SizeofUvarint(uint64(arrayLen)) * 8 //array size bytes num
 	for i, n := 0, arrayLen; i < n; i++ {
 		s := bitsOfValue(v.Index(i), false, packed, elemSerializer)
@@ -194,7 +195,7 @@ func bitsOfSerializer(v reflect.Value) int {
 }
 
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
-func bitsOfValue(v reflect.Value, topLevel, packed, checkSerializer bool) (r int) {
+func bitsOfValue(v reflect.Value, topLevel, packed bool, serializer SerializerSwitch) (r int) {
 	//	defer func() {
 	//		fmt.Printf("bitsOfValue(%#v)=%d\n", v.Interface(), r)
 	//	}()
@@ -214,7 +215,8 @@ func bitsOfValue(v reflect.Value, topLevel, packed, checkSerializer bool) (r int
 	v = reflect.Indirect(v) //redrect pointer to it's value
 	t := v.Type()
 
-	if checkSerializer && querySerializer(t) {
+	if serializer.CheckOk() ||
+		serializer.NeedCheck() && querySerializer(t) {
 		return bitsOfSerializer(v)
 	}
 
@@ -240,9 +242,10 @@ func bitsOfValue(v reflect.Value, topLevel, packed, checkSerializer bool) (r int
 	case reflect.Slice, reflect.Array:
 		arrayLen := v.Len()
 		elemtype := t.Elem()
+		elemSerializer := serializer.SubSwitchCheck(elemtype)
 		if s := fixedTypeSize(elemtype); s > 0 {
 			if packedIntsType(elemtype) > 0 && packed {
-				return bitsOfUnfixedArray(v, packed) + bits
+				return bitsOfUnfixedArray(v, packed, elemSerializer) + bits
 			}
 
 			return sizeofFixArray(arrayLen, s)*8 + bits
@@ -251,7 +254,7 @@ func bitsOfValue(v reflect.Value, topLevel, packed, checkSerializer bool) (r int
 		if elemtype.Kind() == reflect.Bool {
 			return sizeofBoolArray(arrayLen)*8 + bits
 		}
-		return bitsOfUnfixedArray(v, packed) + bits
+		return bitsOfUnfixedArray(v, packed, serializer) + bits
 	case reflect.Map:
 		mapLen := v.Len()
 		sum := SizeofUvarint(uint64(mapLen))*8 + bits //array size
@@ -264,8 +267,8 @@ func bitsOfValue(v reflect.Value, topLevel, packed, checkSerializer bool) (r int
 			return -1
 		}
 
-		keySerilaizer := querySerializer(indirectType(kt))
-		valueSerilaizer := querySerializer(indirectType(vt))
+		keySerilaizer := serializer.SubSwitchCheck(kt)
+		valueSerilaizer := serializer.SubSwitchCheck(vt)
 
 		for i := 0; i < mapLen; i++ {
 			key := keys[i]
@@ -282,7 +285,7 @@ func bitsOfValue(v reflect.Value, topLevel, packed, checkSerializer bool) (r int
 		return sum
 
 	case reflect.Struct:
-		return queryStruct(v.Type()).bitsOfValue(v) + bits
+		return queryStruct(v.Type()).bitsOfValue(v, serializer) + bits
 
 	case reflect.String:
 		return sizeofString(v.Len())*8 + bits //string length and data

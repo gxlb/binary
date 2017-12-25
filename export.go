@@ -65,16 +65,16 @@ import (
 // must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 func Size(data interface{}) int {
-	return sizeof(data, true)
+	return SizeX(data, false)
 }
 
 // SizeX returns how many bytes Write would generate to encode the value v, which
-// checkSerializer switch if need check BinarySerilizer at top level
+// enableSerializer switch if need check BinarySerilizer.
 // must be a serialize-able value or a slice/map/struct of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
 // If data implements interface BinarySizer, it will use data.Size first.
 // It will panic if data implements interface BinarySizer or BinaryEncoder only.
-func SizeX(data interface{}, checkSerializer bool) int {
+func SizeX(data interface{}, enableSerializer bool) int {
 	//	if p, ok := data.(BinarySizer); ok {
 	//		if _, _ok := data.(BinaryEncoder); !_ok { //interface verification
 	//			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
@@ -86,7 +86,7 @@ func SizeX(data interface{}, checkSerializer bool) int {
 	//		panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
 	//	}
 
-	return sizeof(data, checkSerializer)
+	return sizeof(data, toplvSerializer(enableSerializer))
 }
 
 // Read reads structured binary data from r into data.
