@@ -7,12 +7,22 @@ import (
 
 const (
 	//disable BinarySerializer check by default
-	defaultSerializer = true
+	defaultSerializer = false
 )
 
 //DefaultSerializer return default BinarySerializer check by default
 func DefaultSerializer() bool {
 	return defaultSerializer
+}
+
+//CheckSerializer check if x implements BinarySerializer and has been registered
+func CheckSerializer(x interface{}) bool {
+	return querySerializer(reflect.TypeOf(x))
+}
+
+//CheckSerializerDeep check if x or &x implements BinarySerializer and has been registered
+func CheckSerializerDeep(x interface{}) bool {
+	return querySerializer(indirectType(reflect.TypeOf(x)))
 }
 
 // BinarySizer is an interface to define go data Size method.
@@ -122,14 +132,4 @@ func toplvSerializer(enable bool) serializerSwitch {
 		return serializerCheck
 	}
 	return serializerDisable
-}
-
-//CheckSerializer check if t implements BinarySerializer
-func CheckSerializer(x interface{}) bool {
-	return querySerializer(reflect.TypeOf(x))
-}
-
-//CheckSerializerDeep check if t or *t implements BinarySerializer
-func CheckSerializerDeep(x interface{}) bool {
-	return querySerializer(indirectType(reflect.TypeOf(x)))
 }
