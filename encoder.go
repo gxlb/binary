@@ -231,30 +231,12 @@ func (encoder *Encoder) ValueX(x interface{}, enableSerializer bool) (err error)
 		}
 	}()
 
-	encoder.resetBoolCoder() //reset bool writer
-
+	encoder.resetBoolCoder()  //reset bool writer
 	if encoder.fastValue(x) { //fast value path
 		return nil
 	}
 
 	v := reflect.ValueOf(x)
-
-	//	if p, ok := x.(BinaryEncoder); ok {
-	//		if _, _ok := x.(BinarySizer); !_ok { //interface verification
-	//			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
-	//		}
-
-	//		r, err := p.Encode(encoder.buff[encoder.pos:])
-	//		if err == nil {
-	//			encoder.reserve(len(r))
-	//		}
-	//		return err
-	//	}
-
-	//	if _, _ok := x.(BinarySizer); _ok { //interface verification
-	//		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
-	//	}
-
 	return encoder.value(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
 }
 
@@ -308,7 +290,6 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 				b[0] |= mask
 			}
 		}
-
 	case []int8:
 		l := len(d)
 		encoder.Uvarint(uint64(len(d)))
@@ -333,7 +314,6 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 		for i := 0; i < l; i++ {
 			encoder.Uint16(d[i], false)
 		}
-
 	case []int32:
 		l := len(d)
 		encoder.Uvarint(uint64(len(d)))
@@ -422,25 +402,6 @@ func (encoder *Encoder) useSerializer(v reflect.Value) error {
 }
 
 func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serializerSwitch) error {
-	// check Packer interface for every value is perfect
-	// but encoder is too costly
-	//
-	//	if t := v.Type(); t.Implements(tPacker) {
-	//		if !t.Implements(tSizer) { //interface verification
-	//			panic(fmt.Errorf("pected but not Sizer: %s", t.String()))
-	//		}
-	//		packer := v.Interface().(Packer)
-	//		reault, err := packer.Pack(encoder.buff[encoder.pos:])
-	//		if err == nil {
-	//			encoder.reserve(len(reault))
-	//		}
-	//		return err
-	//	} else {
-	//		if t.Implements(tSizer) { //interface verification
-	//			panic(fmt.Errorf("unexpected Sizer: %s", v.Type().String()))
-	//		}
-	//	}
-
 	k := v.Kind()
 	if serializer.checkOk() ||
 		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
@@ -452,10 +413,8 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 		encoder.Int(int(v.Int()))
 	case reflect.Uint:
 		encoder.Uint(uint(v.Uint()))
-
 	case reflect.Bool:
 		encoder.Bool(v.Bool())
-
 	case reflect.Int8:
 		encoder.Int8(int8(v.Int()))
 	case reflect.Int16:
@@ -464,7 +423,6 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 		encoder.Int32(int32(v.Int()), packed)
 	case reflect.Int64:
 		encoder.Int64(v.Int(), packed)
-
 	case reflect.Uint8:
 		encoder.Uint8(uint8(v.Uint()))
 	case reflect.Uint16:
@@ -473,20 +431,16 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 		encoder.Uint32(uint32(v.Uint()), packed)
 	case reflect.Uint64:
 		encoder.Uint64(v.Uint(), packed)
-
 	case reflect.Float32:
 		encoder.Float32(float32(v.Float()))
 	case reflect.Float64:
 		encoder.Float64(v.Float())
-
 	case reflect.Complex64:
 		x := v.Complex()
 		encoder.Complex64(complex64(x))
-
 	case reflect.Complex128:
 		x := v.Complex()
 		encoder.Complex128(x)
-
 	case reflect.String:
 		encoder.String(v.String())
 
@@ -500,31 +454,28 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 			l := v.Len()
 			encoder.Uvarint(uint64(l))
 			for i := 0; i < l; i++ {
-				encoder.value(v.Index(i), packed, elemSerializer)
-				//assert(encoder.value(v.Index(i), packed, elemSerializer) == nil, "")
+				encoder.value(v.Index(i), packed, elemSerializer) //ignore error
 			}
 		}
+
 	case reflect.Map:
 		t := v.Type()
-		kt := t.Key()
-		vt := t.Elem()
+		kt, vt := t.Key(), t.Elem()
 		if !validUserType(kt) || !validUserType(vt) { //verify map key and value type are both valid
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 
 		keySerilaizer := serializer.subSwitchCheck(kt)
 		valueSerilaizer := serializer.subSwitchCheck(vt)
-
 		keys := v.MapKeys()
 		l := len(keys)
 		encoder.Uvarint(uint64(l))
 		for i := 0; i < l; i++ {
 			key := keys[i]
-			encoder.value(key, packed, keySerilaizer)
-			encoder.value(v.MapIndex(key), packed, valueSerilaizer)
-			//assert(encoder.value(key, packed, keySerilaizer) == nil, "")
-			//assert(encoder.value(v.MapIndex(key), packed, valueSerilaizer) == nil, "")
+			encoder.value(key, packed, keySerilaizer)               //ignore error
+			encoder.value(v.MapIndex(key), packed, valueSerilaizer) //ignore error
 		}
+
 	case reflect.Struct:
 		return queryStruct(v.Type()).encode(encoder, v, serializer)
 
@@ -538,13 +489,9 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 				return encoder.value(e, packed, serializer)
 			}
 		} else {
-			encoder.Bool(false)
-			//			if encoder.nilPointer(v.Type()) < 0 {
-			//				return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Type().String())
-			//			}
+			encoder.Bool(false) //put a bool to mark nil pointer
 		}
-		//	case reflect.Invalid://BUG: it will panic to get zero.Type
-		//		return fmt.Errorf("binary.Encoder.Value: unsupported type [%s]", v.Kind().String())
+
 	default:
 		return typeError("binary.Encoder.Value: unsupported type [%s]", v.Type(), true)
 	}

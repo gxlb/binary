@@ -75,17 +75,6 @@ func Size(data interface{}) int {
 // If data implements interface BinarySizer, it will use data.Size first.
 // It will panic if data implements interface BinarySizer or BinaryEncoder only.
 func SizeX(data interface{}, enableSerializer bool) int {
-	//	if p, ok := data.(BinarySizer); ok {
-	//		if _, _ok := data.(BinaryEncoder); !_ok { //interface verification
-	//			panic(errors.New("expect but not BinaryEncoder:" + reflect.TypeOf(data).String()))
-	//		}
-	//		return p.Size()
-	//	}
-
-	//	if _, _ok := data.(BinaryEncoder); _ok { //interface verification
-	//		panic(errors.New("unexpected BinaryEncoder:" + reflect.TypeOf(data).String()))
-	//	}
-
 	return sizeof(data, toplvSerializer(enableSerializer))
 }
 
@@ -135,10 +124,11 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 	var encoder Encoder
 	encoder.buff = bs
 	encoder.setEndian(endian)
-	encoder.pos = 0
+	encoder.Reset()
 
 	err := encoder.Value(data)
-	assert(err == nil, err) //Value will never return error, because Sizeof(data) < 0 has blocked the error data
+	//Value will never return error, because Sizeof(data) < 0 has blocked the error data
+	assert(err == nil, err)
 
 	_, err = w.Write(encoder.Buffer())
 	return err
@@ -154,7 +144,7 @@ func Encode(data interface{}, buffer []byte) ([]byte, error) {
 // enableSerializer switch if need check BinarySerilizer.
 // nil buffer is aviable, it will create new buffer if necessary.
 func EncodeX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
-	buff, err := MakeEncodeBufferX(data, buffer, enableSerializer)
+	buff, err := MakeBufferX(data, buffer, enableSerializer)
 	if err != nil {
 		return nil, err
 	}
@@ -182,16 +172,16 @@ func DecodeX(buffer []byte, data interface{}, enableSerializer bool) error {
 	return decoder.ValueX(data, enableSerializer)
 }
 
-// MakeEncodeBuffer create enough buffer to encode data.
+// MakeBuffer create enough buffer to encode data.
 // nil buffer is aviable, it will create new buffer if necessary.
-func MakeEncodeBuffer(data interface{}, buffer []byte) ([]byte, error) {
-	return MakeEncodeBufferX(data, buffer, defaultSerializer)
+func MakeBuffer(data interface{}, buffer []byte) ([]byte, error) {
+	return MakeBufferX(data, buffer, defaultSerializer)
 }
 
-// MakeEncodeBufferX create enough buffer to encode data.
-// enableSerializer switch if need check BinarySerilizer at top level
+// MakeBufferX create enough buffer to encode data.
+// enableSerializer switch if need check BinarySerilizer.
 // nil buffer is aviable, it will create new buffer if necessary.
-func MakeEncodeBufferX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
+func MakeBufferX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
 	size := SizeX(data, enableSerializer)
 	if size < 0 {
 		return nil, typeError("binary.MakeEncodeBuffer: invalid type %s", reflect.TypeOf(data), true)

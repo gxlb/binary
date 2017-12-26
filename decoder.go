@@ -272,31 +272,6 @@ func (decoder *Decoder) ValueX(x interface{}, enableSerializer bool) (err error)
 	}
 
 	v := reflect.ValueOf(x)
-
-	//	if p, ok := x.(BinaryDecoder); ok {
-	//		size := 0
-	//		if sizer, _ok := x.(BinarySizer); _ok { //interface verification
-	//			size = sizer.Size()
-	//		} else {
-	//			panic(fmt.Errorf("expect but not BinarySizer: %s", v.Type().String()))
-	//		}
-	//		if _, _ok := x.(BinaryEncoder); !_ok { //interface verification
-	//			panic(fmt.Errorf("unexpect but not BinaryEncoder: %s", v.Type().String()))
-	//		}
-	//		err := p.Decode(decoder.buff[decoder.pos:])
-	//		if err != nil {
-	//			return err
-	//		}
-	//		decoder.reserve(size)
-	//		return nil
-	//	}
-	//	if _, _ok := x.(BinarySizer); _ok { //interface verification
-	//		panic(fmt.Errorf("unexpected BinarySizer: %s", v.Type().String()))
-	//	}
-	//	if _, _ok := x.(BinaryEncoder); _ok { //interface verification
-	//		panic(fmt.Errorf("unexpected BinaryEncoder: %s", v.Type().String()))
-	//	}
-
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
 		return decoder.value(v, true, false, toplvSerializer(enableSerializer))
 	}
@@ -320,35 +295,6 @@ func (decoder *Decoder) useSerializer(v reflect.Value) error {
 }
 
 func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer serializerSwitch) error {
-	// check Packer interface for every value is perfect
-	// but decoder is too costly
-	//
-	//	if t := v.Type(); t.Implements(tUnpacker) {
-	//		if !t.Implements(tPacker) { //interface verification
-	//			panic(fmt.Errorf("unexpect but not Packer: %s", v.Type().String()))
-	//		}
-	//		if !t.Implements(tSizer) { //interface verification
-	//			panic(fmt.Errorf("expect but not Sizer: %s", t.String()))
-	//		}
-
-	//		unpacker := v.Interface().(PackUnpacker)
-	//		size := unpacker.Size()
-	//		err := unpacker.Unpack(decoder.buff[decoder.pos:])
-	//		if err != nil {
-	//			return err
-	//		}
-	//		decoder.reserve(size)
-	//		return nil
-	//	} else {
-	//		//interface verification
-	//		if t.Implements(tSizer) {
-	//			panic(fmt.Errorf("unexpected Sizer: %s", t.String()))
-	//		}
-	//		if t.Implements(tPacker) {
-	//			panic(fmt.Errorf("unexpected Packer: %s", t.String()))
-	//		}
-	//	}
-
 	k := v.Kind()
 	if serializer.checkOk() ||
 		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
@@ -360,10 +306,8 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 		v.SetInt(int64(decoder.Int()))
 	case reflect.Uint:
 		v.SetUint(uint64(decoder.Uint()))
-
 	case reflect.Bool:
 		v.SetBool(decoder.Bool())
-
 	case reflect.Int8:
 		v.SetInt(int64(decoder.Int8()))
 	case reflect.Int16:
@@ -372,7 +316,6 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 		v.SetInt(int64(decoder.Int32(packed)))
 	case reflect.Int64:
 		v.SetInt(decoder.Int64(packed))
-
 	case reflect.Uint8:
 		v.SetUint(uint64(decoder.Uint8()))
 	case reflect.Uint16:
@@ -381,18 +324,14 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 		v.SetUint(uint64(decoder.Uint32(packed)))
 	case reflect.Uint64:
 		v.SetUint(decoder.Uint64(packed))
-
 	case reflect.Float32:
 		v.SetFloat(float64(decoder.Float32()))
 	case reflect.Float64:
 		v.SetFloat(decoder.Float64())
-
 	case reflect.Complex64:
 		v.SetComplex(complex128(decoder.Complex64()))
-
 	case reflect.Complex128:
 		v.SetComplex(decoder.Complex128())
-
 	case reflect.String:
 		v.SetString(decoder.String())
 
@@ -411,22 +350,21 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 				v.Set(ns)
 			}
 
-			l := v.Len()
-			for i := 0; i < size; i++ {
+			for i, l := 0, v.Len(); i < size; i++ {
 				if i < l {
-					decoder.value(v.Index(i), false, packed, elemSerializer)
-					//assert(decoder.value(v.Index(i), false, packed, elemSerializer) == nil, "")
+					decoder.value(v.Index(i), false, packed, elemSerializer) //ignore error
 				} else {
 					skiped := decoder.skipByType(v.Type().Elem(), packed, elemSerializer)
-					assert(skiped >= 0, v.Type().Elem().String()) //I'm sure here cannot find unsupported type
+					//I'm sure here cannot find unsupported type
+					assert(skiped >= 0, v.Type().Elem().String())
 				}
 			}
 		}
 	case reflect.Map:
 		t := v.Type()
-		kt := t.Key()
-		vt := t.Elem()
-		if !validUserType(kt) || !validUserType(vt) { //verify map key and value type are both valid
+		kt, vt := t.Key(), t.Elem()
+		//verify map key and value type are both valid
+		if !validUserType(kt) || !validUserType(vt) {
 			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)
 		}
 
@@ -437,18 +375,15 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 
 		keySerilaizer := serializer.subSwitchCheck(kt)
 		valueSerilaizer := serializer.subSwitchCheck(vt)
-
 		s, _ := decoder.Uvarint()
-		size := int(s)
-		for i := 0; i < size; i++ {
+		for i, size := 0, int(s); i < size; i++ {
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
-			decoder.value(key, false, packed, keySerilaizer)
-			decoder.value(value, false, packed, valueSerilaizer)
-			//assert(decoder.value(key, false, packed, keySerilaizer) == nil, "")
-			//assert(decoder.value(value, false, packed, valueSerilaizer) == nil, "")
+			decoder.value(key, false, packed, keySerilaizer)     //ignore error
+			decoder.value(value, false, packed, valueSerilaizer) //ignore error
 			v.SetMapIndex(key, value)
 		}
+
 	case reflect.Struct:
 		return queryStruct(v.Type()).decode(decoder, v, serializer)
 
@@ -470,26 +405,22 @@ func (decoder *Decoder) fastValue(x interface{}) bool {
 		*d = decoder.Int()
 	case *uint:
 		*d = decoder.Uint()
-
 	case *bool:
 		*d = decoder.Bool()
 	case *int8:
 		*d = decoder.Int8()
 	case *uint8:
 		*d = decoder.Uint8()
-
 	case *int16:
 		*d = decoder.Int16(false)
 	case *uint16:
 		*d = decoder.Uint16(false)
-
 	case *int32:
 		*d = decoder.Int32(false)
 	case *uint32:
 		*d = decoder.Uint32(false)
 	case *float32:
 		*d = decoder.Float32()
-
 	case *int64:
 		*d = decoder.Int64(false)
 	case *uint64:
@@ -498,13 +429,10 @@ func (decoder *Decoder) fastValue(x interface{}) bool {
 		*d = decoder.Float64()
 	case *complex64:
 		*d = decoder.Complex64()
-
 	case *complex128:
 		*d = decoder.Complex128()
-
 	case *string:
 		*d = decoder.String()
-
 	case *[]bool:
 		s, _ := decoder.Uvarint()
 		l := int(s)
@@ -519,7 +447,6 @@ func (decoder *Decoder) fastValue(x interface{}) bool {
 			x := ((b[0] & mask) != 0)
 			(*d)[i] = x
 		}
-
 	case *[]int:
 		s, _ := decoder.Uvarint()
 		l := int(s)
