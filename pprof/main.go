@@ -52,9 +52,17 @@ func main() {
 	case 2:
 		testBenchDecode(&u32Array1000, &u32Array1000W, "BenchmarkUnackInt1000")
 	case 3:
-		testBenchEncode(str, "BenchmarkEncodeString")
+		testBenchStdWrite(u32Array1000, "BenchmarkStdWriteInt1000")
 	case 4:
+		testBenchRead(&u32Array1000, &u32Array1000W, "BenchmarkReadInt1000")
+	case 5:
+		testBenchEncode(str, "BenchmarkEncodeString")
+	case 6:
 		testBenchDecode(&str, &strW, "BenchmarkUnackString")
+	case 7:
+		testBenchStdWrite(str, "BenchmarkStdWriteString")
+	case 8:
+		testBenchStdRead(&str, &strW, "BenchmarkStdReadString")
 	}
 	dur := time.Now().Sub(start)
 	fmt.Println("finish dur=", dur)
