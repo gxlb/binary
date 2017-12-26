@@ -6,6 +6,8 @@
 
 package main
 
+func main() {}
+
 //import (
 //	"bytes"
 //	std "encoding/binary"
