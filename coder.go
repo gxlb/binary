@@ -78,10 +78,11 @@ func (cder *coder) resetBoolCoder() {
 // it will panic if not enough space.
 func (cder *coder) reserve(size int) []byte {
 	newPos := cder.pos + size
-	if newPos > cder.Cap() {
+	_cap := len(cder.buff)
+	if newPos > _cap {
 		panic(fmt.Errorf("binary.Coder:buffer overflow pos=%d cap=%d require=%d, not enough space", cder.pos, cder.Cap(), size))
 	}
-	if size > 0 && newPos <= cder.Cap() {
+	if size > 0 {
 		b := cder.buff[cder.pos:newPos]
 		cder.pos = newPos
 		return b

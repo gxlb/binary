@@ -4,8 +4,14 @@ import (
 	"bytes"
 	std "encoding/binary"
 	"encoding/gob"
+	"os"
 	"reflect"
+	"runtime/pprof"
 	"testing"
+)
+
+const (
+	prof = false //run pprof
 )
 
 type regedStruct struct {
@@ -46,6 +52,14 @@ func init() {
 	for i := len(u32Array1000) - 1; i >= 0; i-- {
 		u32Array1000[i] = uint32(i)*7368787 + 2750159 //rand number
 	}
+
+	if prof {
+		f, err := os.Create("b.prof")
+		if err != nil {
+			panic(err)
+		}
+		pprof.StartCPUProfile(f)
+	}
 }
 
 //////////////////////////////////////////////////////////////////Struct
@@ -82,6 +96,7 @@ func BenchmarkStdReadStruct(b *testing.B) {
 	data := _struct
 	testBenchStdRead(b, &data, &wStruct, "BenchmarkStdReadStruct")
 }
+
 func BenchmarkReadStruct(b *testing.B) {
 	data := _struct
 	testBenchRead(b, &data, &wStruct, "BenchmarkReadStruct")
@@ -277,7 +292,6 @@ func testBenchStdRead(b *testing.B, data, w interface{}, caseName string) {
 		b.Error(caseName, err)
 	}
 	b.SetBytes(int64(len(buffer.Bytes())))
-
 	b.ResetTimer()
 	bsr.remain = buffer.Bytes()
 	std.Read(bsr, std.LittleEndian, w)
@@ -325,5 +339,11 @@ func testBenchDecode(b *testing.B, data, w interface{}, caseName string) {
 	b.StopTimer()
 	if b.N > 0 && !reflect.DeepEqual(data, w) {
 		b.Fatalf("%s doesn't match:\ngot  %#v;\nwant %#v", caseName, w, data)
+	}
+}
+
+func TestBenchmarkEnd(t *testing.T) {
+	if prof {
+		pprof.StopCPUProfile()
 	}
 }

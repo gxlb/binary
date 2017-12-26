@@ -265,7 +265,9 @@ func (decoder *Decoder) ValueX(x interface{}, enableSerializer bool) (err error)
 		}
 	}()
 
-	decoder.resetBoolCoder() //reset bool reader
+	//decoder.resetBoolCoder() //reset bool reader
+	decoder.boolPos = -1
+	decoder.boolBit = 0
 
 	if decoder.fastValue(x) { //fast value path
 		return nil
@@ -321,7 +323,15 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 	case reflect.Uint16:
 		v.SetUint(uint64(decoder.Uint16(packed)))
 	case reflect.Uint32:
-		v.SetUint(uint64(decoder.Uint32(packed)))
+		if packed {
+			x, _ := decoder.Uvarint()
+			v.SetUint(x)
+		} else {
+			b := decoder.reserve(4)
+			x := decoder.endian.Uint32(b)
+			v.SetUint(uint64(x))
+		}
+		//v.SetUint(uint64(decoder.Uint32(packed)))
 	case reflect.Uint64:
 		v.SetUint(decoder.Uint64(packed))
 	case reflect.Float32:
