@@ -500,7 +500,8 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer Serialize
 			l := v.Len()
 			encoder.Uvarint(uint64(l))
 			for i := 0; i < l; i++ {
-				assert(encoder.value(v.Index(i), packed, elemSerializer) == nil, "")
+				encoder.value(v.Index(i), packed, elemSerializer)
+				//assert(encoder.value(v.Index(i), packed, elemSerializer) == nil, "")
 			}
 		}
 	case reflect.Map:
@@ -519,8 +520,10 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer Serialize
 		encoder.Uvarint(uint64(l))
 		for i := 0; i < l; i++ {
 			key := keys[i]
-			assert(encoder.value(key, packed, keySerilaizer) == nil, "")
-			assert(encoder.value(v.MapIndex(key), packed, valueSerilaizer) == nil, "")
+			encoder.value(key, packed, keySerilaizer)
+			encoder.value(v.MapIndex(key), packed, valueSerilaizer)
+			//assert(encoder.value(key, packed, keySerilaizer) == nil, "")
+			//assert(encoder.value(v.MapIndex(key), packed, valueSerilaizer) == nil, "")
 		}
 	case reflect.Struct:
 		return queryStruct(v.Type()).encode(encoder, v, serializer)

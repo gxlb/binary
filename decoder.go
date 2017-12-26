@@ -414,7 +414,8 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 			l := v.Len()
 			for i := 0; i < size; i++ {
 				if i < l {
-					assert(decoder.value(v.Index(i), false, packed, elemSerializer) == nil, "")
+					decoder.value(v.Index(i), false, packed, elemSerializer)
+					//assert(decoder.value(v.Index(i), false, packed, elemSerializer) == nil, "")
 				} else {
 					skiped := decoder.skipByType(v.Type().Elem(), packed, elemSerializer)
 					assert(skiped >= 0, v.Type().Elem().String()) //I'm sure here cannot find unsupported type
@@ -442,8 +443,10 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 		for i := 0; i < size; i++ {
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
-			assert(decoder.value(key, false, packed, keySerilaizer) == nil, "")
-			assert(decoder.value(value, false, packed, valueSerilaizer) == nil, "")
+			decoder.value(key, false, packed, keySerilaizer)
+			decoder.value(value, false, packed, valueSerilaizer)
+			//assert(decoder.value(key, false, packed, keySerilaizer) == nil, "")
+			//assert(decoder.value(value, false, packed, valueSerilaizer) == nil, "")
 			v.SetMapIndex(key, value)
 		}
 	case reflect.Struct:
