@@ -63,7 +63,7 @@ import (
 
 const (
 	//disable BinarySerializer check by default
-	defaultSerializer = false
+	defaultSerializer = true
 )
 
 // Size returns how many bytes Write would generate to encode the value v, which

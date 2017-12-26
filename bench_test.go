@@ -49,10 +49,10 @@ func init() {
 }
 
 //////////////////////////////////////////////////////////////////Struct
-func BenchmarkGobEncodeStruct(b *testing.B) {
-	data := _struct
-	testBenchGobEncode(b, data, "BenchmarkGobEncodeStruct")
-}
+//func BenchmarkGobEncodeStruct(b *testing.B) {
+//	data := _struct
+//	testBenchGobEncode(b, data, "BenchmarkGobEncodeStruct")
+//}
 func BenchmarkStdWriteStruct(b *testing.B) {
 	data := _struct
 	testBenchStdWrite(b, data, "BenchmarkStdWriteStruct")
@@ -73,10 +73,11 @@ func BenchmarkEncodeRegedStruct(b *testing.B) {
 	data := regedStruct(_struct)
 	testBenchEncode(b, data, "BenchmarkEncodeRegedStruct")
 }
-func BenchmarkGobDecodeStruct(b *testing.B) {
-	data := _struct
-	testBenchGobDecode(b, &data, &wStruct, "BenchmarkGobDecodeStruct")
-}
+
+//func BenchmarkGobDecodeStruct(b *testing.B) {
+//	data := _struct
+//	testBenchGobDecode(b, &data, &wStruct, "BenchmarkGobDecodeStruct")
+//}
 func BenchmarkStdReadStruct(b *testing.B) {
 	data := _struct
 	testBenchStdRead(b, &data, &wStruct, "BenchmarkStdReadStruct")
@@ -101,10 +102,10 @@ func BenchmarkDecodeRegedStruct(b *testing.B) {
 }
 
 //////////////////////////////////////////////////////////////////Int1000
-func BenchmarkGobEncodeInt1000(b *testing.B) {
-	data := u32Array1000
-	testBenchGobEncode(b, data, "BenchmarkGobEncodeInt1000")
-}
+//func BenchmarkGobEncodeInt1000(b *testing.B) {
+//	data := u32Array1000
+//	testBenchGobEncode(b, data, "BenchmarkGobEncodeInt1000")
+//}
 func BenchmarkStdWriteInt1000(b *testing.B) {
 	data := u32Array1000
 	testBenchStdWrite(b, data, "BenchmarkStdWriteInt1000")
@@ -135,10 +136,10 @@ func BenchmarkDecodeInt1000(b *testing.B) {
 }
 
 //////////////////////////////////////////////////////////////////String
-func BenchmarkGobEncodeString(b *testing.B) {
-	data := str
-	testBenchGobEncode(b, data, "BenchmarkGobEncodeString")
-}
+//func BenchmarkGobEncodeString(b *testing.B) {
+//	data := str
+//	testBenchGobEncode(b, data, "BenchmarkGobEncodeString")
+//}
 func BenchmarkStdWriteString(b *testing.B) {
 	data := str
 	testBenchStdWrite(b, data, "BenchmarkStdWriteString")
@@ -151,10 +152,11 @@ func BenchmarkEncodeString(b *testing.B) {
 	data := str
 	testBenchEncode(b, data, "BenchmarkEncodeString")
 }
-func BenchmarkGobDecodeString(b *testing.B) {
-	data := str
-	testBenchGobDecode(b, &data, &strW, "BenchmarkGobDecodeString")
-}
+
+//func BenchmarkGobDecodeString(b *testing.B) {
+//	data := str
+//	testBenchGobDecode(b, &data, &strW, "BenchmarkGobDecodeString")
+//}
 func BenchmarkStdReadString(b *testing.B) {
 	data := str
 	testBenchStdRead(b, &data, &strW, "BenchmarkStdReadString")
