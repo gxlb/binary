@@ -57,91 +57,79 @@ func init() {
 }
 
 // SerializerSwitch defines switch of BinarySerializer check
-type SerializerSwitch byte
+type serializerSwitch byte
 
 const (
-	SerializerDisable    SerializerSwitch = iota // disable Serializer
-	SerializerCheck                              // enable Serializer but need check
-	SerializerCheckFalse                         // enable and do not need check,result false
-	SerializerCheckOk                            // enable and do not need check,result true
+	serializerDisable    serializerSwitch = iota // disable Serializer
+	serializerCheck                              // enable Serializer but need check
+	serializerCheckFalse                         // enable and do not need check,result false
+	serializerCheckOk                            // enable and do not need check,result true
 )
 
 // String return name of this switch
-func (ss SerializerSwitch) String() string {
+func (ss serializerSwitch) String() string {
 	switch ss {
-	case SerializerDisable:
+	case serializerDisable:
 		return "SerializerDisable"
-	case SerializerCheck:
+	case serializerCheck:
 		return "SerializerCheck"
-	case SerializerCheckOk:
+	case serializerCheckOk:
 		return "SerializerCheckOk"
 	}
 	panic(fmt.Errorf("SerializerUnknown"))
 }
 
 // Enable returns if BinarySerializer check is enable
-func (ss SerializerSwitch) Enable() bool {
-	return ss >= SerializerCheck
+func (ss serializerSwitch) enable() bool {
+	return ss >= serializerCheck
 }
 
 // NeedCheck returns if need check BinarySerializer
-func (ss SerializerSwitch) NeedCheck() bool {
-	return ss == SerializerCheck
+func (ss serializerSwitch) needCheck() bool {
+	return ss == serializerCheck
 }
 
 // CheckFail returns if can use BinarySerializer directly
-func (ss SerializerSwitch) CheckFalse() bool {
-	return ss == SerializerCheckFalse
+func (ss serializerSwitch) checkFalse() bool {
+	return ss == serializerCheckFalse
 }
 
 // NeedCheck returns if can use BinarySerializer directly
-func (ss SerializerSwitch) CheckOk() bool {
-	return ss == SerializerCheckOk
+func (ss serializerSwitch) checkOk() bool {
+	return ss == serializerCheckOk
 }
 
-//// Check returns if t is a BinarySerializer when enable
-//func (ss SerializerSwitch) Check(t reflect.Type) bool {
-//	switch {
-//	case ss.CheckOk() || ss.NeedCheck() && querySerializer(indirectType(t)):
-//		return true
-//	case !ss.Enable() || ss.CheckFalse():
-//		fallthrough
-//	default:
-//		return false
-//	}
-//}
-
 // SubSwitch returns SerializerSwitch for sub-data of struct/map/slice/array
-func (ss SerializerSwitch) SubSwitchCheck(t reflect.Type) SerializerSwitch {
-	if !ss.Enable() {
-		return SerializerDisable
+func (ss serializerSwitch) subSwitchCheck(t reflect.Type) serializerSwitch {
+	if !ss.enable() {
+		return serializerDisable
 	}
 	return ss.subSwitch(querySerializer(indirectType(t)))
 }
 
-func (ss SerializerSwitch) subSwitch(isSerializer bool) SerializerSwitch {
-	if !ss.Enable() {
-		return SerializerDisable
+func (ss serializerSwitch) subSwitch(isSerializer bool) serializerSwitch {
+	if !ss.enable() {
+		return serializerDisable
 	}
 	if isSerializer {
-		return SerializerCheckOk
+		return serializerCheckOk
 	}
-	return SerializerCheckFalse
+	return serializerCheckFalse
 }
 
-func toplvSerializer(enable bool) SerializerSwitch {
+func toplvSerializer(enable bool) serializerSwitch {
 	if enable {
-		return SerializerCheck
+		return serializerCheck
 	}
-	return SerializerDisable
+	return serializerDisable
 }
 
 //CheckSerializer check if t implements BinarySerializer
 func CheckSerializer(x interface{}) bool {
-	return querySerializer(indirectType(reflect.TypeOf(x)))
+	return querySerializer(reflect.TypeOf(x))
 }
 
 //CheckSerializerDeep check if t or *t implements BinarySerializer
-func CheckSerializerDeep(t reflect.Type) bool {
-	return querySerializer(indirectType(t))
+func CheckSerializerDeep(x interface{}) bool {
+	return querySerializer(indirectType(reflect.TypeOf(x)))
 }

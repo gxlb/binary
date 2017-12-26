@@ -7,7 +7,7 @@ import (
 	"unicode/utf8"
 )
 
-func sizeof(data interface{}, serializer SerializerSwitch) int {
+func sizeof(data interface{}, serializer serializerSwitch) int {
 	if s := fastSizeof(data); s >= 0 {
 		return s
 	}
@@ -168,14 +168,14 @@ func assert(b bool, msg interface{}) {
 	}
 }
 
-func bitsOfUnfixedArray(v reflect.Value, packed bool, serializer SerializerSwitch) int {
+func bitsOfUnfixedArray(v reflect.Value, packed bool, serializer serializerSwitch) int {
 	elemT := v.Type().Elem()
 	if !validUserType(elemT) { //check if array element type valid
 		return -1
 	}
 
 	arrayLen := v.Len()
-	elemSerializer := serializer.SubSwitchCheck(elemT)
+	elemSerializer := serializer.subSwitchCheck(elemT)
 	sum := SizeofUvarint(uint64(arrayLen)) * 8 //array size bytes num
 	for i, n := 0, arrayLen; i < n; i++ {
 		s := bitsOfValue(v.Index(i), false, packed, elemSerializer)
@@ -195,7 +195,7 @@ func bitsOfSerializer(v reflect.Value) int {
 }
 
 // sizeof returns the size >= 0 of variables for the given type or -1 if the type is not acceptable.
-func bitsOfValue(v reflect.Value, topLevel, packed bool, serializer SerializerSwitch) (r int) {
+func bitsOfValue(v reflect.Value, topLevel, packed bool, serializer serializerSwitch) (r int) {
 	//	defer func() {
 	//		fmt.Printf("bitsOfValue(%#v)=%d\n", v.Interface(), r)
 	//	}()
@@ -215,8 +215,8 @@ func bitsOfValue(v reflect.Value, topLevel, packed bool, serializer SerializerSw
 	v = reflect.Indirect(v) //redrect pointer to it's value
 	t := v.Type()
 
-	if serializer.CheckOk() ||
-		serializer.NeedCheck() && querySerializer(t) {
+	if serializer.checkOk() ||
+		serializer.needCheck() && querySerializer(t) {
 		return bitsOfSerializer(v)
 	}
 
@@ -242,7 +242,7 @@ func bitsOfValue(v reflect.Value, topLevel, packed bool, serializer SerializerSw
 	case reflect.Slice, reflect.Array:
 		arrayLen := v.Len()
 		elemtype := t.Elem()
-		elemSerializer := serializer.SubSwitchCheck(elemtype)
+		elemSerializer := serializer.subSwitchCheck(elemtype)
 		if s := fixedTypeSize(elemtype); s > 0 {
 			if packedIntsType(elemtype) > 0 && packed {
 				return bitsOfUnfixedArray(v, packed, elemSerializer) + bits
@@ -267,8 +267,8 @@ func bitsOfValue(v reflect.Value, topLevel, packed bool, serializer SerializerSw
 			return -1
 		}
 
-		keySerilaizer := serializer.SubSwitchCheck(kt)
-		valueSerilaizer := serializer.SubSwitchCheck(vt)
+		keySerilaizer := serializer.subSwitchCheck(kt)
+		valueSerilaizer := serializer.subSwitchCheck(vt)
 
 		for i := 0; i < mapLen; i++ {
 			key := keys[i]

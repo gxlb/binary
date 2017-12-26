@@ -319,7 +319,7 @@ func (decoder *Decoder) useSerializer(v reflect.Value) error {
 	panic(typeError("expect BinarySerializer %s", v.Type(), true))
 }
 
-func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer SerializerSwitch) error {
+func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer serializerSwitch) error {
 	// check Packer interface for every value is perfect
 	// but decoder is too costly
 	//
@@ -350,8 +350,8 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 	//	}
 
 	k := v.Kind()
-	if serializer.CheckOk() ||
-		serializer.NeedCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
+	if serializer.checkOk() ||
+		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
 		return decoder.useSerializer(v.Addr())
 	}
 
@@ -402,7 +402,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 
-		elemSerializer := serializer.SubSwitchCheck(elemT)
+		elemSerializer := serializer.subSwitchCheck(elemT)
 		if decoder.boolArray(v) < 0 { //deal with bool array first
 			s, _ := decoder.Uvarint()
 			size := int(s)
@@ -435,8 +435,8 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 			v.Set(newmap)
 		}
 
-		keySerilaizer := serializer.SubSwitchCheck(kt)
-		valueSerilaizer := serializer.SubSwitchCheck(vt)
+		keySerilaizer := serializer.subSwitchCheck(kt)
+		valueSerilaizer := serializer.subSwitchCheck(vt)
 
 		s, _ := decoder.Uvarint()
 		size := int(s)
@@ -634,7 +634,7 @@ func (decoder *Decoder) fastValue(x interface{}) bool {
 
 //TODO:
 // serializer bug
-func (decoder *Decoder) skipByType(t reflect.Type, packed bool, serializer SerializerSwitch) int {
+func (decoder *Decoder) skipByType(t reflect.Type, packed bool, serializer serializerSwitch) int {
 	if s := fixedTypeSize(t); s > 0 {
 		if packedType := packedIntsType(t); packedType > 0 && packed {
 			switch packedType {
@@ -674,7 +674,7 @@ func (decoder *Decoder) skipByType(t reflect.Type, packed bool, serializer Seria
 		s, sLen := decoder.Uvarint()
 		cnt := int(s)
 		elemtype := t.Elem()
-		elemSerializer := serializer.SubSwitchCheck(elemtype)
+		elemSerializer := serializer.subSwitchCheck(elemtype)
 		if s := fixedTypeSize(elemtype); s > 0 {
 			size := cnt * s
 			decoder.Skip(size)
@@ -701,8 +701,8 @@ func (decoder *Decoder) skipByType(t reflect.Type, packed bool, serializer Seria
 		kt := t.Key()
 		vt := t.Elem()
 		sum := sLen //array size
-		keySerilaizer := serializer.SubSwitchCheck(kt)
-		valueSerilaizer := serializer.SubSwitchCheck(vt)
+		keySerilaizer := serializer.subSwitchCheck(kt)
+		valueSerilaizer := serializer.subSwitchCheck(vt)
 		for i, n := 0, cnt; i < n; i++ {
 			sum += decoder.skipByType(kt, packed, keySerilaizer)
 			sum += decoder.skipByType(vt, packed, valueSerilaizer)

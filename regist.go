@@ -102,7 +102,7 @@ type structInfo struct {
 	fields []*fieldInfo
 }
 
-func (info *structInfo) encode(encoder *Encoder, v reflect.Value, serializer SerializerSwitch) error {
+func (info *structInfo) encode(encoder *Encoder, v reflect.Value, serializer serializerSwitch) error {
 	//assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
@@ -118,7 +118,7 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value, serializer Ser
 	return nil
 }
 
-func (info *structInfo) decode(decoder *Decoder, v reflect.Value, serializer SerializerSwitch) error {
+func (info *structInfo) decode(decoder *Decoder, v reflect.Value, serializer serializerSwitch) error {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct, t.String())
 	for i, n := 0, v.NumField(); i < n; i++ {
@@ -133,7 +133,7 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value, serializer Ser
 	return nil
 }
 
-func (info *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packed bool, serializer SerializerSwitch) int {
+func (info *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packed bool, serializer serializerSwitch) int {
 	//assert(t.Kind() == reflect.Struct, t.String())
 	sum := 0
 	for i, n := 0, t.NumField(); i < n; i++ {
@@ -146,7 +146,7 @@ func (info *structInfo) decodeSkipByType(decoder *Decoder, t reflect.Type, packe
 	return sum
 }
 
-func (info *structInfo) bitsOfValue(v reflect.Value, serializer SerializerSwitch) int {
+func (info *structInfo) bitsOfValue(v reflect.Value, serializer serializerSwitch) int {
 	t := v.Type()
 	//assert(t.Kind() == reflect.Struct,t.String())
 	sum := 0

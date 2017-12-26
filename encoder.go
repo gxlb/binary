@@ -421,7 +421,7 @@ func (encoder *Encoder) useSerializer(v reflect.Value) error {
 	panic(typeError("expect BinarySerializer %s", v.Type(), true))
 }
 
-func (encoder *Encoder) value(v reflect.Value, packed bool, serializer SerializerSwitch) error {
+func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serializerSwitch) error {
 	// check Packer interface for every value is perfect
 	// but encoder is too costly
 	//
@@ -442,8 +442,8 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer Serialize
 	//	}
 
 	k := v.Kind()
-	if serializer.CheckOk() ||
-		serializer.NeedCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
+	if serializer.checkOk() ||
+		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
 		return encoder.useSerializer(v)
 	}
 
@@ -495,7 +495,7 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer Serialize
 		if !validUserType(elemT) { //verify array element is valid
 			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
 		}
-		elemSerializer := serializer.SubSwitchCheck(elemT)
+		elemSerializer := serializer.subSwitchCheck(elemT)
 		if encoder.boolArray(v) < 0 { //deal with bool array first
 			l := v.Len()
 			encoder.Uvarint(uint64(l))
@@ -512,8 +512,8 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer Serialize
 			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
 		}
 
-		keySerilaizer := serializer.SubSwitchCheck(kt)
-		valueSerilaizer := serializer.SubSwitchCheck(vt)
+		keySerilaizer := serializer.subSwitchCheck(kt)
+		valueSerilaizer := serializer.subSwitchCheck(vt)
 
 		keys := v.MapKeys()
 		l := len(keys)

@@ -717,14 +717,14 @@ func TestEncodeDonotSupportedType(t *testing.T) {
 			//fmt.Printf("Decode error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
 
-		if err := decoder.value(tv.Field(i), true, false, SerializerCheck); err == nil {
+		if err := decoder.value(tv.Field(i), true, false, serializerCheck); err == nil {
 			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
 		} else {
 			//fmt.Println(err)
 		}
 	}
 
-	if queryStruct(tv.Type()).decode(decoder, tv, SerializerCheck) == nil {
+	if queryStruct(tv.Type()).decode(decoder, tv, serializerCheck) == nil {
 		t.Errorf("decode DonotSupportedType.%v: have err == nil, want non-nil", tv.Type())
 	}
 }
@@ -736,7 +736,7 @@ func TestDecoder(t *testing.T) {
 	if got != -1 {
 		t.Errorf("Decoder: have %d, want %d", got, -1)
 	}
-	n := decoder.skipByType(reflect.TypeOf(uintptr(0)), false, SerializerCheck)
+	n := decoder.skipByType(reflect.TypeOf(uintptr(0)), false, serializerCheck)
 	if n != -1 {
 		t.Errorf("Decoder: have %d, want %d", n, -1)
 	}
