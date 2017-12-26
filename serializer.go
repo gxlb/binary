@@ -91,7 +91,7 @@ func (ss serializerSwitch) String() string {
 
 // enable returns if BinarySerializer check is enable
 func (ss serializerSwitch) enable() bool {
-	return ss >= serializerCheck
+	return ss != serializerDisable
 }
 
 // needCheck returns if need check BinarySerializer
