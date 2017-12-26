@@ -61,11 +61,6 @@ import (
 	"reflect"
 )
 
-const (
-	//disable BinarySerializer check by default
-	defaultSerializer = true
-)
-
 // Size returns how many bytes Write would generate to encode the value v, which
 // must be a serialize-able value or a slice/map of serialize-able values, or a pointer to such data.
 // If v is neither of these, Size returns -1.
@@ -147,29 +142,6 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 
 	_, err = w.Write(encoder.Buffer())
 	return err
-}
-
-// BinarySizer is an interface to define go data Size method.
-type BinarySizer interface {
-	Size() int
-}
-
-// BinaryEncoder is an interface to define go data Encode method.
-// buffer is nil-able.
-type BinaryEncoder interface {
-	Encode(buffer []byte) ([]byte, error)
-}
-
-// BinaryDecoder is an interface to define go data Decode method.
-type BinaryDecoder interface {
-	Decode(buffer []byte) error
-}
-
-// BinarySerializer defines the go data Size/Encode/Decode method
-type BinarySerializer interface {
-	BinarySizer
-	BinaryEncoder
-	BinaryDecoder
 }
 
 // Encode marshal go data to byte array.
