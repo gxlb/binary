@@ -11,16 +11,6 @@ import (
 	"github.com/vipally/binary"
 )
 
-type BenchCase struct {
-	Id               int
-	Name             string
-	DoCnt            int
-	EnableSerializer bool
-	Data             interface{}
-}
-
-var cases []*BenchCase
-
 type benchType byte
 
 const (
@@ -132,13 +122,12 @@ type BaseStruct struct {
 	Uint16     uint16
 	Uint32     uint32
 	Uint64     uint64
+	Int        int
+	Uint       uint
 	Float32    float32
 	Float64    float64
 	Complex64  complex64
 	Complex128 complex128
-
-	Array     [4]uint8
-	BoolArray [9]bool
 }
 
 var BaseStruct_ = BaseStruct{
@@ -151,13 +140,12 @@ var BaseStruct_ = BaseStruct{
 	Uint16:     0x1234,
 	Uint32:     0x71234568,
 	Uint64:     0xa123456789bcdef0,
+	Int:        -0x1234,
+	Uint:       0x3456,
 	Float32:    1234.5678,
 	Float64:    2345.6789012,
 	Complex64:  complex(1.12456453, 2.344565),
 	Complex128: complex(333.4569789789123, 567.34577890012),
-
-	Array:     [4]uint8{0x1, 0x2, 0x3, 0x4},
-	BoolArray: [9]bool{true, false, false, false, false, true, true, false, true},
 }
 
 type FastValues struct {
@@ -230,6 +218,41 @@ var FastValues_ = FastValues{
 	StringSlice:     []string{"abc", "bcd"},
 }
 
+type LargeArray struct {
+	LgIntSlice        []int
+	LgUintSlice       []uint
+	LgBoolSlice       []bool
+	LgInt8Slice       []int8
+	LgInt16Slice      []int16
+	LgInt32Slice      []int32
+	LgInt64Slice      []int64
+	LgUint8Slice      []uint8
+	LgUint16Slice     []uint16
+	LgUint32Slice     []uint32
+	LgUint64Slice     []uint64
+	LgFloat32Slice    []float32
+	LgFloat64Slice    []float64
+	LgComplex64Slice  []complex64
+	LgComplex128Slice []complex128
+	LgStringSlice     []string
+	LgIntArray        [1000]int
+	LgUintArray       [1000]uint
+	LgBoolArray       [1000]bool
+	LgInt8Array       [1000]int8
+	LgInt16Array      [1000]int16
+	LgInt32Array      [1000]int32
+	LgInt64Array      [1000]int64
+	LgUint8Array      [1000]uint8
+	LgUint16Array     [1000]uint16
+	LgUint32Array     [1000]uint32
+	LgUint64Array     [1000]uint64
+	LgFloat32Array    [1000]float32
+	LgFloat64Array    [1000]float64
+	LgComplex64Array  [1000]complex64
+	LgComplex128Array [1000]complex128
+	LgStringArray     [1000]string
+}
+
 type FullStruct struct {
 }
 
@@ -255,14 +278,23 @@ func (s *Serializer) Decode(buffer []byte) error {
 	return nil
 }
 
+type BenchCase struct {
+	Id    int
+	Name  string
+	DoCnt int
+	Data  interface{}
+}
+
+var cases []*BenchCase
+
 func init() {
 	binary.RegisterType((*RegedStruct)(nil))
 	binary.RegisterType((*Serializer)(nil))
 
 	cases = []*BenchCase{
-		&BenchCase{0, "FastValues", benchDoCnt, false, FastValues_},
-		&BenchCase{0, "BaseValues", benchDoCnt, false, BaseStruct_},
-		&BenchCase{0, "FullValues", benchDoCnt, false, FullStruct_},
-		&BenchCase{0, "RegedStruct", benchDoCnt, false, RegedStruct_},
+		&BenchCase{0, "FastValues", benchDoCnt, FastValues_},
+		&BenchCase{0, "BaseValues", benchDoCnt, BaseStruct_},
+		&BenchCase{0, "FullValues", benchDoCnt, FullStruct_},
+		&BenchCase{0, "RegedStruct", benchDoCnt, RegedStruct_},
 	}
 }
