@@ -63,9 +63,8 @@ func DoBench(bench benchType, data interface{},
 	switch bench {
 	case BenchStdWrite:
 		s := std.Size(data)
-		if s <= 0 {
-			println(name, "unsupported ")
-			return 0, 0
+		if s < 0 {
+			return 0, float64(s)
 		}
 		for i := 0; i < doCnt; i++ {
 			buffer.Reset()
@@ -73,9 +72,8 @@ func DoBench(bench benchType, data interface{},
 		}
 	case BenchStdRead:
 		s := std.Size(data)
-		if s <= 0 {
-			println(name, "unsupported ")
-			return 0, 0
+		if s < 0 {
+			return 0, float64(s)
 		}
 		if err = std.Write(buffer, std.LittleEndian, data); err != nil {
 			panic(err)
