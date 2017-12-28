@@ -9,43 +9,37 @@ import (
 	"time"
 )
 
-const (
-	rndA = 7368787
-	rndC = 2750159
-)
-
 var (
 	strFull = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-#@!$&")
-	rand    = NewRand32(1)
+	rand    = NewRand(1)
 )
 
 //generate a seed for rand
-func RandSeed32(init uint32) uint32 {
+func RandSeed(init uint32) uint32 {
 	if 0 == init {
 		init = uint32(time.Now().Unix())
 	}
 	rnd := init*4294967291 + 8615693
-	rnd = rnd*4294967291 + 8615693
 	return rnd
 }
 
-type Rand32 struct {
+func NewRand(init uint32) *Rand {
+	return &Rand{seed: RandSeed(init)}
+}
+
+type Rand struct {
 	seed uint32
 }
 
-func NewRand32(init uint32) *Rand32 {
-	return &Rand32{seed: RandSeed32(init)}
-}
-
 //next rand number
-func (rnd *Rand32) Rand() uint32 {
-	n := rnd.seed*rndA + rndC
+func (rnd *Rand) Rand() uint32 {
+	n := rnd.seed*7368787 + 2750159
 	rnd.seed = n
 	return n
 }
 
 //generate rand number in range
-func (rnd *Rand32) RandRange(min, max uint32) uint32 {
+func (rnd *Rand) RandRange(min, max uint32) uint32 {
 	if max < min {
 		max, min = min, max
 	}
@@ -57,7 +51,7 @@ func (rnd *Rand32) RandRange(min, max uint32) uint32 {
 }
 
 //generate rand number in range
-func (rnd *Rand32) RandRange64(min, max uint64) uint64 {
+func (rnd *Rand) RandRange64(min, max uint64) uint64 {
 	if max < min {
 		max, min = min, max
 	}
@@ -69,36 +63,36 @@ func (rnd *Rand32) RandRange64(min, max uint64) uint64 {
 }
 
 //generate rand number with max value
-func (rnd *Rand32) RandMax(max uint32) uint32 {
+func (rnd *Rand) RandMax(max uint32) uint32 {
 	return rnd.RandRange(0, max-1)
 }
 
 //generate rand number with max value
-func (rnd *Rand32) RandMax64(max uint64) uint64 {
+func (rnd *Rand) RandMax64(max uint64) uint64 {
 	return rnd.RandRange64(0, max-1)
 }
 
 //get seed
-func (rnd *Rand32) Seed() uint32 {
+func (rnd *Rand) Seed() uint32 {
 	return rnd.seed
 }
 
-func (rnd *Rand32) CopyNew() *Rand32 {
-	return &Rand32{seed: rnd.seed}
+func (rnd *Rand) CopyNew() *Rand {
+	return &Rand{seed: rnd.seed}
 }
 
-func (rnd *Rand32) Copy() Rand32 {
+func (rnd *Rand) Copy() Rand {
 	return *rnd
 }
 
 //set seed
-func (rnd *Rand32) Srand(seed uint32) uint32 {
+func (rnd *Rand) Srand(seed uint32) uint32 {
 	ret := rnd.seed
 	rnd.seed = seed
 	return ret
 }
 
-func (rnd *Rand32) String(length int) string {
+func (rnd *Rand) String(length int) string {
 	b := make([]byte, length, length)
 	for i := 0; i < length; i++ {
 		b[i] = strFull[rnd.RandMax(uint32(len(strFull)))]
@@ -106,24 +100,24 @@ func (rnd *Rand32) String(length int) string {
 	return string(b)
 }
 
-func (rnd *Rand32) Bool() bool {
+func (rnd *Rand) Bool() bool {
 	return rnd.Rand()&0x1 == 0
 }
 
-func (rnd *Rand32) Uint() uint {
+func (rnd *Rand) Uint() uint {
 	return uint(rnd.Uint64())
 }
-func (rnd *Rand32) Int() int {
+func (rnd *Rand) Int() int {
 	return int(rnd.Uint())
 }
-func (rnd *Rand32) Uint8() uint8 {
+func (rnd *Rand) Uint8() uint8 {
 	return uint8(rnd.Rand() & 0xFF)
 }
-func (rnd *Rand32) Int8() int8 {
+func (rnd *Rand) Int8() int8 {
 	return int8(rnd.Uint8())
 }
 
-func (rnd *Rand32) Uint16() uint16 {
+func (rnd *Rand) Uint16() uint16 {
 	v := uint16(0)
 	for i := 0; i < 2; i++ {
 		v = v<<8 + uint16(rnd.Uint8())
@@ -131,11 +125,11 @@ func (rnd *Rand32) Uint16() uint16 {
 	return v
 }
 
-func (rnd *Rand32) Int16() int16 {
+func (rnd *Rand) Int16() int16 {
 	return int16(rnd.Uint16())
 }
 
-func (rnd *Rand32) Uint32() uint32 {
+func (rnd *Rand) Uint32() uint32 {
 	v := uint32(0)
 	for i := 0; i < 4; i++ {
 		v = v<<8 + uint32(rnd.Uint8())
@@ -143,11 +137,11 @@ func (rnd *Rand32) Uint32() uint32 {
 	return v
 }
 
-func (rnd *Rand32) Int32() int32 {
+func (rnd *Rand) Int32() int32 {
 	return int32(rnd.Uint32())
 }
 
-func (rnd *Rand32) Uint64() uint64 {
+func (rnd *Rand) Uint64() uint64 {
 	v := uint64(0)
 	for i := 0; i < 8; i++ {
 		v = v<<8 + uint64(rnd.Uint8())
@@ -155,32 +149,32 @@ func (rnd *Rand32) Uint64() uint64 {
 	return v
 }
 
-func (rnd *Rand32) Int64() int64 {
+func (rnd *Rand) Int64() int64 {
 	return int64(rnd.Uint64())
 }
 
-func (rnd *Rand32) Float32() float32 {
+func (rnd *Rand) Float32() float32 {
 	return math.Float32frombits(rnd.Uint32())
 }
 
-func (rnd *Rand32) Float64() float64 {
+func (rnd *Rand) Float64() float64 {
 	return math.Float64frombits(rnd.Uint64())
 }
 
-func (rnd *Rand32) Complex64() complex64 {
+func (rnd *Rand) Complex64() complex64 {
 	r := rnd.Float32()
 	i := rnd.Float32()
 	return complex(r, i)
 }
 
-func (rnd *Rand32) Complex128() complex128 {
+func (rnd *Rand) Complex128() complex128 {
 	r := rnd.Float64()
 	i := rnd.Float64()
 	return complex(r, i)
 }
 
 //generate rand value for x
-func (rnd *Rand32) Value(x interface{}) error {
+func (rnd *Rand) Value(x interface{}) error {
 	v := reflect.ValueOf(x)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return fmt.Errorf("can only set rand value by non-nil pointer, got %s", v.Type().String())
@@ -188,7 +182,7 @@ func (rnd *Rand32) Value(x interface{}) error {
 	return rnd.value(v.Elem())
 }
 
-func (rnd *Rand32) ValueX(x interface{}, seed uint32, minLen, maxLen uint32, min, max uint64) error {
+func (rnd *Rand) ValueX(x interface{}, seed uint32, minLen, maxLen uint32, min, max uint64) error {
 	v := reflect.ValueOf(x)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return fmt.Errorf("can only set rand value by non-nil pointer, got %s", v.Type().String())
@@ -196,7 +190,7 @@ func (rnd *Rand32) ValueX(x interface{}, seed uint32, minLen, maxLen uint32, min
 	return rnd.value(v.Elem())
 }
 
-func (rnd *Rand32) value(v reflect.Value) error {
+func (rnd *Rand) value(v reflect.Value) error {
 	switch k := v.Kind(); k {
 	case reflect.Int:
 		v.Set(reflect.ValueOf(rnd.Int()))
