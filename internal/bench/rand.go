@@ -16,7 +16,7 @@ const (
 
 var (
 	strFull = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-#@!$&")
-	rand    = NewRand64(1)
+	rand    = NewRand32(1)
 )
 
 //generate a seed for rand
@@ -33,7 +33,7 @@ type Rand32 struct {
 	seed uint32
 }
 
-func NewRand64(init uint32) *Rand32 {
+func NewRand32(init uint32) *Rand32 {
 	return &Rand32{seed: RandSeed32(init)}
 }
 
@@ -56,14 +56,39 @@ func (rnd *Rand32) RandRange(min, max uint32) uint32 {
 	return ret
 }
 
+//generate rand number in range
+func (rnd *Rand32) RandRange64(min, max uint64) uint64 {
+	if max < min {
+		max, min = min, max
+	}
+	d := max - min + 1
+	r := rnd.Uint64()
+	ret := r%d + min
+
+	return ret
+}
+
 //generate rand number with max value
 func (rnd *Rand32) RandMax(max uint32) uint32 {
 	return rnd.RandRange(0, max-1)
 }
 
+//generate rand number with max value
+func (rnd *Rand32) RandMax64(max uint64) uint64 {
+	return rnd.RandRange64(0, max-1)
+}
+
 //get seed
 func (rnd *Rand32) Seed() uint32 {
 	return rnd.seed
+}
+
+func (rnd *Rand32) CopyNew() *Rand32 {
+	return &Rand32{seed: rnd.seed}
+}
+
+func (rnd *Rand32) Copy() Rand32 {
+	return *rnd
 }
 
 //set seed
@@ -97,6 +122,7 @@ func (rnd *Rand32) Uint8() uint8 {
 func (rnd *Rand32) Int8() int8 {
 	return int8(rnd.Uint8())
 }
+
 func (rnd *Rand32) Uint16() uint16 {
 	v := uint16(0)
 	for i := 0; i < 2; i++ {
@@ -104,9 +130,11 @@ func (rnd *Rand32) Uint16() uint16 {
 	}
 	return v
 }
+
 func (rnd *Rand32) Int16() int16 {
 	return int16(rnd.Uint16())
 }
+
 func (rnd *Rand32) Uint32() uint32 {
 	v := uint32(0)
 	for i := 0; i < 4; i++ {
@@ -114,9 +142,11 @@ func (rnd *Rand32) Uint32() uint32 {
 	}
 	return v
 }
+
 func (rnd *Rand32) Int32() int32 {
 	return int32(rnd.Uint32())
 }
+
 func (rnd *Rand32) Uint64() uint64 {
 	v := uint64(0)
 	for i := 0; i < 8; i++ {
@@ -124,20 +154,25 @@ func (rnd *Rand32) Uint64() uint64 {
 	}
 	return v
 }
+
 func (rnd *Rand32) Int64() int64 {
 	return int64(rnd.Uint64())
 }
+
 func (rnd *Rand32) Float32() float32 {
 	return math.Float32frombits(rnd.Uint32())
 }
+
 func (rnd *Rand32) Float64() float64 {
 	return math.Float64frombits(rnd.Uint64())
 }
+
 func (rnd *Rand32) Complex64() complex64 {
 	r := rnd.Float32()
 	i := rnd.Float32()
 	return complex(r, i)
 }
+
 func (rnd *Rand32) Complex128() complex128 {
 	r := rnd.Float64()
 	i := rnd.Float64()
@@ -146,6 +181,14 @@ func (rnd *Rand32) Complex128() complex128 {
 
 //generate rand value for x
 func (rnd *Rand32) Value(x interface{}) error {
+	v := reflect.ValueOf(x)
+	if v.Kind() != reflect.Ptr || v.IsNil() {
+		return fmt.Errorf("can only set rand value by non-nil pointer, got %s", v.Type().String())
+	}
+	return rnd.value(v.Elem())
+}
+
+func (rnd *Rand32) ValueX(x interface{}, seed uint32, minLen, maxLen uint32, min, max uint64) error {
 	v := reflect.ValueOf(x)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return fmt.Errorf("can only set rand value by non-nil pointer, got %s", v.Type().String())
@@ -198,7 +241,7 @@ func (rnd *Rand32) value(v reflect.Value) error {
 
 	default:
 		//return typeError("binary.Encoder.Value: unsupported type [%s]", v.Type(), true)
-
 	}
+
 	return nil
 }
