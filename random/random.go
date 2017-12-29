@@ -175,22 +175,18 @@ func (rnd *Rand) Complex128() complex128 {
 
 //generate rand value for x
 func (rnd *Rand) Value(x interface{}) error {
+	return rnd.ValueX(x, 0, 0, 0, 0, 0)
+}
+
+func (rnd *Rand) ValueX(x interface{}, seed uint32, minLen, maxLen uint32, min, max int64) error {
 	v := reflect.ValueOf(x)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return fmt.Errorf("can only set rand value by non-nil pointer, got %s", v.Type().String())
 	}
-	return rnd.value(v.Elem())
+	return rnd.value(v.Elem(), minLen, maxLen, min, max)
 }
 
-func (rnd *Rand) ValueX(x interface{}, seed uint32, minLen, maxLen uint32, min, max uint64) error {
-	v := reflect.ValueOf(x)
-	if v.Kind() != reflect.Ptr || v.IsNil() {
-		return fmt.Errorf("can only set rand value by non-nil pointer, got %s", v.Type().String())
-	}
-	return rnd.value(v.Elem())
-}
-
-func (rnd *Rand) value(v reflect.Value) error {
+func (rnd *Rand) value(v reflect.Value, minLen, maxLen uint32, min, max int64) error {
 	switch k := v.Kind(); k {
 	case reflect.Int:
 		v.Set(reflect.ValueOf(rnd.Int()))
