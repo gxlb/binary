@@ -1,6 +1,6 @@
 //rand data generator
 
-package bench
+package random
 
 import (
 	"fmt"
