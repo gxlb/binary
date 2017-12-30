@@ -1,4 +1,4 @@
-package bench
+package random
 
 import (
 	"testing"

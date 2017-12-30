@@ -11,7 +11,7 @@ import (
 
 var (
 	strFull = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-#@!$&")
-	rand    = NewRand(1)
+	rand    = NewRand(0)
 )
 
 //generate a seed for rand
@@ -118,11 +118,7 @@ func (rnd *Rand) Int8() int8 {
 }
 
 func (rnd *Rand) Uint16() uint16 {
-	v := uint16(0)
-	for i := 0; i < 2; i++ {
-		v = v<<8 + uint16(rnd.Uint8())
-	}
-	return v
+	return uint16(rnd.Rand() & 0xFFFF)
 }
 
 func (rnd *Rand) Int16() int16 {
@@ -130,11 +126,7 @@ func (rnd *Rand) Int16() int16 {
 }
 
 func (rnd *Rand) Uint32() uint32 {
-	v := uint32(0)
-	for i := 0; i < 4; i++ {
-		v = v<<8 + uint32(rnd.Uint8())
-	}
-	return v
+	return rnd.Rand()
 }
 
 func (rnd *Rand) Int32() int32 {
@@ -143,8 +135,8 @@ func (rnd *Rand) Int32() int32 {
 
 func (rnd *Rand) Uint64() uint64 {
 	v := uint64(0)
-	for i := 0; i < 8; i++ {
-		v = v<<8 + uint64(rnd.Uint8())
+	for i := 0; i < 2; i++ {
+		v = v<<32 + uint64(rnd.Rand())
 	}
 	return v
 }
