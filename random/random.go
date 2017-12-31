@@ -139,10 +139,7 @@ func (rnd *Rand) Int32() int32 {
 }
 
 func (rnd *Rand) Uint64() uint64 {
-	v := uint64(0)
-	for i := 0; i < 2; i++ {
-		v = v<<32 + uint64(rnd.Uint32())
-	}
+	v := uint64(rnd.Uint32())<<32 + uint64(rnd.Uint32())
 	return v
 }
 
@@ -172,18 +169,24 @@ func (rnd *Rand) Complex128() complex128 {
 
 //generate rand value for x
 func (rnd *Rand) Value(x interface{}) error {
-	return rnd.ValueX(x, 0, 0)
+	return rnd.ValueX(x, 0, 0, 0)
 }
 
-func (rnd *Rand) ValueX(x interface{}, seed uint32, minLen uint32) error {
+func (rnd *Rand) ValueX(x interface{}, seed uint64, minLen, maxLen uint32) error {
 	v := reflect.ValueOf(x)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
 		return fmt.Errorf("can only set rand value by non-nil pointer, got %s", v.Type().String())
 	}
-	return rnd.value(v.Elem(), minLen)
+	if seed != 0 {
+		rnd.Srand(seed)
+	}
+	if 0 == minLen {
+		minLen = 10
+	}
+	return rnd.value(v.Elem(), minLen, maxLen)
 }
 
-func (rnd *Rand) value(v reflect.Value, minLen uint32) error {
+func (rnd *Rand) value(v reflect.Value, minLen, maxLen uint32) error {
 	switch k := v.Kind(); k {
 	case reflect.Int:
 		v.Set(reflect.ValueOf(rnd.Int()))
@@ -216,19 +219,88 @@ func (rnd *Rand) value(v reflect.Value, minLen uint32) error {
 	case reflect.Complex128:
 		v.Set(reflect.ValueOf(rnd.Complex128()))
 	case reflect.String:
-		v.Set(reflect.ValueOf(rnd.String(int(rnd.RandRange(minLen, minLen+100)))))
+		v.Set(reflect.ValueOf(rnd.String(rnd.length(minLen, maxLen))))
 
 	case reflect.Slice, reflect.Array:
+		if k == reflect.Slice {
+			length := rnd.length(minLen, maxLen)
+			v.Set(reflect.MakeSlice(v.Type(), length, length))
+		}
+		for i := 0; i < v.Len(); i++ {
+			rnd.value(v.Index(i).Addr(), minLen, maxLen)
+		}
 
 	case reflect.Map:
+		length := rnd.length(minLen, maxLen)
+		v.Set(reflect.MakeMap(v.Type()))
+		t := v.Type()
+		kt := t.Key()
+		vt := t.Elem()
+		for i := 0; i < length; i++ {
+			key := reflect.New(kt).Elem()
+			val := reflect.New(vt).Elem()
+			rnd.value(key, minLen, maxLen)
+			rnd.value(val, minLen, maxLen)
+			v.SetMapIndex(key, val)
+		}
 
 	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			f := v.Field(i)
+			rnd.value(f, minLen, maxLen)
+		}
 
 	case reflect.Ptr:
+		if v.IsNil() {
+			elemT := v.Type().Elem()
+			v.Set(reflect.New(elemT))
+		}
+		return rnd.value(v.Elem(), minLen, maxLen)
 
 	default:
-		//return typeError("binary.Encoder.Value: unsupported type [%s]", v.Type(), true)
+		return fmt.Errorf("random.Value: unsupported type [%s]", v.Type().String())
 	}
 
 	return nil
+}
+
+func (rnd *Rand) length(minLen, maxLen uint32) int {
+	if minLen == 0 {
+		minLen = 10
+	}
+	if maxLen == 0 {
+		maxLen = minLen + minLen/2
+	}
+	return int(rnd.RandRange(minLen, maxLen))
+}
+
+func New(x interface{}, length int) interface{} {
+	t := reflect.TypeOf(x)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	_new := reflect.New(t)
+	switch t.Kind() {
+	case reflect.Slice:
+		_new.Set(reflect.MakeSlice(t, t.Len(), t.Len()))
+	case reflect.Map:
+		_new.Set(reflect.MakeMap(t))
+	}
+	return _new.Interface()
+}
+
+func deepNew(v reflect.Value, length int) {
+	t := v.Type()
+	_new := reflect.New(t)
+	k := t.Kind()
+	switch k {
+	case reflect.Slice:
+		_new.Set(reflect.MakeSlice(t, length, length))
+	case reflect.Map:
+		_new.Set(reflect.MakeMap(t))
+	}
+	v.Set(_new)
+	if k == reflect.Ptr {
+		deepNew(v.Elem(), length)
+	}
 }
