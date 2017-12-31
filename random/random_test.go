@@ -43,7 +43,7 @@ func TestRand(t *testing.T) {
 	//		println("")
 	//	}
 	var v all
-	rand.ValueX(&v, 0, 10, 0)
+	rand.Value(&v)
 	fmt.Printf("%@v\n", v)
 
 }

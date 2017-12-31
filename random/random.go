@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	defaultStringLen = 100
+)
+
 var (
 	strFull = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-#@!$&")
 	rand    = NewRand(0)
@@ -189,37 +193,37 @@ func (rnd *Rand) ValueX(x interface{}, seed uint64, minLen, maxLen uint32) error
 func (rnd *Rand) value(v reflect.Value, minLen, maxLen uint32) error {
 	switch k := v.Kind(); k {
 	case reflect.Int:
-		v.Set(reflect.ValueOf(rnd.Int()))
+		v.SetInt(int64(rnd.Int()))
 	case reflect.Uint:
-		v.Set(reflect.ValueOf(rnd.Uint()))
+		v.SetUint(uint64(rnd.Uint()))
 	case reflect.Bool:
-		v.Set(reflect.ValueOf(rnd.Bool()))
+		v.SetBool(rnd.Bool())
 	case reflect.Int8:
-		v.Set(reflect.ValueOf(rnd.Int8()))
+		v.SetInt(int64(rnd.Int8()))
 	case reflect.Int16:
-		v.Set(reflect.ValueOf(rnd.Int16()))
+		v.SetInt(int64(rnd.Int16()))
 	case reflect.Int32:
-		v.Set(reflect.ValueOf(rnd.Int32()))
+		v.SetInt(int64(rnd.Int32()))
 	case reflect.Int64:
-		v.Set(reflect.ValueOf(rnd.Int64()))
+		v.SetInt(int64(rnd.Int64()))
 	case reflect.Uint8:
-		v.Set(reflect.ValueOf(rnd.Uint8()))
+		v.SetUint(uint64(rnd.Uint8()))
 	case reflect.Uint16:
-		v.Set(reflect.ValueOf(rnd.Uint16()))
+		v.SetUint(uint64(rnd.Uint16()))
 	case reflect.Uint32:
-		v.Set(reflect.ValueOf(rnd.Uint32()))
+		v.SetUint(uint64(rnd.Uint32()))
 	case reflect.Uint64:
-		v.Set(reflect.ValueOf(rnd.Uint64()))
+		v.SetUint(uint64(rnd.Uint64()))
 	case reflect.Float32:
-		v.Set(reflect.ValueOf(rnd.Float32()))
+		v.SetFloat(float64(rnd.Float32()))
 	case reflect.Float64:
-		v.Set(reflect.ValueOf(rnd.Float64()))
+		v.SetFloat(rnd.Float64())
 	case reflect.Complex64:
-		v.Set(reflect.ValueOf(rnd.Complex64()))
+		v.SetComplex(complex128(rnd.Complex64()))
 	case reflect.Complex128:
-		v.Set(reflect.ValueOf(rnd.Complex128()))
+		v.SetComplex(rnd.Complex128())
 	case reflect.String:
-		v.Set(reflect.ValueOf(rnd.String(rnd.length(minLen, maxLen))))
+		v.SetString(rnd.String(rnd.length(defaultStringLen, 0)))
 
 	case reflect.Slice, reflect.Array:
 		if k == reflect.Slice {
