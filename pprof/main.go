@@ -34,7 +34,7 @@ func main() {
 func doCase(n int, head bool, start time.Time) {
 	doCnt := 10000000
 	if head {
-		fmt.Printf("doCnt=%d\n\n", doCnt)
+		fmt.Printf("time = %s\ndoCnt = %d\n", start.Format("2006-01-02 15:04:05"), doCnt)
 		fmt.Printf("%-30s%-10s%-10s%-10s%-10s%-10s%-10s%-10s\n", "Case", "StdWrite", "StdRead", "EncodeY", "DecodeY", "EncodeN", "DecodeN", "TotalTime")
 	}
 
@@ -42,6 +42,7 @@ func doCase(n int, head bool, start time.Time) {
 		for i := 0; i < len(cases); i++ {
 			doCase(i, false, start)
 		}
+		fmt.Printf("finish time = %s\nCost = %s\n", time.Now().Format("2006-01-02 15:04:05"), Duration(time.Now().Sub(start)).String())
 	} else {
 		if n >= len(cases) {
 			println("max case", len(cases)-1)
