@@ -1,6 +1,6 @@
 //bench test case for binary and std
 
-package main
+package bench
 
 import (
 	"bytes"
@@ -62,23 +62,26 @@ func (s Speed) String() string {
 
 // DoBench runs a bench test case for binary
 func DoBench(bench benchType, data interface{},
-	doCnt int, enableSerializer bool, name string) (t time.Duration, Speed float64) {
+	doCnt int, enableSerializer bool, name string) (t time.Duration, speed Speed) {
 	start := time.Now()
 	var err error
+	var b []byte
+	byteNum := 0
 	switch bench {
 	case BenchStdWrite:
 		s := std.Size(data)
 		if s < 0 {
-			return 0, float64(s)
+			return 0, Speed(s)
 		}
 		for i := 0; i < doCnt; i++ {
 			buffer.Reset()
 			std.Write(buffer, std.LittleEndian, data)
 		}
+		byteNum = s * doCnt
 	case BenchStdRead:
 		s := std.Size(data)
 		if s < 0 {
-			return 0, float64(s)
+			return 0, Speed(s)
 		}
 		if err = std.Write(buffer, std.LittleEndian, data); err != nil {
 			panic(err)
@@ -89,9 +92,11 @@ func DoBench(bench benchType, data interface{},
 			r := binary.BytesReader(b)
 			std.Read(&r, std.LittleEndian, w)
 		}
+		byteNum = s * (doCnt + 1)
 	case BenchEncode:
 		for i := 0; i < doCnt; i++ {
-			_, err = binary.EncodeX(data, buff, enableSerializer)
+			b, err = binary.EncodeX(data, buff, enableSerializer)
+			byteNum += len(b)
 		}
 		if err != nil {
 			panic(err)
@@ -102,13 +107,15 @@ func DoBench(bench benchType, data interface{},
 		for i := 0; i < doCnt; i++ {
 			err = binary.DecodeX(b, w, enableSerializer)
 		}
+		byteNum = len(b) * (doCnt + 1)
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	dur := time.Now().Sub(start)
-	return dur, 0
+	speed = Speed(float64(time.Duration(byteNum)*time.Second) / float64(dur*1024*1024))
+	return dur, speed
 }
 
 func NewSame(x interface{}) interface{} {
@@ -300,9 +307,10 @@ func (s *Serializer) Decode(buffer []byte) error {
 }
 
 type BenchCase struct {
-	ID   int
-	Name string
-	Data interface{}
+	ID     int
+	Name   string
+	Length int
+	Data   interface{}
 }
 
 var cases []*BenchCase
@@ -335,28 +343,14 @@ func genCase(data interface{}, name string) {
 		c := &BenchCase{}
 		c.ID = len(cases) + 1
 		c.Name = name + "." + finfo.Name
-		c.Data = v.Field(i).Interface()
+		f := v.Field(i)
+		c.Data = f.Interface()
+		if k := f.Kind(); k == reflect.Slice || k == reflect.Array || k == reflect.Map {
+			c.Length = f.Len()
+		}
+		if c.Length == 0 {
+			c.Length = 1
+		}
 		cases = append(cases, c)
 	}
-}
-
-func DoAll() {
-	cases := BenchCases()
-	doCnt := 10000
-	fmt.Printf("%-30s%-15s%-15s%-15s%-15s\n", "case", "EncodeN", "EncodeY", "DecodeN", "DecodeY")
-	for _, v := range cases {
-		fmt.Printf("%-30s", v.Name)
-		dur, _ := DoBench(BenchEncode, v.Data, doCnt, false, v.Name)
-		fmt.Printf("%-15s", dur.String())
-		dur, _ = DoBench(BenchEncode, v.Data, doCnt, true, v.Name)
-		fmt.Printf("%-15s", dur.String())
-		dur, _ = DoBench(BenchDecode, v.Data, doCnt, false, v.Name)
-		fmt.Printf("%-15s", dur.String())
-		dur, _ = DoBench(BenchDecode, v.Data, doCnt, true, v.Name)
-		fmt.Printf("%-15s", dur.String())
-		fmt.Println("")
-	}
-}
-func main() {
-	DoAll()
 }
