@@ -34,6 +34,7 @@ func main() {
 func doCase(n int, head bool, start time.Time) {
 	doCnt := 10000000
 	if head {
+		println("doCnt=", doCnt, "\n")
 		fmt.Printf("%-30s%-10s%-10s%-10s%-10s%-10s%-10s%-10s\n", "Case", "StdWrite", "StdRead", "EncodeY", "DecodeY", "EncodeN", "DecodeN", "TotalTime")
 	}
 
