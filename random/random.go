@@ -1,5 +1,4 @@
-//rand data generator
-
+// package random provides rander to generate rand data.
 package random
 
 import (
@@ -176,6 +175,7 @@ func (rnd *Rand) Value(x interface{}) error {
 	return rnd.ValueX(x, 0, 0, 0)
 }
 
+// ValueX writes x with random data.
 func (rnd *Rand) ValueX(x interface{}, seed uint64, minLen, maxLen uint32) error {
 	v := reflect.ValueOf(x)
 	if v.Kind() != reflect.Ptr || v.IsNil() {

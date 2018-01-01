@@ -60,9 +60,21 @@ func (s Speed) String() string {
 	return fmt.Sprintf("%.02fMB/s", s)
 }
 
+type Duration time.Duration
+
+func (dur Duration) String() string {
+	if dur < 0 {
+		return "-"
+	}
+	if true || dur >= Duration(time.Second) {
+		return fmt.Sprintf("%.2fs", float64(dur)/float64(time.Second))
+	}
+	return fmt.Sprintf("%.2fms", float64(dur)/float64(time.Millisecond))
+}
+
 // DoBench runs a bench test case for binary
 func DoBench(bench benchType, data interface{},
-	doCnt int, enableSerializer bool, name string) (t time.Duration, speed Speed) {
+	doCnt int, enableSerializer bool) (t Duration, speed Speed) {
 	start := time.Now()
 	var err error
 	var b []byte
@@ -71,7 +83,7 @@ func DoBench(bench benchType, data interface{},
 	case BenchStdWrite:
 		s := std.Size(data)
 		if s < 0 {
-			return 0, Speed(s)
+			return -1, Speed(s)
 		}
 		for i := 0; i < doCnt; i++ {
 			buffer.Reset()
@@ -81,7 +93,7 @@ func DoBench(bench benchType, data interface{},
 	case BenchStdRead:
 		s := std.Size(data)
 		if s < 0 {
-			return 0, Speed(s)
+			return -1, Speed(s)
 		}
 		if err = std.Write(buffer, std.LittleEndian, data); err != nil {
 			panic(err)
@@ -113,7 +125,7 @@ func DoBench(bench benchType, data interface{},
 		}
 	}
 
-	dur := time.Now().Sub(start)
+	dur := Duration(time.Now().Sub(start))
 	speed = Speed(float64(time.Duration(byteNum)*time.Second) / float64(dur*1024*1024))
 	return dur, speed
 }
@@ -162,8 +174,6 @@ type BaseStruct struct {
 	Uint16     Uint16
 	Uint32     Uint32
 	Uint64     Uint64
-	Int        Int
-	Uint       Uint
 	Float32    Float32
 	Float64    Float64
 	Complex64  Complex64
@@ -205,7 +215,7 @@ type FastValues struct {
 	StringSlice     []string
 }
 
-type NoneFastValues struct {
+type NormalValues struct {
 	Int             Int
 	Uint            Uint
 	Bool            Bool
@@ -278,10 +288,10 @@ type LargeData struct {
 }
 
 type FullStruct struct {
-	FastValues     FastValues
-	NoneFastValues NoneFastValues
-	LargeData      LargeData
-	Special        Special
+	FastValues   FastValues
+	NormalValues NormalValues
+	LargeData    LargeData
+	Special      Special
 }
 
 type Special struct {
@@ -322,13 +332,13 @@ func init() {
 	rnd := random.NewRand(0)
 	seed := uint64(1)
 	rnd.ValueX(&full.FastValues, seed, 10, 0)
-	rnd.ValueX(&full.NoneFastValues, seed, 10, 0)
+	rnd.ValueX(&full.NormalValues, seed, 10, 0)
 	rnd.ValueX(&full.LargeData, seed, 1000, 1000)
 	rnd.ValueX(&full.Special, seed, 10, 0)
 	//fmt.Printf("%@#v\n", full)
 
 	genCase(full.FastValues, "FastValues")
-	genCase(full.NoneFastValues, "NoneFastValues")
+	genCase(full.NormalValues, "NormalValues")
 	genCase(full.LargeData, "LargeData")
 	genCase(full.Special, "Special")
 	//fmt.Printf("%@#v\n", cases)
@@ -345,8 +355,11 @@ func genCase(data interface{}, name string) {
 		c.Name = name + "." + finfo.Name
 		f := v.Field(i)
 		c.Data = f.Interface()
-		if k := f.Kind(); k == reflect.Slice || k == reflect.Array || k == reflect.Map {
+		switch k := f.Kind(); k {
+		case reflect.Slice, reflect.Array, reflect.Map:
 			c.Length = f.Len()
+		case reflect.Struct:
+			c.Length = f.NumField()
 		}
 		if c.Length == 0 {
 			c.Length = 1
