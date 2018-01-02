@@ -13,9 +13,14 @@ const (
 )
 
 var (
-	strFull = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-#@!$&")
-	Default = NewRand(0)
+	strFull     = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_-#@!$&")
+	defaultRand = NewRand(0)
 )
+
+// Default return default Rand object
+func Default() *Rand {
+	return defaultRand
+}
 
 // RandSeed generate a seed for rand
 func RandSeed(init uint64) uint64 {
