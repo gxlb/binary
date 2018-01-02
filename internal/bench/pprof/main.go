@@ -1,5 +1,5 @@
 // usage:
-//pprof.exe -n=x 1~4
+//pprof.exe >> pprof.log
 //go tool pprof gb.prof
 //png
 //quit

@@ -412,9 +412,13 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 func (decoder *Decoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
 	case *int:
-		*d = decoder.Int()
+		ux, _ := decoder.Uvarint() // ok to continue in presence of error
+		*d = int(ToVarint(ux))
+		//*d = decoder.Int()
 	case *uint:
-		*d = decoder.Uint()
+		ux, _ := decoder.Uvarint() // ok to continue in presence of error
+		*d = uint(ux)
+		//*d = decoder.Uint()
 	case *bool:
 		*d = decoder.Bool()
 	case *int8:

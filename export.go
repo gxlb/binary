@@ -136,55 +136,73 @@ func Write(w io.Writer, endian Endian, data interface{}) error {
 
 // Encode marshal go data to byte array.
 // nil buffer is aviable, it will create new buffer if necessary.
-func Encode(data interface{}, buffer []byte) ([]byte, error) {
-	return EncodeX(data, buffer, defaultSerializer)
+func Encode(x interface{}, buffer []byte) ([]byte, error) {
+	return EncodeX(x, buffer, defaultSerializer)
 }
 
 // EncodeX marshal go data to byte array.
 // enableSerializer switch if need check BinarySerilizer.
 // nil buffer is aviable, it will create new buffer if necessary.
-func EncodeX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
-	buff, err := MakeBufferX(data, buffer, enableSerializer)
+func EncodeX(x interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
+	buff, err := MakeBufferX(x, buffer, enableSerializer)
 	if err != nil {
 		return nil, err
 	}
 
 	encoder := NewEncoderBuffer(buff)
+	//encoder.resetBoolCoder()  //reset bool writer
+	if encoder.fastValue(x) { //fast value path
+		return encoder.Buffer(), nil
+	}
 
-	err = encoder.ValueX(data, enableSerializer)
+	v := reflect.ValueOf(x)
+	err = encoder.value(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
+	//err = encoder.ValueX(data, enableSerializer)
 	return encoder.Buffer(), err
 }
 
 // Decode unmarshal go data from byte array.
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
-func Decode(buffer []byte, data interface{}) error {
-	return DecodeX(buffer, data, defaultSerializer)
+func Decode(buffer []byte, x interface{}) error {
+	return DecodeX(buffer, x, defaultSerializer)
 }
 
 // DecodeX unmarshal go data from byte array.
 // enableSerializer switch if need check BinarySerilizer at top level
 // data must be interface of pointer for modify.
 // It will make new pointer or slice/map for nil-field of data.
-func DecodeX(buffer []byte, data interface{}, enableSerializer bool) error {
+func DecodeX(buffer []byte, x interface{}, enableSerializer bool) error {
 	var decoder Decoder
 	decoder.Init(buffer, DefaultEndian)
-	return decoder.ValueX(data, enableSerializer)
+
+	if decoder.fastValue(x) { //fast value path
+		return nil
+	}
+
+	v := reflect.ValueOf(x)
+	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
+		return decoder.value(v, true, false, toplvSerializer(enableSerializer))
+	}
+
+	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
+
+	//return decoder.ValueX(data, enableSerializer)
 }
 
 // MakeBuffer create enough buffer to encode data.
 // nil buffer is aviable, it will create new buffer if necessary.
-func MakeBuffer(data interface{}, buffer []byte) ([]byte, error) {
-	return MakeBufferX(data, buffer, defaultSerializer)
+func MakeBuffer(x interface{}, buffer []byte) ([]byte, error) {
+	return MakeBufferX(x, buffer, defaultSerializer)
 }
 
 // MakeBufferX create enough buffer to encode data.
 // enableSerializer switch if need check BinarySerilizer.
 // nil buffer is aviable, it will create new buffer if necessary.
-func MakeBufferX(data interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
-	size := SizeX(data, enableSerializer)
+func MakeBufferX(x interface{}, buffer []byte, enableSerializer bool) ([]byte, error) {
+	size := SizeX(x, enableSerializer)
 	if size < 0 {
-		return nil, typeError("binary.MakeEncodeBuffer: invalid type %s", reflect.TypeOf(data), true)
+		return nil, typeError("binary.MakeEncodeBuffer: invalid type %s", reflect.TypeOf(x), true)
 	}
 
 	buff := buffer

@@ -243,16 +243,22 @@ func (encoder *Encoder) ValueX(x interface{}, enableSerializer bool) (err error)
 func (encoder *Encoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
 	case int:
-		encoder.Int(d)
+		encoder.Uvarint(ToUvarint(int64(d)))
+		//encoder.Int(d)
 	case uint:
-		encoder.Uint(d)
+		encoder.Uvarint(uint64(d))
+		//encoder.Uint(d)
 
 	case bool:
 		encoder.Bool(d)
 	case int8:
-		encoder.Int8(d)
+		//encoder.Int8(d)
+		b := encoder.reserve(1)
+		b[0] = uint8(d)
 	case uint8:
-		encoder.Uint8(d)
+		//encoder.Uint8(d)
+		b := encoder.reserve(1)
+		b[0] = d
 	case int16:
 		encoder.Int16(d, false)
 	case uint16:
