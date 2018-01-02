@@ -248,7 +248,7 @@ func (field *fieldInfo) isValid(i int, t reflect.Type) bool {
 
 	// NOTE:
 	// creating the StructField info for each field is costly
-	// use RegStruct((*someStruct)(nil)) to aboid this path
+	// use RegisterType((*someStruct)(nil)) to avoid this path
 	return validField(t.Field(i)) // slow way to access field info
 }
 
