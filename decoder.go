@@ -466,14 +466,18 @@ func (decoder *Decoder) fastValue(x interface{}) bool {
 		l := int(s)
 		*d = make([]int, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = decoder.Int()
+			ux, _ := decoder.Uvarint() // ok to continue in presence of error
+			(*d)[i] = int(ToVarint(ux))
+			//(*d)[i] = decoder.Int()
 		}
 	case *[]uint:
 		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]uint, l)
 		for i := 0; i < l; i++ {
-			(*d)[i] = decoder.Uint()
+			ux, _ := decoder.Uvarint() // ok to continue in presence of error
+			(*d)[i] = uint(ux)
+			//(*d)[i] = decoder.Uint()
 		}
 
 	case *[]int8:

@@ -378,13 +378,15 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 		l := len(d)
 		encoder.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			encoder.Int(d[i])
+			encoder.Uvarint(ToUvarint(int64(d[i])))
+			//encoder.Int(d[i])
 		}
 	case []uint:
 		l := len(d)
 		encoder.Uvarint(uint64(len(d)))
 		for i := 0; i < l; i++ {
-			encoder.Uint(d[i])
+			encoder.Uvarint(uint64(d[i]))
+			//encoder.Uint(d[i])
 		}
 	default:
 		return false
