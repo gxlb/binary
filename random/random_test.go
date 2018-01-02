@@ -17,7 +17,7 @@ type all struct {
 }
 
 func TestRand(t *testing.T) {
-	rand.Srand(RandSeed(0))
+	Default.Srand(RandSeed(0))
 	//	//	var cnt [256]int
 	//	//	total := 6553600
 	//	//	for i := 0; i < total; i++ {
@@ -43,7 +43,7 @@ func TestRand(t *testing.T) {
 	//		println("")
 	//	}
 	var v all
-	rand.Value(&v)
+	Default.Value(&v)
 	fmt.Printf("%@v\n", v)
 
 }

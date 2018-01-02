@@ -305,15 +305,15 @@ type RegedStruct BaseStruct
 type Serializer BaseStruct
 
 func (s Serializer) Size() int {
-	return 0
+	return binary.SizeX(BaseStruct(s), false)
 }
 
 func (s Serializer) Encode(buffer []byte) ([]byte, error) {
-	return nil, nil
+	return binary.Encode(BaseStruct(s), buffer)
 }
 
 func (s *Serializer) Decode(buffer []byte) error {
-	return nil
+	return binary.Decode(buffer, (*BaseStruct)(s))
 }
 
 type BenchCase struct {

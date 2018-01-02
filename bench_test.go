@@ -1,39 +1,39 @@
 package binary_test
 
-import (
-	"fmt"
-	"testing"
-	"time"
+//import (
+//	"fmt"
+//	"testing"
+//	"time"
 
-	. "github.com/vipally/binary/internal/bench"
-)
+//	. "github.com/vipally/binary/internal/bench"
+//)
 
-func TestBenh(t *testing.T) {
-	cases := BenchCases()
-	doCnt := 4000000
-	fmt.Printf("%-32s%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n", "Case", "StdWrite", "StdRead", "EncodeY", "DecodeY", "EncodeN", "DecodeN", "TotalTime")
-	start := time.Now()
-	for _, v := range cases {
-		fmt.Printf("%-32s", v.Name)
-		_doCnt := doCnt / v.Length
-		dur, speed := DoBench(BenchStdWrite, v.Data, _doCnt, false)
-		fmt.Printf("%-15s", dur.String())
-		dur, speed = DoBench(BenchStdRead, v.Data, _doCnt, false)
-		fmt.Printf("%-15s", dur.String())
-		dur, speed = DoBench(BenchEncode, v.Data, _doCnt, true)
-		fmt.Printf("%-15s", dur.String())
-		dur, speed = DoBench(BenchDecode, v.Data, _doCnt, true)
-		fmt.Printf("%-15s", dur.String())
-		dur, speed = DoBench(BenchEncode, v.Data, _doCnt, false)
-		fmt.Printf("%-15s", dur.String())
-		dur, speed = DoBench(BenchDecode, v.Data, _doCnt, false)
-		fmt.Printf("%-15s", dur.String())
-		durAll := Duration(time.Now().Sub(start))
-		dur, speed = dur, speed
-		fmt.Printf("%-15s", durAll.String())
-		fmt.Println("")
-	}
-}
+//func TestBenh(t *testing.T) {
+//	cases := BenchCases()
+//	doCnt := 4000000
+//	fmt.Printf("%-32s%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n", "Case", "StdWrite", "StdRead", "EncodeY", "DecodeY", "EncodeN", "DecodeN", "TotalTime")
+//	start := time.Now()
+//	for _, v := range cases {
+//		fmt.Printf("%-32s", v.Name)
+//		_doCnt := doCnt / v.Length
+//		dur, speed := DoBench(BenchStdWrite, v.Data, _doCnt, false)
+//		fmt.Printf("%-15s", dur.String())
+//		dur, speed = DoBench(BenchStdRead, v.Data, _doCnt, false)
+//		fmt.Printf("%-15s", dur.String())
+//		dur, speed = DoBench(BenchEncode, v.Data, _doCnt, true)
+//		fmt.Printf("%-15s", dur.String())
+//		dur, speed = DoBench(BenchDecode, v.Data, _doCnt, true)
+//		fmt.Printf("%-15s", dur.String())
+//		dur, speed = DoBench(BenchEncode, v.Data, _doCnt, false)
+//		fmt.Printf("%-15s", dur.String())
+//		dur, speed = DoBench(BenchDecode, v.Data, _doCnt, false)
+//		fmt.Printf("%-15s", dur.String())
+//		durAll := Duration(time.Now().Sub(start))
+//		dur, speed = dur, speed
+//		fmt.Printf("%-15s", durAll.String())
+//		fmt.Println("")
+//	}
+//}
 
 //import (
 //	"bytes"
