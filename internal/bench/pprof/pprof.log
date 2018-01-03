@@ -223,3 +223,113 @@ FastValues.Complex128Slice    0.98s     0.19s     0.77s     1.24s     0.77s     
 FastValues.StringSlice        -         -         2.16s     2.17s     2.15s     2.26s     177.90s   
 finish time = 2018-01-02 23:58:24
 Cost = 177.90s
+
+
+===============
+time = 2018-01-03 17:03:54
+buildtime = 2018-01-03 17:02:47
+doCnt = 20000000
+Case                          StdWrite  StdRead   EncodeY   DecodeY   EncodeN   DecodeN   TotalTime 
+FastValues.Int                -         -         1.98s     2.69s     1.99s     2.71s     9.44s     
+FastValues.Uint               -         -         1.81s     2.15s     1.78s     2.15s     17.33s    
+FastValues.Bool               0.69s     1.71s     0.57s     0.43s     0.57s     0.44s     21.73s    
+FastValues.Int8               0.67s     1.63s     0.51s     0.43s     0.51s     0.43s     25.92s    
+FastValues.Int16              0.74s     1.58s     0.70s     0.59s     0.70s     0.59s     30.82s    
+FastValues.Int32              0.72s     1.54s     0.72s     0.59s     0.72s     0.59s     35.69s    
+FastValues.Int64              0.71s     1.54s     0.73s     0.59s     0.73s     0.59s     40.58s    
+FastValues.Uint8              0.66s     1.50s     0.51s     0.38s     0.52s     0.38s     44.53s    
+FastValues.Uint16             0.72s     1.55s     0.64s     0.52s     0.65s     0.52s     49.12s    
+FastValues.Uint32             0.75s     1.53s     0.66s     0.52s     0.66s     0.52s     53.75s    
+FastValues.Uint64             0.74s     1.54s     0.63s     0.52s     0.64s     0.52s     58.33s    
+FastValues.Float32            1.58s     2.37s     0.68s     0.58s     0.68s     0.58s     64.80s    
+FastValues.Float64            1.53s     2.49s     0.66s     0.58s     0.66s     0.58s     71.31s    
+FastValues.Complex64          1.73s     2.71s     0.99s     1.00s     0.99s     1.00s     79.71s    
+FastValues.Complex128         1.90s     2.69s     1.01s     1.00s     1.01s     1.01s     88.33s    
+FastValues.String             -         -         2.41s     2.04s     2.40s     2.03s     97.21s    
+FastValues.IntSlice           -         -         1.70s     2.40s     1.70s     2.39s     105.40s   
+FastValues.UintSlice          -         -         1.61s     2.26s     1.61s     2.27s     113.15s   
+FastValues.BoolSlice          0.40s     0.15s     0.11s     0.15s     0.11s     0.15s     114.20s   
+FastValues.Int8Slice          0.12s     0.17s     0.24s     0.32s     0.24s     0.33s     115.63s   
+FastValues.Int16Slice         0.21s     0.17s     0.38s     0.50s     0.38s     0.50s     117.78s   
+FastValues.Int32Slice         0.23s     0.19s     0.41s     0.51s     0.41s     0.52s     120.04s   
+FastValues.Int64Slice         0.23s     0.19s     0.37s     0.54s     0.37s     0.54s     122.28s   
+FastValues.Uint8Slice         0.09s     0.15s     0.20s     0.28s     0.20s     0.28s     123.48s   
+FastValues.Uint16Slice        0.19s     0.13s     0.33s     0.42s     0.33s     0.42s     125.30s   
+FastValues.Uint32Slice        0.22s     0.16s     0.35s     0.44s     0.35s     0.44s     127.27s   
+FastValues.Uint64Slice        0.21s     0.15s     0.32s     0.46s     0.33s     0.47s     129.21s   
+FastValues.Float32Slice       0.63s     0.14s     0.38s     0.49s     0.37s     0.50s     131.72s   
+FastValues.Float64Slice       0.66s     0.18s     0.35s     0.53s     0.36s     0.53s     134.34s   
+FastValues.Complex64Slice     0.85s     0.16s     0.69s     0.96s     0.67s     0.95s     138.61s   
+FastValues.Complex128Slice    0.82s     0.16s     0.63s     1.00s     0.62s     0.99s     142.84s   
+FastValues.StringSlice        -         -         1.74s     1.73s     1.73s     1.80s     149.83s   
+NormalValues.Int              -         -         3.68s     3.57s     2.92s     3.15s     163.14s   
+NormalValues.Uint             -         -         3.45s     3.30s     2.68s     2.90s     175.46s   
+NormalValues.Bool             1.31s     2.22s     2.20s     1.56s     1.42s     1.15s     185.33s   
+NormalValues.Int8             1.42s     2.23s     2.12s     1.52s     1.37s     1.14s     195.13s   
+NormalValues.Int16            1.56s     2.36s     2.27s     1.75s     1.58s     1.25s     205.89s   
+NormalValues.Int32            1.61s     2.43s     2.27s     1.74s     1.59s     1.28s     216.82s   
+NormalValues.Int64            1.57s     2.59s     2.31s     1.73s     1.58s     1.26s     227.87s   
+NormalValues.Uint8            1.38s     2.21s     2.16s     1.50s     1.40s     1.08s     237.60s   
+NormalValues.Uint16           1.53s     2.36s     2.59s     1.83s     1.99s     1.41s     249.31s   
+NormalValues.Uint32           1.58s     2.40s     2.26s     1.65s     1.44s     1.15s     259.78s   
+NormalValues.Uint64           1.55s     2.59s     2.23s     1.68s     1.50s     1.18s     270.50s   
+NormalValues.Float32          1.58s     2.42s     2.33s     1.72s     1.64s     1.28s     281.47s   
+NormalValues.Float64          1.53s     2.60s     2.29s     1.76s     1.58s     1.25s     292.49s   
+NormalValues.Complex64        1.74s     2.77s     2.57s     2.19s     1.94s     1.73s     305.42s   
+NormalValues.Complex128       1.96s     2.75s     2.53s     2.18s     1.86s     1.68s     318.38s   
+NormalValues.String           -         -         4.14s     3.27s     3.43s     2.88s     332.10s   
+NormalValues.IntSlice         -         -         3.09s     3.22s     2.86s     3.10s     344.38s   
+NormalValues.UintSlice        -         -         3.01s     3.02s     2.80s     2.95s     356.15s   
+NormalValues.BoolSlice        0.41s     0.15s     0.61s     0.75s     0.48s     0.69s     359.23s   
+NormalValues.Int8Slice        0.53s     0.17s     0.78s     1.03s     0.63s     0.94s     363.32s   
+NormalValues.Int16Slice       0.66s     0.18s     0.90s     1.16s     0.74s     1.07s     368.02s   
+NormalValues.Int32Slice       0.70s     0.19s     0.95s     1.21s     0.77s     1.10s     372.94s   
+NormalValues.Int64Slice       0.71s     0.19s     0.94s     1.24s     0.75s     1.15s     377.92s   
+NormalValues.Uint8Slice       0.49s     0.15s     0.70s     0.91s     0.56s     0.85s     381.59s   
+NormalValues.Uint16Slice      0.59s     0.13s     0.77s     0.96s     0.64s     0.90s     385.58s   
+NormalValues.Uint32Slice      0.62s     0.16s     0.76s     1.01s     0.62s     0.93s     389.69s   
+NormalValues.Uint64Slice      0.63s     0.15s     0.78s     1.03s     0.65s     0.96s     393.89s   
+NormalValues.Float32Slice     0.62s     0.14s     0.81s     1.03s     0.68s     0.97s     398.15s   
+NormalValues.Float64Slice     0.66s     0.17s     0.89s     1.16s     0.72s     1.07s     402.82s   
+NormalValues.Complex64Slice   0.83s     0.16s     1.16s     1.56s     1.01s     1.49s     409.03s   
+NormalValues.Complex128Slice  0.86s     0.16s     1.11s     1.59s     0.96s     1.52s     415.24s   
+NormalValues.StringSlice      -         -         3.17s     2.56s     2.95s     2.44s     426.36s   
+NormalValues.MapUU            -         -         7.87s     4.55s     7.79s     4.37s     450.93s   
+LargeData.LgIntSlice          -         -         1.88s     2.34s     1.88s     2.32s     459.35s   
+LargeData.LgUintSlice         -         -         1.70s     2.21s     1.69s     2.20s     467.16s   
+LargeData.LgBoolSlice         0.38s     0.00s     0.06s     0.07s     0.05s     0.07s     467.80s   
+LargeData.LgInt8Slice         0.02s     0.00s     0.18s     0.24s     0.18s     0.24s     468.64s   
+LargeData.LgInt16Slice        0.10s     0.00s     0.38s     0.41s     0.38s     0.41s     470.31s   
+LargeData.LgInt32Slice        0.12s     0.00s     0.33s     0.42s     0.33s     0.42s     471.93s   
+LargeData.LgInt64Slice        0.12s     0.00s     0.34s     0.44s     0.34s     0.44s     473.60s   
+LargeData.LgUint8Slice        0.01s     0.00s     0.14s     0.20s     0.14s     0.20s     474.30s   
+LargeData.LgUint16Slice       0.10s     0.00s     0.28s     0.35s     0.28s     0.35s     475.66s   
+LargeData.LgUint32Slice       0.12s     0.00s     0.30s     0.36s     0.30s     0.36s     477.11s   
+LargeData.LgUint64Slice       0.12s     0.00s     0.27s     0.38s     0.27s     0.39s     478.54s   
+LargeData.LgFloat32Slice      0.49s     0.00s     0.32s     0.43s     0.33s     0.42s     480.52s   
+LargeData.LgFloat64Slice      0.49s     0.00s     0.31s     0.44s     0.30s     0.45s     482.51s   
+LargeData.LgComplex64Slice    0.70s     0.00s     0.63s     0.89s     0.62s     0.89s     486.24s   
+LargeData.LgComplex128Slice   0.69s     0.00s     0.65s     0.97s     0.65s     0.96s     490.15s   
+LargeData.LgStringSlice       -         -         2.61s     1.97s     2.61s     1.93s     499.27s   
+LargeData.LgIntArray          -         -         2.82s     2.69s     2.80s     2.64s     510.23s   
+LargeData.LgUintArray         -         -         2.56s     2.56s     2.50s     2.59s     520.44s   
+LargeData.LgBoolArray         0.40s     0.33s     0.41s     0.32s     0.39s     0.32s     522.59s   
+LargeData.LgInt8Array         0.36s     0.30s     0.40s     0.49s     0.40s     0.50s     525.04s   
+LargeData.LgInt16Array        0.49s     0.44s     0.51s     0.62s     0.52s     0.60s     528.22s   
+LargeData.LgInt32Array        0.51s     0.44s     0.52s     0.63s     0.52s     0.61s     531.44s   
+LargeData.LgInt64Array        0.52s     0.48s     0.50s     0.62s     0.50s     0.63s     534.68s   
+LargeData.LgUint8Array        0.35s     0.30s     0.37s     0.46s     0.36s     0.47s     536.98s   
+LargeData.LgUint16Array       0.47s     0.40s     0.48s     0.57s     0.48s     0.57s     539.95s   
+LargeData.LgUint32Array       0.47s     0.41s     0.40s     0.51s     0.41s     0.51s     542.66s   
+LargeData.LgUint64Array       0.50s     0.43s     0.46s     0.57s     0.47s     0.58s     545.66s   
+LargeData.LgFloat32Array      0.51s     0.42s     0.51s     0.61s     0.51s     0.61s     548.82s   
+LargeData.LgFloat64Array      0.48s     0.44s     0.48s     0.60s     0.47s     0.61s     551.91s   
+LargeData.LgComplex64Array    0.69s     0.60s     0.81s     1.07s     0.81s     1.07s     556.96s   
+LargeData.LgComplex128Array   0.68s     0.63s     0.84s     1.07s     0.83s     1.06s     562.08s   
+LargeData.LgStringArray       -         -         3.55s     2.22s     3.52s     2.21s     573.57s   
+LargeData.LgMapUU             -         -         7.00s     4.16s     7.06s     4.20s     595.99s   
+Special.RegedStruct           2.74s     1.90s     1.91s     1.41s     1.87s     1.37s     607.19s   
+Special.Serializer            2.74s     1.86s     7.45s     9.20s     1.87s     1.37s     631.68s   
+Special.BaseStruct            2.74s     1.89s     4.73s     5.60s     4.65s     5.53s     656.82s   
+finish time = 2018-01-03 17:14:51
+Cost = 656.82s
