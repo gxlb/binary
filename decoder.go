@@ -283,7 +283,15 @@ func (decoder *Decoder) ValueX(x interface{}, enableSerializer bool) (err error)
 
 // use BinarySerializer interface to decode this value
 func (decoder *Decoder) useSerializer(v reflect.Value) error {
-	x := v.Interface()
+	return decoder.Serializer(v.Interface())
+}
+
+// Serializer decode BinarySerializer x.
+func (decoder *Decoder) Serializer(x interface{}) error {
+	//	t := reflect.TypeOf(x)
+	//	if _, _, _, err := deepRegableType(t, true); err != nil {
+	//		return err
+	//	}
 	if p, ok := x.(BinarySerializer); ok {
 		size := p.Size()
 		if err := p.Decode(decoder.buff[decoder.pos:]); err != nil {
@@ -293,7 +301,8 @@ func (decoder *Decoder) useSerializer(v reflect.Value) error {
 		return nil
 	}
 
-	panic(typeError("expect BinarySerializer %s", v.Type(), true))
+	return typeError("binary: expect BinarySerializer %s", reflect.TypeOf(x), true)
+
 }
 
 func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer serializerSwitch) error {

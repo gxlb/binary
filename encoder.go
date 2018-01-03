@@ -397,16 +397,26 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 
 // use BinarySerializer interface to encode this value
 func (encoder *Encoder) useSerializer(v reflect.Value) error {
-	x := v.Interface()
+	return encoder.Serializer(v.Interface())
+}
+
+// Serializer encode BinarySerializer x.
+func (encoder *Encoder) Serializer(x interface{}) error {
+	//	t := reflect.TypeOf(x)
+	//	if _, _, _, err := deepRegableType(t, true); err != nil {
+	//		return err
+	//	}
 	if p, ok := x.(BinaryEncoder); ok {
 		r, err := p.Encode(encoder.buff[encoder.pos:])
-		if err == nil {
-			encoder.reserve(len(r))
+		if err != nil {
+			return err
+
 		}
-		return err
+		encoder.reserve(len(r))
+		return nil
 	}
 
-	panic(typeError("expect BinarySerializer %s", v.Type(), true))
+	return typeError("binary: expect BinarySerializer %s", reflect.TypeOf(x), true)
 }
 
 func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serializerSwitch) error {
@@ -418,13 +428,17 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 
 	switch k {
 	case reflect.Int:
-		encoder.Int(int(v.Int()))
+		encoder.Uvarint(ToUvarint(v.Int()))
+		//encoder.Int(int(v.Int()))
 	case reflect.Uint:
-		encoder.Uint(uint(v.Uint()))
+		encoder.Uvarint(v.Uint())
+		//encoder.Uint(uint(v.Uint()))
 	case reflect.Bool:
 		encoder.Bool(v.Bool())
 	case reflect.Int8:
-		encoder.Int8(int8(v.Int()))
+		b := encoder.reserve(1)
+		b[0] = uint8(v.Int())
+		//encoder.Int8(int8(v.Int()))
 	case reflect.Int16:
 		encoder.Int16(int16(v.Int()), packed)
 	case reflect.Int32:

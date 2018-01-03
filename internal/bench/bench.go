@@ -337,10 +337,10 @@ func init() {
 	rnd.ValueX(&full.Special, seed, 10, 0)
 	//fmt.Printf("%@#v\n", full)
 
-	genCase(full.FastValues, "FastValues")
+	//genCase(full.FastValues, "FastValues")
 	genCase(full.NormalValues, "NormalValues")
-	genCase(full.LargeData, "LargeData")
-	genCase(full.Special, "Special")
+	//genCase(full.LargeData, "LargeData")
+	//genCase(full.Special, "Special")
 	//fmt.Printf("%@#v\n", cases)
 }
 
