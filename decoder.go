@@ -305,6 +305,30 @@ func (decoder *Decoder) Serializer(x interface{}) error {
 
 }
 
+// valueSerializer decode v with serializer check
+func (decoder *Decoder) valueSerializer(v reflect.Value, packed bool, serializer serializerSwitch) error {
+	k := v.Kind()
+	if serializer.checkOk() ||
+		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
+		return decoder.useSerializer(v)
+	}
+
+	switch k {
+	case reflect.Slice, reflect.Array:
+
+	case reflect.Map:
+
+	case reflect.Struct:
+
+	case reflect.Ptr:
+
+	default:
+	}
+
+	return nil
+}
+
+// value decode v without serializer check
 func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer serializerSwitch) error {
 	k := v.Kind()
 	if serializer.checkOk() ||

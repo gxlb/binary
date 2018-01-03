@@ -177,3 +177,5 @@ func indirectType(t reflect.Type) reflect.Type {
 	}
 	return t
 }
+
+type valueFunc func(v reflect.Value, depth uint, packed bool, serializer serializerSwitch) error

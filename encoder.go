@@ -419,6 +419,30 @@ func (encoder *Encoder) Serializer(x interface{}) error {
 	return typeError("binary: expect BinarySerializer %s", reflect.TypeOf(x), true)
 }
 
+// valueSerializer encode v with serializer check
+func (encoder *Encoder) valueSerializer(v reflect.Value, packed bool, serializer serializerSwitch) error {
+	k := v.Kind()
+	if serializer.checkOk() ||
+		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
+		return encoder.useSerializer(v)
+	}
+
+	switch k {
+	case reflect.Slice, reflect.Array:
+
+	case reflect.Map:
+
+	case reflect.Struct:
+
+	case reflect.Ptr:
+
+	default:
+	}
+
+	return nil
+}
+
+// value encode v without serializer check
 func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serializerSwitch) error {
 	k := v.Kind()
 	if serializer.checkOk() ||
