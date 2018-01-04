@@ -151,13 +151,18 @@ func EncodeX(x interface{}, buffer []byte, enableSerializer bool) ([]byte, error
 
 	encoder := NewEncoderBuffer(buff)
 	//encoder.resetBoolCoder()  //reset bool writer
+	//err = encoder.ValueX(x, enableSerializer)
 	if encoder.fastValue(x) { //fast value path
 		return encoder.Buffer(), nil
 	}
 
 	v := reflect.ValueOf(x)
-	err = encoder.value(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
-	//err = encoder.ValueX(data, enableSerializer)
+	if enableSerializer {
+		err = encoder.valueSerializer(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
+	} else {
+		err = encoder.value(reflect.Indirect(v), false)
+	}
+
 	return encoder.Buffer(), err
 }
 
