@@ -39,11 +39,24 @@ func (decoder *Decoder) Skip(size int) int {
 // reserve returns next size bytes for encoding/decoding.
 // It will panic if errors.
 func (decoder *Decoder) mustReserve(size int) []byte {
-	b, err := decoder.reserve(size)
-	if err != nil {
-		panic(err)
+	if decoder.reader != nil { //decode from reader
+		if size > len(decoder.buff) {
+			decoder.buff = make([]byte, size)
+		}
+		buff := decoder.buff[:size]
+		if n, _ := decoder.reader.Read(buff); n < size {
+			panic(io.ErrUnexpectedEOF)
+		}
+		return buff
 	}
-	return b
+
+	return decoder.coder.mustReserve(size) //decode from bytes buffer
+
+	//	b, err := decoder.reserve(size)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	return b
 }
 
 // reserve returns next size bytes for encoding/decoding.

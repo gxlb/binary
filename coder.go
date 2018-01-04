@@ -77,11 +77,23 @@ func (cder *coder) resetBoolCoder() {
 // mustReserve returns next size bytes for encoding/decoding.
 // it will panic if not enough space.
 func (cder *coder) mustReserve(size int) []byte {
-	b, err := cder.reserve(size)
-	if err != nil {
-		panic(err)
+	newPos := cder.pos + size
+	_cap := len(cder.buff)
+	if newPos > _cap {
+		panic(fmt.Errorf("binary.Coder:buffer overflow pos=%d cap=%d require=%d, not enough space", cder.pos, cder.Cap(), size))
 	}
-	return b
+	if size > 0 {
+		b := cder.buff[cder.pos:newPos]
+		cder.pos = newPos
+		return b
+	}
+	return nil
+
+	//	b, err := cder.reserve(size)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	return b
 }
 
 // reserve returns next size bytes for encoding/decoding.
