@@ -138,7 +138,7 @@ func assert(b bool, msg interface{}) {
 }
 
 // Auto allocate for aviable pointer
-func newPtr(v reflect.Value, decoder *Decoder, topLevel bool) bool {
+func newPtr(v reflect.Value, decoder *Decoder, depth int) bool {
 	if v.Kind() == reflect.Ptr {
 		e := v.Type().Elem()
 		switch e.Kind() {
@@ -152,7 +152,7 @@ func newPtr(v reflect.Value, decoder *Decoder, topLevel bool) bool {
 			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
 			reflect.Complex128, reflect.String:
 			isNotNilPointer := false
-			if !topLevel {
+			if depth == 0 {
 				isNotNilPointer = decoder.Bool()
 				if v.IsNil() {
 					if isNotNilPointer {

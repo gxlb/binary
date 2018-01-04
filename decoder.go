@@ -293,7 +293,7 @@ func (decoder *Decoder) ValueX(x interface{}, enableSerializer bool) (err error)
 
 	v := reflect.ValueOf(x)
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return decoder.value(v, true, false, toplvSerializer(enableSerializer))
+		return decoder.valuex(v, 0, false, toplvSerializer(enableSerializer))
 	}
 
 	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
@@ -323,31 +323,8 @@ func (decoder *Decoder) Serializer(x interface{}) error {
 
 }
 
-// valueSerializer decode v with serializer check
-func (decoder *Decoder) valueSerializer(v reflect.Value, packed bool, serializer serializerSwitch) error {
-	k := v.Kind()
-	if serializer.checkOk() ||
-		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
-		return decoder.useSerializer(v)
-	}
-
-	switch k {
-	case reflect.Slice, reflect.Array:
-
-	case reflect.Map:
-
-	case reflect.Struct:
-
-	case reflect.Ptr:
-
-	default:
-	}
-
-	return nil
-}
-
-// value decode v without serializer check
-func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer serializerSwitch) error {
+// valuex decode v with serializer check
+func (decoder *Decoder) valuex(v reflect.Value, depth int, packed bool, serializer serializerSwitch) error {
 	k := v.Kind()
 	if serializer.checkOk() ||
 		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
@@ -413,7 +390,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 
 			for i, l := 0, v.Len(); i < size; i++ {
 				if i < l {
-					decoder.value(v.Index(i), false, packed, elemSerializer) //ignore error
+					decoder.valuex(v.Index(i), depth+1, packed, elemSerializer) //ignore error
 				} else {
 					skiped := decoder.skipByType(v.Type().Elem(), packed, elemSerializer)
 					//I'm sure here cannot find unsupported type
@@ -440,8 +417,8 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 		for i, size := 0, int(s); i < size; i++ {
 			key := reflect.New(kt).Elem()
 			value := reflect.New(vt).Elem()
-			decoder.value(key, false, packed, keySerilaizer)     //ignore error
-			decoder.value(value, false, packed, valueSerilaizer) //ignore error
+			decoder.valuex(key, depth+1, packed, keySerilaizer)     //ignore error
+			decoder.valuex(value, depth+1, packed, valueSerilaizer) //ignore error
 			v.SetMapIndex(key, value)
 		}
 
@@ -449,9 +426,115 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 		return queryStruct(v.Type()).decode(decoder, v, serializer)
 
 	default:
-		if newPtr(v, decoder, topLevel) {
+		if newPtr(v, decoder, depth) {
 			if !v.IsNil() {
-				return decoder.value(v.Elem(), false, packed, serializer)
+				return decoder.valuex(v.Elem(), depth+1, packed, serializer)
+			}
+		} else {
+			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)
+		}
+	}
+	return nil
+}
+
+// value decode v without serializer check
+func (decoder *Decoder) value(v reflect.Value, depth int, packed bool) error {
+
+	switch k := v.Kind(); k {
+	case reflect.Int:
+		v.SetInt(int64(decoder.Int()))
+	case reflect.Uint:
+		v.SetUint(uint64(decoder.Uint()))
+	case reflect.Bool:
+		v.SetBool(decoder.Bool())
+	case reflect.Int8:
+		v.SetInt(int64(decoder.Int8()))
+	case reflect.Int16:
+		v.SetInt(int64(decoder.Int16(packed)))
+	case reflect.Int32:
+		v.SetInt(int64(decoder.Int32(packed)))
+	case reflect.Int64:
+		v.SetInt(decoder.Int64(packed))
+	case reflect.Uint8:
+		v.SetUint(uint64(decoder.Uint8()))
+	case reflect.Uint16:
+		v.SetUint(uint64(decoder.Uint16(packed)))
+	case reflect.Uint32:
+		if packed {
+			x, _ := decoder.Uvarint()
+			v.SetUint(x)
+		} else {
+			b := decoder.mustReserve(4)
+			x := decoder.endian.Uint32(b)
+			v.SetUint(uint64(x))
+		}
+		//v.SetUint(uint64(decoder.Uint32(packed)))
+	case reflect.Uint64:
+		v.SetUint(decoder.Uint64(packed))
+	case reflect.Float32:
+		v.SetFloat(float64(decoder.Float32()))
+	case reflect.Float64:
+		v.SetFloat(decoder.Float64())
+	case reflect.Complex64:
+		v.SetComplex(complex128(decoder.Complex64()))
+	case reflect.Complex128:
+		v.SetComplex(decoder.Complex128())
+	case reflect.String:
+		v.SetString(decoder.String())
+
+	case reflect.Slice, reflect.Array:
+		elemT := v.Type().Elem()
+		if !validUserType(elemT) { //verify array element is valid
+			return fmt.Errorf("binary.Decoder.Value: unsupported type %s", v.Type().String())
+		}
+
+		if decoder.boolArray(v) < 0 { //deal with bool array first
+			s, _ := decoder.Uvarint()
+			size := int(s)
+			if size > 0 && k == reflect.Slice { //make a new slice
+				ns := reflect.MakeSlice(v.Type(), size, size)
+				v.Set(ns)
+			}
+
+			for i, l := 0, v.Len(); i < size; i++ {
+				if i < l {
+					decoder.value(v.Index(i), depth+1, packed) //ignore error
+				} else {
+					skiped := decoder.skipByType(v.Type().Elem(), packed, serializerDisable)
+					//I'm sure here cannot find unsupported type
+					assert(skiped >= 0, v.Type().Elem().String())
+				}
+			}
+		}
+	case reflect.Map:
+		t := v.Type()
+		kt, vt := t.Key(), t.Elem()
+		//verify map key and value type are both valid
+		if !validUserType(kt) || !validUserType(vt) {
+			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)
+		}
+
+		if v.IsNil() {
+			newmap := reflect.MakeMap(v.Type())
+			v.Set(newmap)
+		}
+
+		s, _ := decoder.Uvarint()
+		for i, size := 0, int(s); i < size; i++ {
+			key := reflect.New(kt).Elem()
+			value := reflect.New(vt).Elem()
+			decoder.value(key, depth+1, packed)   //ignore error
+			decoder.value(value, depth+1, packed) //ignore error
+			v.SetMapIndex(key, value)
+		}
+
+	case reflect.Struct:
+		return queryStruct(v.Type()).decode(decoder, v, serializerDisable)
+
+	default:
+		if newPtr(v, decoder, depth) {
+			if !v.IsNil() {
+				return decoder.value(v.Elem(), depth+1, packed)
 			}
 		} else {
 			return typeError("binary.Decoder.Value: unsupported type %s", v.Type(), true)

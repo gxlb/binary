@@ -140,7 +140,7 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value, serializer ser
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
 			fieldSerializer := serializer.subSwitch(finfo.isSerializer())
-			if err := decoder.value(f, false, finfo.isPacked(), fieldSerializer); err != nil {
+			if err := decoder.valuex(f, 1, finfo.isPacked(), fieldSerializer); err != nil {
 				return err
 			}
 		}
