@@ -456,3 +456,44 @@ NormalValues.StringSlice      -         -         4.32s     3.66s     4.16s     
 NormalValues.MapUU            -         -         10.58s    6.14s     10.19s    5.97s     415.83s   
 finish time = 2018-01-04 21:16:21
 Cost = 415.83s
+
+===============
+time = 2018-01-04 22:58:58
+buildtime = 2018-01-04 22:58:50
+doCnt = 20000000
+Case                          StdWrite  StdRead   EncodeY   DecodeY   EncodeN   DecodeN   TotalTime 
+NormalValues.Int              -         -         5.47s     5.21s     4.36s     4.69s     19.77s    
+NormalValues.Uint             -         -         4.95s     4.81s     3.92s     4.25s     37.69s    
+NormalValues.Bool             1.74s     2.80s     2.74s     1.99s     1.82s     1.51s     50.29s    
+NormalValues.Int8             1.80s     2.78s     2.69s     2.02s     1.68s     1.50s     62.75s    
+NormalValues.Int16            1.95s     3.00s     2.94s     2.20s     2.18s     1.78s     76.80s    
+NormalValues.Int32            2.15s     3.28s     3.10s     2.37s     2.16s     1.74s     91.60s    
+NormalValues.Int64            2.09s     3.48s     3.22s     2.38s     2.02s     1.69s     106.48s   
+NormalValues.Uint8            1.78s     2.85s     2.71s     1.90s     1.73s     1.45s     118.89s   
+NormalValues.Uint16           1.91s     2.85s     2.95s     2.26s     1.99s     1.56s     132.42s   
+NormalValues.Uint32           2.14s     3.17s     2.94s     2.22s     1.94s     1.56s     146.39s   
+NormalValues.Uint64           2.06s     3.39s     3.00s     2.23s     2.12s     1.65s     160.85s   
+NormalValues.Float32          2.07s     3.13s     3.03s     2.29s     2.17s     1.64s     175.18s   
+NormalValues.Float64          2.02s     3.34s     2.98s     2.26s     2.13s     1.84s     189.74s   
+NormalValues.Complex64        2.38s     3.67s     3.61s     3.08s     2.69s     2.40s     207.55s   
+NormalValues.Complex128       2.56s     3.61s     3.43s     3.11s     2.56s     2.39s     225.22s   
+NormalValues.String           -         -         6.04s     4.91s     4.95s     4.32s     245.44s   
+NormalValues.IntSlice         -         -         4.87s     4.95s     4.62s     4.77s     264.64s   
+NormalValues.UintSlice        -         -         4.70s     4.79s     4.57s     4.68s     283.37s   
+NormalValues.BoolSlice        0.56s     0.20s     0.85s     1.02s     0.67s     0.93s     287.59s   
+NormalValues.Int8Slice        0.66s     0.23s     0.99s     1.47s     0.77s     1.33s     293.05s   
+NormalValues.Int16Slice       0.82s     0.22s     1.21s     1.56s     1.03s     1.44s     299.32s   
+NormalValues.Int32Slice       0.87s     0.23s     1.34s     1.61s     1.04s     1.50s     305.90s   
+NormalValues.Int64Slice       0.88s     0.23s     1.24s     1.66s     1.04s     1.48s     312.43s   
+NormalValues.Uint8Slice       0.59s     0.18s     0.91s     1.19s     0.77s     1.09s     317.16s   
+NormalValues.Uint16Slice      0.71s     0.16s     1.02s     1.26s     0.88s     1.18s     322.37s   
+NormalValues.Uint32Slice      0.83s     0.23s     1.06s     1.34s     0.84s     1.24s     327.91s   
+NormalValues.Uint64Slice      0.78s     0.18s     1.04s     1.43s     0.88s     1.30s     333.51s   
+NormalValues.Float32Slice     0.77s     0.16s     1.15s     1.41s     0.93s     1.30s     339.25s   
+NormalValues.Float64Slice     0.80s     0.21s     1.17s     1.52s     0.96s     1.42s     345.32s   
+NormalValues.Complex64Slice   1.00s     0.20s     1.59s     2.10s     1.44s     2.01s     353.65s   
+NormalValues.Complex128Slice  1.03s     0.20s     1.61s     2.23s     1.36s     2.10s     362.19s   
+NormalValues.StringSlice      -         -         4.22s     3.48s     4.03s     3.44s     377.36s   
+NormalValues.MapUU            -         -         10.50s    5.92s     9.79s     5.77s     409.34s   
+finish time = 2018-01-04 23:05:48
+Cost = 409.34s
