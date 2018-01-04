@@ -55,7 +55,7 @@ func (encoder *Encoder) ResizeBuffer(size int) bool {
 // It will panic if buffer is not enough.
 func (encoder *Encoder) Bool(x bool) {
 	if encoder.boolBit == 0 {
-		b := encoder.reserve(1)
+		b := encoder.mustReserve(1)
 		b[0] = 0
 		encoder.boolPos = encoder.pos - 1
 	}
@@ -75,7 +75,7 @@ func (encoder *Encoder) Int8(x int8) {
 // Uint8 encode a uint8 value to Encoder buffer.
 // It will panic if buffer is not enough.
 func (encoder *Encoder) Uint8(x uint8) {
-	b := encoder.reserve(1)
+	b := encoder.mustReserve(1)
 	b[0] = x
 }
 
@@ -96,7 +96,7 @@ func (encoder *Encoder) Uint16(x uint16, packed bool) {
 	if packed {
 		encoder.Uvarint(uint64(x))
 	} else {
-		b := encoder.reserve(2)
+		b := encoder.mustReserve(2)
 		encoder.endian.PutUint16(b, x)
 	}
 }
@@ -117,7 +117,7 @@ func (encoder *Encoder) Uint32(x uint32, packed bool) {
 	if packed {
 		encoder.Uvarint(uint64(x))
 	} else {
-		b := encoder.reserve(4)
+		b := encoder.mustReserve(4)
 		encoder.endian.PutUint32(b, x)
 	}
 }
@@ -138,7 +138,7 @@ func (encoder *Encoder) Uint64(x uint64, packed bool) {
 	if packed {
 		encoder.Uvarint(x)
 	} else {
-		b := encoder.reserve(8)
+		b := encoder.mustReserve(8)
 		encoder.endian.PutUint64(b, x)
 	}
 }
@@ -175,7 +175,7 @@ func (encoder *Encoder) String(x string) {
 	_b := []byte(x)
 	size := len(_b)
 	encoder.Uvarint(uint64(size))
-	buff := encoder.reserve(size)
+	buff := encoder.mustReserve(size)
 	copy(buff, _b)
 }
 
@@ -253,11 +253,11 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 		encoder.Bool(d)
 	case int8:
 		//encoder.Int8(d)
-		b := encoder.reserve(1)
+		b := encoder.mustReserve(1)
 		b[0] = uint8(d)
 	case uint8:
 		//encoder.Uint8(d)
-		b := encoder.reserve(1)
+		b := encoder.mustReserve(1)
 		b[0] = d
 	case int16:
 		encoder.Int16(d, false)
@@ -289,7 +289,7 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 			bit := i % 8
 			mask := byte(1 << uint(bit))
 			if bit == 0 {
-				b = encoder.reserve(1)
+				b = encoder.mustReserve(1)
 				b[0] = 0
 			}
 			if x := d[i]; x {
@@ -412,7 +412,7 @@ func (encoder *Encoder) Serializer(x interface{}) error {
 			return err
 
 		}
-		encoder.reserve(len(r))
+		encoder.mustReserve(len(r))
 		return nil
 	}
 
@@ -460,7 +460,7 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 	case reflect.Bool:
 		encoder.Bool(v.Bool())
 	case reflect.Int8:
-		b := encoder.reserve(1)
+		b := encoder.mustReserve(1)
 		b[0] = uint8(v.Int())
 		//encoder.Int8(int8(v.Int()))
 	case reflect.Int16:
@@ -477,7 +477,7 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 		if packed {
 			encoder.Uvarint(v.Uint())
 		} else {
-			b := encoder.reserve(4)
+			b := encoder.mustReserve(4)
 			encoder.endian.PutUint32(b, uint32(v.Uint()))
 		}
 		//encoder.Uint32(uint32(v.Uint()), packed)
@@ -561,7 +561,7 @@ func (encoder *Encoder) boolArray(v reflect.Value) int {
 				bit := i % 8
 				mask := byte(1 << uint(bit))
 				if bit == 0 {
-					b = encoder.reserve(1)
+					b = encoder.mustReserve(1)
 					b[0] = 0
 				}
 				if x := v.Index(i).Bool(); x {

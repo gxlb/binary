@@ -74,20 +74,29 @@ func (cder *coder) resetBoolCoder() {
 	cder.boolBit = 0
 }
 
-// reserve returns next size bytes for encoding/decoding.
+// mustReserve returns next size bytes for encoding/decoding.
 // it will panic if not enough space.
-func (cder *coder) reserve(size int) []byte {
+func (cder *coder) mustReserve(size int) []byte {
+	b, err := cder.reserve(size)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+// reserve returns next size bytes for encoding/decoding.
+func (cder *coder) reserve(size int) ([]byte, error) {
 	newPos := cder.pos + size
 	_cap := len(cder.buff)
 	if newPos > _cap {
-		panic(fmt.Errorf("binary.Coder:buffer overflow pos=%d cap=%d require=%d, not enough space", cder.pos, cder.Cap(), size))
+		return nil, fmt.Errorf("binary.Coder:buffer overflow pos=%d cap=%d require=%d, not enough space", cder.pos, cder.Cap(), size)
 	}
 	if size > 0 {
 		b := cder.buff[cder.pos:newPos]
 		cder.pos = newPos
-		return b
+		return b, nil
 	}
-	return nil
+	return nil, nil
 }
 
 // BytesReader transform bytes as Reader

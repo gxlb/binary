@@ -442,7 +442,7 @@ func TestReset(t *testing.T) {
 	if s := encoder.Skip(encoder.Cap()); s >= 0 {
 		t.Errorf("got %#v\nneed %#v\n", s, -1)
 	}
-	r := encoder.reserve(0)
+	r := encoder.mustReserve(0)
 	if r != nil {
 		t.Errorf("got %#v\nneed %#v\n", r, nil)
 	}
@@ -465,7 +465,7 @@ func TestReset(t *testing.T) {
 		//println("info******", err2.Error())
 	}
 
-	r2 := encoder.reserve(100)
+	r2 := encoder.mustReserve(100)
 	if r2 != nil {
 		t.Errorf("got %#v\nneed %#v\n", r2, nil)
 	}

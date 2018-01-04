@@ -30,23 +30,33 @@ type Decoder struct {
 // It will panic If space not enough.
 // It will return -1 if size <= 0.
 func (decoder *Decoder) Skip(size int) int {
-	if nil == decoder.reserve(size) {
+	if nil == decoder.mustReserve(size) {
 		return -1
 	}
 	return size
 }
 
 // reserve returns next size bytes for encoding/decoding.
-func (decoder *Decoder) reserve(size int) []byte {
+// It will panic if errors.
+func (decoder *Decoder) mustReserve(size int) []byte {
+	b, err := decoder.reserve(size)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+// reserve returns next size bytes for encoding/decoding.
+func (decoder *Decoder) reserve(size int) ([]byte, error) {
 	if decoder.reader != nil { //decode from reader
 		if size > len(decoder.buff) {
 			decoder.buff = make([]byte, size)
 		}
 		buff := decoder.buff[:size]
 		if n, _ := decoder.reader.Read(buff); n < size {
-			panic(io.ErrUnexpectedEOF)
+			return nil, io.ErrUnexpectedEOF
 		}
-		return buff
+		return buff, nil
 	}
 
 	return decoder.coder.reserve(size) //decode from bytes buffer
@@ -63,7 +73,7 @@ func (decoder *Decoder) Init(buffer []byte, endian Endian) {
 // It will panic if buffer is not enough.
 func (decoder *Decoder) Bool() bool {
 	if decoder.boolBit == 0 {
-		b := decoder.reserve(1)
+		b := decoder.mustReserve(1)
 		decoder.boolValue = b[0]
 	}
 
@@ -83,7 +93,7 @@ func (decoder *Decoder) Int8() int8 {
 // Uint8 decode a uint8 value from Decoder buffer.
 // It will panic if buffer is not enough.
 func (decoder *Decoder) Uint8() uint8 {
-	b := decoder.reserve(1)
+	b := decoder.mustReserve(1)
 	x := b[0]
 	return x
 }
@@ -107,7 +117,7 @@ func (decoder *Decoder) Uint16(packed bool) uint16 {
 		return uint16(x)
 	}
 
-	b := decoder.reserve(2)
+	b := decoder.mustReserve(2)
 	x := decoder.endian.Uint16(b)
 	return x
 }
@@ -131,7 +141,7 @@ func (decoder *Decoder) Uint32(packed bool) uint32 {
 		return uint32(x)
 	}
 
-	b := decoder.reserve(4)
+	b := decoder.mustReserve(4)
 	x := decoder.endian.Uint32(b)
 	return x
 }
@@ -155,7 +165,7 @@ func (decoder *Decoder) Uint64(packed bool) uint64 {
 		return x
 	}
 
-	b := decoder.reserve(8)
+	b := decoder.mustReserve(8)
 	x := decoder.endian.Uint64(b)
 	return x
 }
@@ -193,7 +203,7 @@ func (decoder *Decoder) Complex128() complex128 {
 func (decoder *Decoder) String() string {
 	s, _ := decoder.Uvarint()
 	size := int(s)
-	b := decoder.reserve(size)
+	b := decoder.mustReserve(size)
 	return string(b)
 }
 
@@ -297,7 +307,7 @@ func (decoder *Decoder) Serializer(x interface{}) error {
 		if err := p.Decode(decoder.buff[decoder.pos:]); err != nil {
 			return err
 		}
-		decoder.reserve(size)
+		decoder.mustReserve(size)
 		return nil
 	}
 
@@ -360,7 +370,7 @@ func (decoder *Decoder) value(v reflect.Value, topLevel, packed bool, serializer
 			x, _ := decoder.Uvarint()
 			v.SetUint(x)
 		} else {
-			b := decoder.reserve(4)
+			b := decoder.mustReserve(4)
 			x := decoder.endian.Uint32(b)
 			v.SetUint(uint64(x))
 		}
@@ -489,7 +499,7 @@ func (decoder *Decoder) fastValue(x interface{}) bool {
 			_, bit := i/8, i%8
 			mask := byte(1 << uint(bit))
 			if bit == 0 {
-				b = decoder.reserve(1)
+				b = decoder.mustReserve(1)
 			}
 			x := ((b[0] & mask) != 0)
 			(*d)[i] = x
@@ -707,7 +717,7 @@ func (decoder *Decoder) boolArray(v reflect.Value) int {
 				_, bit := i/8, i%8
 				mask := byte(1 << uint(bit))
 				if bit == 0 {
-					b = decoder.reserve(1)
+					b = decoder.mustReserve(1)
 				}
 				x := ((b[0] & mask) != 0)
 				v.Index(i).SetBool(x)
