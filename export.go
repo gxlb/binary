@@ -192,7 +192,6 @@ func DecodeX(buffer []byte, x interface{}, enableSerializer bool) error {
 		} else {
 			return decoder.value(v, 0, false)
 		}
-
 	}
 
 	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
