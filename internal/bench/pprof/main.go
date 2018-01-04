@@ -38,7 +38,7 @@ func doCase(n int, head bool, start time.Time) {
 		fmt.Printf("time = %s\n", start.Format("2006-01-02 15:04:05"))
 		fmt.Printf("buildtime = %s\n", time.BuildTime().Format("2006-01-02 15:04:05"))
 		fmt.Printf("doCnt = %d\n", doCnt)
-		fmt.Printf("%-30s%-10s%-10s%-10s%-10s%-10s%-10s%-10s\n", "Case", "StdWrite", "StdRead", "EncodeY", "DecodeY", "EncodeN", "DecodeN", "TotalTime")
+		fmt.Printf("%-30s%-10s%-10s%-10s%-10s%-10s%-10s%-10s\n%-10s\n", "Case", "StdWrite", "StdRead", "EncodeY", "DecodeY", "EncodeN", "DecodeN", "Cost", "TotalTime")
 	}
 
 	if n < 0 {
@@ -52,6 +52,7 @@ func doCase(n int, head bool, start time.Time) {
 			return
 		}
 		v := cases[n]
+		st := time.Now()
 		fmt.Printf("%-30s", v.Name)
 		_doCnt := doCnt / v.Length
 		dur, speed := DoBench(BenchStdWrite, v.Data, _doCnt, false)
@@ -66,6 +67,8 @@ func doCase(n int, head bool, start time.Time) {
 		fmt.Printf("%-10s", dur.String())
 		dur, speed = DoBench(BenchDecode, v.Data, _doCnt, false)
 		fmt.Printf("%-10s", dur.String())
+		durCost := Duration(time.Now().Sub(st))
+		fmt.Printf("%-10s", durCost.String())
 		durAll := Duration(time.Now().Sub(start))
 		dur, speed = dur, speed
 		fmt.Printf("%-10s", durAll.String())

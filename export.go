@@ -157,11 +157,11 @@ func EncodeX(x interface{}, buffer []byte, enableSerializer bool) ([]byte, error
 	}
 
 	v := reflect.ValueOf(x)
-	//if true || enableSerializer {
-	err = encoder.valueSerializer(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
-	//	} else {
-	//		err = encoder.value(reflect.Indirect(v), false)
-	//	}
+	if enableSerializer {
+		err = encoder.valueSerializer(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
+	} else {
+		err = encoder.value(reflect.Indirect(v), false)
+	}
 
 	return encoder.Buffer(), err
 }

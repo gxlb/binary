@@ -88,12 +88,6 @@ func (cder *coder) mustReserve(size int) []byte {
 		return b
 	}
 	return nil
-
-	//	b, err := cder.reserve(size)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return b
 }
 
 // reserve returns next size bytes for encoding/decoding.

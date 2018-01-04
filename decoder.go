@@ -38,6 +38,7 @@ func (decoder *Decoder) Skip(size int) int {
 
 // reserve returns next size bytes for encoding/decoding.
 // It will panic if errors.
+// do not use decoder.reserve, it was costly.
 func (decoder *Decoder) mustReserve(size int) []byte {
 	if decoder.reader != nil { //decode from reader
 		if size > len(decoder.buff) {
@@ -51,12 +52,6 @@ func (decoder *Decoder) mustReserve(size int) []byte {
 	}
 
 	return decoder.coder.mustReserve(size) //decode from bytes buffer
-
-	//	b, err := decoder.reserve(size)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	return b
 }
 
 // reserve returns next size bytes for encoding/decoding.
