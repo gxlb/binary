@@ -319,7 +319,7 @@ func (decoder *Decoder) Serializer(x interface{}) error {
 		return nil
 	}
 
-	return typeError("binary: expect BinarySerializer %s", reflect.TypeOf(x), true)
+	return typeError("binary: expect implements BinarySerializer %s", reflect.TypeOf(x), true)
 
 }
 
