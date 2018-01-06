@@ -216,39 +216,39 @@ type FastValues struct {
 }
 
 type NormalValues struct {
-	Int             Int
-	Uint            Uint
-	Bool            Bool
-	Int8            Int8
-	Int16           Int16
-	Int32           Int32
-	Int64           Int64
-	Uint8           Uint8
-	Uint16          Uint16
-	Uint32          Uint32
-	Uint64          Uint64
-	Float32         Float32
-	Float64         Float64
-	Complex64       Complex64
-	Complex128      Complex128
-	String          String
-	IntSlice        []Int
-	UintSlice       []Uint
-	BoolSlice       []Bool
-	Int8Slice       []Int8
-	Int16Slice      []Int16
-	Int32Slice      []Int32
-	Int64Slice      []Int64
-	Uint8Slice      []Uint8
-	Uint16Slice     []Uint16
-	Uint32Slice     []Uint32
-	Uint64Slice     []Uint64
-	Float32Slice    []Float32
-	Float64Slice    []Float64
-	Complex64Slice  []Complex64
-	Complex128Slice []Complex128
-	StringSlice     []String
-	MapUU           map[uint64]uint32
+	//	Int             Int
+	//	Uint            Uint
+	//	Bool            Bool
+	//	Int8            Int8
+	//	Int16           Int16
+	//	Int32           Int32
+	//	Int64           Int64
+	//	Uint8           Uint8
+	//	Uint16          Uint16
+	Uint32 Uint32
+	Uint64 Uint64
+	//	Float32         Float32
+	//	Float64         Float64
+	//	Complex64       Complex64
+	//	Complex128      Complex128
+	//	String          String
+	//	IntSlice        []Int
+	//	UintSlice       []Uint
+	//	BoolSlice       []Bool
+	//	Int8Slice       []Int8
+	//	Int16Slice      []Int16
+	//	Int32Slice      []Int32
+	//	Int64Slice      []Int64
+	//	Uint8Slice      []Uint8
+	//	Uint16Slice     []Uint16
+	//	Uint32Slice     []Uint32
+	//	Uint64Slice     []Uint64
+	//	Float32Slice    []Float32
+	//	Float64Slice    []Float64
+	//	Complex64Slice  []Complex64
+	//	Complex128Slice []Complex128
+	//	StringSlice     []String
+	//	MapUU           map[uint64]uint32
 }
 
 type LargeData struct {

@@ -383,7 +383,16 @@ func (decoder *Decoder) value(v reflect.Value, depth int, packed bool, serialize
 		}
 		//v.SetUint(uint64(decoder.Uint32(packed)))
 	case reflect.Uint64:
-		v.SetUint(decoder.Uint64(packed))
+		if packed {
+			x, _ := decoder.Uvarint()
+			v.SetUint(x)
+		} else {
+			b := decoder.mustReserve(8)
+			x := decoder.endian.Uint64(b)
+			v.SetUint(x)
+		}
+
+		//v.SetUint(decoder.Uint64(packed))
 	case reflect.Float32:
 		v.SetFloat(float64(decoder.Float32()))
 	case reflect.Float64:

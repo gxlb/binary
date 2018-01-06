@@ -462,7 +462,14 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 		}
 		//encoder.Uint32(uint32(v.Uint()), packed)
 	case reflect.Uint64:
-		encoder.Uint64(v.Uint(), packed)
+		x := v.Uint()
+		if packed {
+			encoder.Uvarint(x)
+		} else {
+			b := encoder.mustReserve(8)
+			encoder.endian.PutUint64(b, x)
+		}
+		//encoder.Uint64(v.Uint(), packed)
 	case reflect.Float32:
 		encoder.Float32(float32(v.Float()))
 	case reflect.Float64:
