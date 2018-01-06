@@ -246,7 +246,7 @@ func (encoder *Encoder) Uvarint(x uint64) (int, error) {
 	}
 	x_ := x
 	for i, s := 0, size-1; i < s; i++ {
-		b[i] = byte((x_ & 0x7f) | 0x80)
+		b[i] = byte(x_) | 0x80
 		x_ >>= 7
 	}
 	b[size-1] = byte(x_)
