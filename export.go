@@ -152,16 +152,17 @@ func EncodeX(x interface{}, buffer []byte, enableSerializer bool) ([]byte, error
 	encoder := NewEncoderBuffer(buff)
 	//encoder.resetBoolCoder()  //reset bool writer
 
-	if encoder.fastValue(x) { //fast value path
-		return encoder.Buffer(), nil
-	}
+	//	if ok, e := encoder.fastValue(x); ok { //fast value path
+	//		return encoder.Buffer(), e
+	//	}
 
-	v := reflect.ValueOf(x)
-	err = encoder.value(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
+	//	v := reflect.ValueOf(x)
+	//	err = encoder.value(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
 
+	//	return encoder.Buffer(), err
+
+	err = encoder.ValueX(x, enableSerializer)
 	return encoder.Buffer(), err
-
-	//return encoder.ValueX(x, enableSerializer)
 }
 
 // Decode unmarshal go data from byte array.

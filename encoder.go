@@ -53,9 +53,12 @@ func (encoder *Encoder) ResizeBuffer(size int) bool {
 
 // Bool encode a bool value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Bool(x bool) {
+func (encoder *Encoder) Bool(x bool) error {
 	if encoder.boolBit == 0 {
-		b := encoder.mustReserve(1)
+		b, err := encoder.reserve(1)
+		if err != nil {
+			return err
+		}
 		b[0] = 0
 		encoder.boolPos = encoder.pos - 1
 	}
@@ -64,160 +67,197 @@ func (encoder *Encoder) Bool(x bool) {
 		encoder.buff[encoder.boolPos] |= mask
 	}
 	encoder.boolBit = (encoder.boolBit + 1) % 8
+	return nil
 }
 
 // Int8 encode an int8 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Int8(x int8) {
-	encoder.Uint8(uint8(x))
+func (encoder *Encoder) Int8(x int8) error {
+	return encoder.Uint8(uint8(x))
 }
 
 // Uint8 encode a uint8 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Uint8(x uint8) {
-	b := encoder.mustReserve(1)
+func (encoder *Encoder) Uint8(x uint8) error {
+	b, err := encoder.reserve(1)
+	if err != nil {
+		return err
+	}
 	b[0] = x
+	return nil
 }
 
 // Int16 encode an int16 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Int16(x int16, packed bool) {
+func (encoder *Encoder) Int16(x int16, packed bool) (err error) {
 	if packed {
-		encoder.Varint(int64(x))
+		_, err = encoder.Varint(int64(x))
 	} else {
-		encoder.Uint16(uint16(x), false)
+		err = encoder.Uint16(uint16(x), false)
 	}
-
+	return
 }
 
 // Uint16 encode a uint16 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Uint16(x uint16, packed bool) {
+func (encoder *Encoder) Uint16(x uint16, packed bool) (err error) {
 	if packed {
-		encoder.Uvarint(uint64(x))
+		_, err = encoder.Uvarint(uint64(x))
 	} else {
-		b := encoder.mustReserve(2)
+		b, e := encoder.reserve(2)
+		if e != nil {
+			return e
+		}
 		encoder.endian.PutUint16(b, x)
 	}
+	return
 }
 
 // Int32 encode an int32 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Int32(x int32, packed bool) {
+func (encoder *Encoder) Int32(x int32, packed bool) (err error) {
 	if packed {
-		encoder.Varint(int64(x))
+		_, err = encoder.Varint(int64(x))
 	} else {
-		encoder.Uint32(uint32(x), false)
+		err = encoder.Uint32(uint32(x), false)
 	}
+	return
 }
 
 // Uint32 encode a uint32 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Uint32(x uint32, packed bool) {
+func (encoder *Encoder) Uint32(x uint32, packed bool) (err error) {
 	if packed {
-		encoder.Uvarint(uint64(x))
+		_, err = encoder.Uvarint(uint64(x))
 	} else {
-		b := encoder.mustReserve(4)
+		b, e := encoder.reserve(4)
+		if e != nil {
+			return e
+		}
 		encoder.endian.PutUint32(b, x)
 	}
+	return
 }
 
 // Int64 encode an int64 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Int64(x int64, packed bool) {
+func (encoder *Encoder) Int64(x int64, packed bool) (err error) {
 	if packed {
-		encoder.Varint(x)
+		_, err = encoder.Varint(x)
 	} else {
-		encoder.Uint64(uint64(x), false)
+		err = encoder.Uint64(uint64(x), false)
 	}
+	return
 }
 
 // Uint64 encode a uint64 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Uint64(x uint64, packed bool) {
+func (encoder *Encoder) Uint64(x uint64, packed bool) (err error) {
 	if packed {
-		encoder.Uvarint(x)
+		_, err = encoder.Uvarint(x)
 	} else {
-		b := encoder.mustReserve(8)
+		b, e := encoder.reserve(8)
+		if e != nil {
+			return e
+		}
 		encoder.endian.PutUint64(b, x)
 	}
+	return
 }
 
 // Float32 encode a float32 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Float32(x float32) {
-	encoder.Uint32(math.Float32bits(x), false)
+func (encoder *Encoder) Float32(x float32) error {
+	return encoder.Uint32(math.Float32bits(x), false)
 }
 
 // Float64 encode a float64 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Float64(x float64) {
-	encoder.Uint64(math.Float64bits(x), false)
+func (encoder *Encoder) Float64(x float64) error {
+	return encoder.Uint64(math.Float64bits(x), false)
 }
 
 // Complex64 encode a complex64 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Complex64(x complex64) {
-	encoder.Uint32(math.Float32bits(real(x)), false)
-	encoder.Uint32(math.Float32bits(imag(x)), false)
+func (encoder *Encoder) Complex64(x complex64) (err error) {
+	err = encoder.Uint32(math.Float32bits(real(x)), false)
+	if err == nil {
+		err = encoder.Uint32(math.Float32bits(imag(x)), false)
+	}
+	return
 }
 
 // Complex128 encode a complex128 value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Complex128(x complex128) {
-	encoder.Uint64(math.Float64bits(real(x)), false)
-	encoder.Uint64(math.Float64bits(imag(x)), false)
+func (encoder *Encoder) Complex128(x complex128) (err error) {
+	err = encoder.Uint64(math.Float64bits(real(x)), false)
+	if err == nil {
+		err = encoder.Uint64(math.Float64bits(imag(x)), false)
+	}
+	return
 }
 
 // String encode a string value to Encoder buffer.
 // It will panic if buffer is not enough.
-func (encoder *Encoder) String(x string) {
+func (encoder *Encoder) String(x string) (err error) {
 	_b := []byte(x)
 	size := len(_b)
-	encoder.Uvarint(uint64(size))
-	buff := encoder.mustReserve(size)
+	_, err = encoder.Uvarint(uint64(size))
+	if err != nil {
+		return
+	}
+	buff, e := encoder.reserve(size)
+	if e != nil {
+		return e
+	}
 	copy(buff, _b)
+	return
 }
 
 // Int encode an int value to Encoder buffer.
 // It will panic if buffer is not enough.
 // It use Varint() to encode as varint(1~10 bytes)
-func (encoder *Encoder) Int(x int) {
-	encoder.Varint(int64(x))
+func (encoder *Encoder) Int(x int) (err error) {
+	_, err = encoder.Varint(int64(x))
+	return
 }
 
 // Uint encode a uint value to Encoder buffer.
 // It will panic if buffer is not enough.
 // It use Uvarint() to encode as uvarint(1~10 bytes)
-func (encoder *Encoder) Uint(x uint) {
-	encoder.Uvarint(uint64(x))
+func (encoder *Encoder) Uint(x uint) (err error) {
+	_, err = encoder.Uvarint(uint64(x))
+	return
 }
 
 // Varint encode an int64 value to Encoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Varint(x int64) int {
+func (encoder *Encoder) Varint(x int64) (int, error) {
 	return encoder.Uvarint(ToUvarint(x))
 }
 
 // Uvarint encode a uint64 value to Encoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Uvarint(x uint64) int {
+func (encoder *Encoder) Uvarint(x uint64) (int, error) {
 	size := SizeofUvarint(x)
-	b := encoder.mustReserve(size)
+	b, err := encoder.reserve(size)
+	if err != nil {
+		return 0, err
+	}
 	x_ := x
 	for i, s := 0, size-1; i < s; i++ {
 		b[i] = byte((x_ & 0x7f) | 0x80)
 		x_ >>= 7
 	}
 	b[size-1] = byte(x_)
-	return size
+	return size, nil
 }
 
 // Value encode an interface value to Encoder buffer.
 // It will return none-nil error if x contains unsupported types
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
-func (encoder *Encoder) Value(x interface{}) (err error) {
+func (encoder *Encoder) Value(x interface{}) error {
 	return encoder.ValueX(x, defaultSerializer)
 }
 
@@ -227,72 +267,68 @@ func (encoder *Encoder) Value(x interface{}) (err error) {
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (encoder *Encoder) ValueX(x interface{}, enableSerializer bool) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			err = e.(error)
-		}
-	}()
+	//	defer func() {
+	//		if e := recover(); e != nil {
+	//			err = e.(error)
+	//		}
+	//	}()
 
-	encoder.resetBoolCoder()  //reset bool writer
-	if encoder.fastValue(x) { //fast value path
-		return nil
+	encoder.resetBoolCoder()               //reset bool writer
+	if ok, e := encoder.fastValue(x); ok { //fast value path
+		return e
 	}
 
 	v := reflect.ValueOf(x)
-
 	return encoder.value(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
 }
 
-func (encoder *Encoder) fastValue(x interface{}) bool {
+func (encoder *Encoder) fastValue(x interface{}) (ok bool, err error) {
 	switch d := x.(type) {
 	case int:
-		encoder.Uvarint(ToUvarint(int64(d)))
-		//encoder.Int(d)
+		err = encoder.Int(d)
 	case uint:
-		encoder.Uvarint(uint64(d))
-		//encoder.Uint(d)
+		err = encoder.Uint(d)
 
 	case bool:
-		encoder.Bool(d)
+		err = encoder.Bool(d)
 	case int8:
-		//encoder.Int8(d)
-		b := encoder.mustReserve(1)
-		b[0] = uint8(d)
+		err = encoder.Int8(d)
 	case uint8:
-		//encoder.Uint8(d)
-		b := encoder.mustReserve(1)
-		b[0] = d
+		err = encoder.Uint8(d)
 	case int16:
-		encoder.Int16(d, false)
+		err = encoder.Int16(d, false)
 	case uint16:
-		encoder.Uint16(d, false)
+		err = encoder.Uint16(d, false)
 	case int32:
-		encoder.Int32(d, false)
+		err = encoder.Int32(d, false)
 	case uint32:
 		encoder.Uint32(d, false)
 	case float32:
-		encoder.Float32(d)
+		err = encoder.Float32(d)
 	case int64:
-		encoder.Int64(d, false)
+		err = encoder.Int64(d, false)
 	case uint64:
-		encoder.Uint64(d, false)
+		err = encoder.Uint64(d, false)
 	case float64:
-		encoder.Float64(d)
+		err = encoder.Float64(d)
 	case complex64:
-		encoder.Complex64(d)
+		err = encoder.Complex64(d)
 	case complex128:
-		encoder.Complex128(d)
+		err = encoder.Complex128(d)
 	case string:
-		encoder.String(d)
+		err = encoder.String(d)
 	case []bool:
 		l := len(d)
-		encoder.Uvarint(uint64(l))
+		_, err = encoder.Uvarint(uint64(l))
 		var b []byte
 		for i := 0; i < l; i++ {
 			bit := i % 8
 			mask := byte(1 << uint(bit))
 			if bit == 0 {
-				b = encoder.mustReserve(1)
+				b, err = encoder.reserve(1)
+				if err != nil {
+					return true, err
+				}
 				b[0] = 0
 			}
 			if x := d[i]; x {
@@ -392,9 +428,9 @@ func (encoder *Encoder) fastValue(x interface{}) bool {
 			//encoder.Uint(d[i])
 		}
 	default:
-		return false
+		return false, nil
 	}
-	return true
+	return true, err
 
 }
 
