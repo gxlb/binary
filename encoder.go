@@ -202,13 +202,13 @@ func (encoder *Encoder) Varint(x int64) int {
 // Uvarint encode a uint64 value to Encoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
 func (encoder *Encoder) Uvarint(x uint64) int {
-	i, _x := 0, x
-	for ; _x >= 0x80; _x >>= 7 {
-		encoder.Uint8(byte(_x) | 0x80)
-		i++
+	size := SizeofUvarint(x)
+	b := encoder.mustReserve(size)
+	for i, x_ := 0, x; i < size; i++ {
+		b[i] = byte(x_) | 0x80
+		x_ >>= 7
 	}
-	encoder.Uint8(byte(_x))
-	return i + 1
+	return size
 }
 
 // Value encode an interface value to Encoder buffer.
