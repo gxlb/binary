@@ -204,11 +204,12 @@ func (encoder *Encoder) Varint(x int64) int {
 func (encoder *Encoder) Uvarint(x uint64) int {
 	size := SizeofUvarint(x)
 	b := encoder.mustReserve(size)
-	for i, x_ := 0, x; i < size; i++ {
+	x_ := x
+	for i, s := 0, size-1; i < s; i++ {
 		b[i] = byte((x_ & 0x7f) | 0x80)
 		x_ >>= 7
 	}
-	b[size-1] &= 0x7f
+	b[size-1] = byte(x_)
 	return size
 }
 
