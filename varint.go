@@ -154,5 +154,5 @@ func SizeofUvarint(ux uint64) int {
 	for n := ux; n >= 0x80; n >>= 7 {
 		i++
 	}
-	return i + 1
+	return i + 1 + 1
 }

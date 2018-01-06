@@ -238,10 +238,13 @@ func (encoder *Encoder) Varint(x int64) (int, error) {
 
 // Uvarint encode a uint64 value to Encoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
-func (encoder *Encoder) Uvarint(x uint64) (int, error) {
-	size := SizeofUvarint(x)
-	b, err := encoder.reserve(size)
-	if err != nil {
+func (encoder *Encoder) Uvarint(x uint64) (size int, err error) {
+	size = SizeofUvarint(x)
+	if err = encoder.Uint8(uint8(size)); err != nil {
+		return 0, err
+	}
+	var b []byte
+	if b, err = encoder.reserve(size); err != nil {
 		return 0, err
 	}
 	x_ := x

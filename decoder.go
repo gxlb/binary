@@ -248,8 +248,13 @@ func (decoder *Decoder) Uvarint() (uint64, int) {
 	var x uint64
 	var bit uint
 	var i int
+	size := decoder.Uint8()
+	if size > MaxVarintLen64 {
+		return 0, 0
+	}
+	buff := decoder.mustReserve(int(size))
 	for i = 0; i < MaxVarintLen64; i++ {
-		b := decoder.Uint8()
+		b := buff[i]
 		x |= uint64(b&0x7f) << bit
 		if b < 0x80 {
 			if i > 9 || i == 9 && b > 1 {
