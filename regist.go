@@ -102,7 +102,7 @@ type structInfo struct {
 	fields []*fieldInfo
 }
 
-func (info *structInfo) encodeSerializer(encoder *Encoder, v reflect.Value, serializer serializerSwitch) error {
+func (info *structInfo) encode(encoder *Encoder, v reflect.Value, serializer serializerSwitch) error {
 	//assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
@@ -110,22 +110,7 @@ func (info *structInfo) encodeSerializer(encoder *Encoder, v reflect.Value, seri
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
 			fieldSerializer := serializer.subSwitch(finfo.isSerializer())
-			if err := encoder.valueSerializer(f, finfo.isPacked(), fieldSerializer); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (info *structInfo) encode(encoder *Encoder, v reflect.Value) error {
-	//assert(v.Kind() == reflect.Struct, v.Type().String())
-	t := v.Type()
-	for i, n := 0, v.NumField(); i < n; i++ {
-		// see comment for corresponding code in decoder.value()
-		finfo := info.field(i)
-		if f := v.Field(i); finfo.isValid(i, t) {
-			if err := encoder.value(f, finfo.isPacked()); err != nil {
+			if err := encoder.value(f, finfo.isPacked(), fieldSerializer); err != nil {
 				return err
 			}
 		}
@@ -140,7 +125,7 @@ func (info *structInfo) decode(decoder *Decoder, v reflect.Value, serializer ser
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
 			fieldSerializer := serializer.subSwitch(finfo.isSerializer())
-			if err := decoder.valuex(f, 1, finfo.isPacked(), fieldSerializer); err != nil {
+			if err := decoder.value(f, 1, finfo.isPacked(), fieldSerializer); err != nil {
 				return err
 			}
 		}

@@ -151,19 +151,17 @@ func EncodeX(x interface{}, buffer []byte, enableSerializer bool) ([]byte, error
 
 	encoder := NewEncoderBuffer(buff)
 	//encoder.resetBoolCoder()  //reset bool writer
-	//err = encoder.ValueX(x, enableSerializer)
+
 	if encoder.fastValue(x) { //fast value path
 		return encoder.Buffer(), nil
 	}
 
 	v := reflect.ValueOf(x)
-	//if enableSerializer {
-	err = encoder.valueSerializer(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
-	//	} else {
-	//		err = encoder.value(reflect.Indirect(v), false)
-	//	}
+	err = encoder.value(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
 
 	return encoder.Buffer(), err
+
+	//return encoder.ValueX(x, enableSerializer)
 }
 
 // Decode unmarshal go data from byte array.
@@ -187,11 +185,7 @@ func DecodeX(buffer []byte, x interface{}, enableSerializer bool) error {
 
 	v := reflect.ValueOf(x)
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		//if enableSerializer {
-		return decoder.valuex(v, 0, false, toplvSerializer(enableSerializer))
-		//		} else {
-		//			return decoder.value(v, 0, false)
-		//		}
+		return decoder.value(v, 0, false, toplvSerializer(enableSerializer))
 	}
 
 	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
