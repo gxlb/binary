@@ -990,3 +990,26 @@ NormalValues.StringSlice      -         -         3.82s     3.53s     3.84s     
 NormalValues.MapUU            -         -         9.95s     5.51s     9.63s     5.23s     30.32s    543.25s   
 finish time = 2018-01-07 01:14:27
 Cost = 543.25s
+
+===============
+time = 2018-01-07 01:24:32
+buildtime = 2018-01-07 01:24:11
+doCnt = 20000000
+Case                          StdWrite  StdRead   EncodeY   DecodeY   EncodeN   DecodeN   Cost      TotalTime 
+FastValues.Int                -         -         1.41s     0.72s     1.45s     0.72s     4.30s     4.33s     
+FastValues.Uint               -         -         1.29s     1.14s     1.28s     1.21s     4.93s     9.26s     
+FastValues.Bool               0.85s     1.89s     0.82s     0.60s     0.82s     0.61s     5.58s     14.84s    
+FastValues.Int8               0.80s     1.94s     0.84s     0.61s     0.84s     0.59s     5.63s     20.47s    
+FastValues.Int16              0.86s     2.04s     1.00s     0.85s     0.99s     0.79s     6.53s     27.00s    
+FastValues.Int32              0.99s     2.01s     0.98s     0.92s     1.01s     0.79s     6.71s     33.71s    
+FastValues.Int64              0.84s     2.19s     0.97s     0.78s     1.11s     0.81s     6.70s     40.41s    
+FastValues.Uint8              0.77s     2.02s     0.79s     0.54s     0.76s     0.57s     5.45s     45.86s    
+FastValues.Uint16             1.03s     1.92s     0.90s     0.71s     0.89s     0.71s     6.16s     52.02s    
+FastValues.Uint32             0.91s     1.87s     0.94s     0.72s     0.94s     0.75s     6.13s     58.15s    
+FastValues.Uint64             0.90s     1.83s     0.89s     0.72s     0.89s     0.72s     5.96s     64.11s    
+FastValues.Float32            1.93s     2.95s     0.98s     0.78s     0.97s     0.78s     8.39s     72.50s    
+FastValues.Float64            1.87s     3.00s     0.96s     0.79s     0.94s     0.80s     8.36s     80.86s    
+FastValues.Complex64          2.15s     3.43s     1.35s     1.38s     1.38s     1.32s     11.02s    91.87s    
+FastValues.Complex128         2.30s     3.21s     1.31s     1.49s     1.46s     1.35s     11.11s    102.99s   
+FastValues.String             -         -         3.28s     2.64s     3.21s     2.75s     11.88s    114.87s   
+FastValues.IntSlice           -         -         0.99s     
