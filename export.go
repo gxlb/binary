@@ -180,18 +180,18 @@ func DecodeX(buffer []byte, x interface{}, enableSerializer bool) error {
 	var decoder Decoder
 	decoder.Init(buffer, DefaultEndian)
 
-	if decoder.fastValue(x) { //fast value path
-		return nil
-	}
+	//	if decoder.fastValue(x) { //fast value path
+	//		return nil
+	//	}
 
-	v := reflect.ValueOf(x)
-	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		return decoder.value(v, 0, false, toplvSerializer(enableSerializer))
-	}
+	//	v := reflect.ValueOf(x)
+	//	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
+	//		return decoder.value(v, 0, false, toplvSerializer(enableSerializer))
+	//	}
 
-	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
+	//	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)
 
-	//return decoder.ValueX(data, enableSerializer)
+	return decoder.ValueX(x, enableSerializer)
 }
 
 // MakeBuffer create enough buffer to encode data.

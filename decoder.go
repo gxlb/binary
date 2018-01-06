@@ -302,12 +302,12 @@ func (decoder *Decoder) Value(x interface{}) (err error) {
 // or buffer is not enough.
 // It will check if x implements interface BinaryEncoder and use x.Encode first.
 func (decoder *Decoder) ValueX(x interface{}, enableSerializer bool) (err error) {
-	defer func() {
-		if info := recover(); info != nil {
-			err = info.(error)
-			assert(err != nil, info)
-		}
-	}()
+	//	defer func() {
+	//		if info := recover(); info != nil {
+	//			err = info.(error)
+	//			assert(err != nil, info)
+	//		}
+	//	}()
 
 	//decoder.resetBoolCoder() //reset bool reader
 	decoder.boolPos = -1
@@ -331,18 +331,18 @@ func (decoder *Decoder) useSerializer(v reflect.Value) error {
 }
 
 // Serializer decode BinarySerializer x.
-func (decoder *Decoder) Serializer(x interface{}) error {
+func (decoder *Decoder) Serializer(x interface{}) (err error) {
 	//	t := reflect.TypeOf(x)
 	//	if _, _, _, err := deepRegableType(t, true); err != nil {
 	//		return err
 	//	}
 	if p, ok := x.(BinarySerializer); ok {
 		size := p.Size()
-		if err := p.Decode(decoder.buff[decoder.pos:]); err != nil {
+		if err = p.Decode(decoder.buff[decoder.pos:]); err != nil {
 			return err
 		}
-		decoder.mustReserve(size)
-		return nil
+		_, err = decoder.reserve(size)
+		return err
 	}
 
 	return typeError("binary: expect implements BinarySerializer %s", reflect.TypeOf(x), true)
