@@ -458,7 +458,7 @@ func (encoder *Encoder) Serializer(x interface{}) error {
 }
 
 // valueSerializer encode v with serializer check
-func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serializerSwitch) error {
+func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serializerSwitch) (err error) {
 	k := v.Kind()
 	if serializer.checkOk() ||
 		serializer.needCheck() && k != reflect.Ptr && querySerializer(v.Type()) {
@@ -467,56 +467,39 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 
 	switch k {
 	case reflect.Int:
-		encoder.Uvarint(ToUvarint(v.Int()))
-		//encoder.Int(int(v.Int()))
+		err = encoder.Int(int(v.Int()))
 	case reflect.Uint:
-		encoder.Uvarint(v.Uint())
-		//encoder.Uint(uint(v.Uint()))
+		err = encoder.Uint(uint(v.Uint()))
 	case reflect.Bool:
-		encoder.Bool(v.Bool())
+		err = encoder.Bool(v.Bool())
 	case reflect.Int8:
-		b := encoder.mustReserve(1)
-		b[0] = uint8(v.Int())
-		//encoder.Int8(int8(v.Int()))
+		err = encoder.Int8(int8(v.Int()))
 	case reflect.Int16:
-		encoder.Int16(int16(v.Int()), packed)
+		err = encoder.Int16(int16(v.Int()), packed)
 	case reflect.Int32:
-		encoder.Int32(int32(v.Int()), packed)
+		err = encoder.Int32(int32(v.Int()), packed)
 	case reflect.Int64:
-		encoder.Int64(v.Int(), packed)
+		err = encoder.Int64(v.Int(), packed)
 	case reflect.Uint8:
-		encoder.Uint8(uint8(v.Uint()))
+		err = encoder.Uint8(uint8(v.Uint()))
 	case reflect.Uint16:
-		encoder.Uint16(uint16(v.Uint()), packed)
+		err = encoder.Uint16(uint16(v.Uint()), packed)
 	case reflect.Uint32:
-		if packed {
-			encoder.Uvarint(v.Uint())
-		} else {
-			b := encoder.mustReserve(4)
-			encoder.endian.PutUint32(b, uint32(v.Uint()))
-		}
-		//encoder.Uint32(uint32(v.Uint()), packed)
+		err = encoder.Uint32(uint32(v.Uint()), packed)
 	case reflect.Uint64:
-		x := v.Uint()
-		if packed {
-			encoder.Uvarint(x)
-		} else {
-			b := encoder.mustReserve(8)
-			encoder.endian.PutUint64(b, x)
-		}
-		//encoder.Uint64(v.Uint(), packed)
+		err = encoder.Uint64(v.Uint(), packed)
 	case reflect.Float32:
-		encoder.Float32(float32(v.Float()))
+		err = encoder.Float32(float32(v.Float()))
 	case reflect.Float64:
-		encoder.Float64(v.Float())
+		err = encoder.Float64(v.Float())
 	case reflect.Complex64:
 		x := v.Complex()
-		encoder.Complex64(complex64(x))
+		err = encoder.Complex64(complex64(x))
 	case reflect.Complex128:
 		x := v.Complex()
-		encoder.Complex128(x)
+		err = encoder.Complex128(x)
 	case reflect.String:
-		encoder.String(v.String())
+		err = encoder.String(v.String())
 
 	case reflect.Slice, reflect.Array:
 		elemT := v.Type().Elem()
@@ -528,7 +511,9 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 			l := v.Len()
 			encoder.Uvarint(uint64(l))
 			for i := 0; i < l; i++ {
-				encoder.value(v.Index(i), packed, elemSerializer) //ignore error
+				if err = encoder.value(v.Index(i), packed, elemSerializer); err != nil {
+					break
+				}
 			}
 		}
 
@@ -543,11 +528,17 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 		valueSerilaizer := serializer.subSwitchCheck(vt)
 		keys := v.MapKeys()
 		l := len(keys)
-		encoder.Uvarint(uint64(l))
+		if _, err = encoder.Uvarint(uint64(l)); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
 			key := keys[i]
-			encoder.value(key, packed, keySerilaizer)               //ignore error
-			encoder.value(v.MapIndex(key), packed, valueSerilaizer) //ignore error
+			if err = encoder.value(key, packed, keySerilaizer); err != nil {
+				break
+			}
+			if err = encoder.value(v.MapIndex(key), packed, valueSerilaizer); err != nil {
+				break
+			}
 		}
 
 	case reflect.Struct:
@@ -558,18 +549,20 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
 		}
 		if !v.IsNil() {
-			encoder.Bool(true)
+			if err = encoder.Bool(true); err != nil {
+				break
+			}
 			if e := v.Elem(); e.Kind() != reflect.Ptr {
 				return encoder.value(e, packed, serializer)
 			}
 		} else {
-			encoder.Bool(false) //put a bool to mark nil pointer
+			err = encoder.Bool(false) //put a bool to mark nil pointer
 		}
 
 	default:
 		return typeError("binary.Encoder.Value: unsupported type [%s]", v.Type(), true)
 	}
-	return nil
+	return
 }
 
 // encode bool array
