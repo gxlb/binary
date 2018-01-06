@@ -447,12 +447,11 @@ func (encoder *Encoder) Serializer(x interface{}) error {
 	//	}
 	if p, ok := x.(BinaryEncoder); ok {
 		r, err := p.Encode(encoder.buff[encoder.pos:])
-		if err != nil {
-			return err
+		if err == nil {
+			_, err = encoder.reserve(len(r))
 
 		}
-		encoder.mustReserve(len(r))
-		return nil
+		return err
 	}
 
 	return typeError("binary: expect implements BinarySerializer %s", reflect.TypeOf(x), true)
