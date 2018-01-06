@@ -643,7 +643,6 @@ func (encoder *Encoder) boolArray(v reflect.Value) (size int, err error) {
 				bit := i % 8
 				mask := byte(1 << uint(bit))
 				if bit == 0 {
-					var b []byte
 					if b, err = encoder.reserve(1); err != nil {
 						return l, err
 					}
