@@ -319,14 +319,18 @@ func (encoder *Encoder) fastValue(x interface{}) (ok bool, err error) {
 		err = encoder.String(d)
 	case []bool:
 		l := len(d)
-		_, err = encoder.Uvarint(uint64(l))
+		if _, err = encoder.Uvarint(uint64(l)); err != nil {
+			break
+		}
+		if err != nil {
+			return true, err
+		}
 		var b []byte
 		for i := 0; i < l; i++ {
 			bit := i % 8
 			mask := byte(1 << uint(bit))
 			if bit == 0 {
-				b, err = encoder.reserve(1)
-				if err != nil {
+				if b, err = encoder.reserve(1); err != nil {
 					return true, err
 				}
 				b[0] = 0
@@ -337,95 +341,153 @@ func (encoder *Encoder) fastValue(x interface{}) (ok bool, err error) {
 		}
 	case []int8:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Int8(d[i])
+			if err = encoder.Int8(d[i]); err != nil {
+				break
+			}
 		}
 	case []uint8:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Uint8(d[i])
+			if err = encoder.Uint8(d[i]); err != nil {
+				break
+			}
 		}
 	case []int16:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Int16(d[i], false)
+			if err = encoder.Int16(d[i], false); err != nil {
+				break
+			}
 		}
 	case []uint16:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Uint16(d[i], false)
+			if err = encoder.Uint16(d[i], false); err != nil {
+				break
+			}
 		}
 	case []int32:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Int32(d[i], false)
+			if err = encoder.Int32(d[i], false); err != nil {
+				break
+			}
 		}
 	case []uint32:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Uint32(d[i], false)
+			if err = encoder.Uint32(d[i], false); err != nil {
+				break
+			}
 		}
 	case []int64:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Int64(d[i], false)
+			if err = encoder.Int64(d[i], false); err != nil {
+				break
+			}
 		}
 	case []uint64:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Uint64(d[i], false)
+			if err = encoder.Uint64(d[i], false); err != nil {
+				break
+			}
 		}
 	case []float32:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Float32(d[i])
+			if err = encoder.Float32(d[i]); err != nil {
+				break
+			}
 		}
 	case []float64:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Float64(d[i])
+			if err = encoder.Float64(d[i]); err != nil {
+				break
+			}
 		}
 	case []complex64:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Complex64(d[i])
+			if err = encoder.Complex64(d[i]); err != nil {
+				break
+			}
 		}
 	case []complex128:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Complex128(d[i])
+			if err = encoder.Complex128(d[i]); err != nil {
+				break
+			}
 		}
 	case []string:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.String(d[i])
+			if err = encoder.String(d[i]); err != nil {
+				break
+			}
 		}
 	case []int:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Uvarint(ToUvarint(int64(d[i])))
-			//encoder.Int(d[i])
+			if err = encoder.Int(d[i]); err != nil {
+				break
+			}
 		}
 	case []uint:
 		l := len(d)
-		encoder.Uvarint(uint64(len(d)))
+		if _, err = encoder.Uvarint(uint64(len(d))); err != nil {
+			break
+		}
 		for i := 0; i < l; i++ {
-			encoder.Uvarint(uint64(d[i]))
-			//encoder.Uint(d[i])
+			if err = encoder.Uint(d[i]); err != nil {
+				break
+			}
 		}
 	default:
 		return false, nil
@@ -507,9 +569,12 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
 		}
 		elemSerializer := serializer.subSwitchCheck(elemT)
-		if encoder.boolArray(v) < 0 { //deal with bool array first
+		boolArrySize := -1
+		if boolArrySize, err = encoder.boolArray(v); boolArrySize < 0 { //deal with bool array first
 			l := v.Len()
-			encoder.Uvarint(uint64(l))
+			if _, err = encoder.Uvarint(uint64(l)); err != nil {
+				break
+			}
 			for i := 0; i < l; i++ {
 				if err = encoder.value(v.Index(i), packed, elemSerializer); err != nil {
 					break
@@ -549,7 +614,7 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 			return fmt.Errorf("binary.Encoder.Value: unsupported type %s", v.Type().String())
 		}
 		if !v.IsNil() {
-			if err = encoder.Bool(true); err != nil {
+			if err = encoder.Bool(true); err != nil { //put a bool to mark pointer
 				break
 			}
 			if e := v.Elem(); e.Kind() != reflect.Ptr {
@@ -566,25 +631,30 @@ func (encoder *Encoder) value(v reflect.Value, packed bool, serializer serialize
 }
 
 // encode bool array
-func (encoder *Encoder) boolArray(v reflect.Value) int {
+func (encoder *Encoder) boolArray(v reflect.Value) (size int, err error) {
 	if k := v.Kind(); k == reflect.Slice || k == reflect.Array {
 		if v.Type().Elem().Kind() == reflect.Bool {
 			l := v.Len()
-			encoder.Uvarint(uint64(l))
+			if _, err = encoder.Uvarint(uint64(l)); err != nil {
+				return l, err
+			}
 			var b []byte
 			for i := 0; i < l; i++ {
 				bit := i % 8
 				mask := byte(1 << uint(bit))
 				if bit == 0 {
-					b = encoder.mustReserve(1)
+					var b []byte
+					if b, err = encoder.reserve(1); err != nil {
+						return l, err
+					}
 					b[0] = 0
 				}
 				if x := v.Index(i).Bool(); x {
 					b[0] |= mask
 				}
 			}
-			return sizeofBoolArray(l)
+			return sizeofBoolArray(l), nil
 		}
 	}
-	return -1
+	return -1, nil
 }
