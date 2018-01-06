@@ -152,7 +152,7 @@ func newPtr(v reflect.Value, decoder *Decoder, depth int) bool {
 			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
 			reflect.Complex128, reflect.String:
 			isNotNilPointer := false
-			if depth == 0 {
+			if depth > 0 {
 				isNotNilPointer = decoder.Bool()
 				if v.IsNil() {
 					if isNotNilPointer {

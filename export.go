@@ -157,11 +157,11 @@ func EncodeX(x interface{}, buffer []byte, enableSerializer bool) ([]byte, error
 	}
 
 	v := reflect.ValueOf(x)
-	if enableSerializer {
-		err = encoder.valueSerializer(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
-	} else {
-		err = encoder.value(reflect.Indirect(v), false)
-	}
+	//if enableSerializer {
+	err = encoder.valueSerializer(reflect.Indirect(v), false, toplvSerializer(enableSerializer))
+	//	} else {
+	//		err = encoder.value(reflect.Indirect(v), false)
+	//	}
 
 	return encoder.Buffer(), err
 }
@@ -187,11 +187,11 @@ func DecodeX(buffer []byte, x interface{}, enableSerializer bool) error {
 
 	v := reflect.ValueOf(x)
 	if v.Kind() == reflect.Ptr { //only support decode for pointer interface
-		if enableSerializer {
-			return decoder.valuex(v, 0, false, toplvSerializer(enableSerializer))
-		} else {
-			return decoder.value(v, 0, false)
-		}
+		//if enableSerializer {
+		return decoder.valuex(v, 0, false, toplvSerializer(enableSerializer))
+		//		} else {
+		//			return decoder.value(v, 0, false)
+		//		}
 	}
 
 	return typeError("binary.Decoder.Value: non-pointer type %s", v.Type(), true)

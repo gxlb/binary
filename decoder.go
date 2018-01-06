@@ -50,7 +50,6 @@ func (decoder *Decoder) mustReserve(size int) []byte {
 		}
 		return buff
 	}
-
 	return decoder.coder.mustReserve(size) //decode from bytes buffer
 }
 
