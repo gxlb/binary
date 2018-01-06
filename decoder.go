@@ -78,9 +78,13 @@ func (decoder *Decoder) Init(buffer []byte, endian Endian) {
 
 // Bool decode a bool value from Decoder buffer.
 // It will panic if buffer is not enough.
-func (decoder *Decoder) Bool() bool {
+func (decoder *Decoder) Bool() (value bool) {
+	var err error
 	if decoder.boolBit == 0 {
-		b := decoder.mustReserve(1)
+		var b []byte
+		if b, err = decoder.reserve(1); err != nil {
+			return false
+		}
 		decoder.boolValue = b[0]
 	}
 
