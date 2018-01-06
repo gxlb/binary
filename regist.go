@@ -106,7 +106,6 @@ func (info *structInfo) encode(encoder *Encoder, v reflect.Value, serializer ser
 	//assert(v.Kind() == reflect.Struct, v.Type().String())
 	t := v.Type()
 	for i, n := 0, v.NumField(); i < n; i++ {
-		// see comment for corresponding code in decoder.value()
 		finfo := info.field(i)
 		if f := v.Field(i); finfo.isValid(i, t) {
 			fieldSerializer := serializer.subSwitch(finfo.isSerializer())
