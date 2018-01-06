@@ -475,13 +475,9 @@ func (decoder *Decoder) value(v reflect.Value, depth int, packed bool, serialize
 func (decoder *Decoder) fastValue(x interface{}) bool {
 	switch d := x.(type) {
 	case *int:
-		ux, _ := decoder.Uvarint() // ok to continue in presence of error
-		*d = int(ToVarint(ux))
-		//*d = decoder.Int()
+		*d = decoder.Int()
 	case *uint:
-		ux, _ := decoder.Uvarint() // ok to continue in presence of error
-		*d = uint(ux)
-		//*d = decoder.Uint()
+		*d = decoder.Uint()
 	case *bool:
 		*d = decoder.Bool()
 	case *int8:
@@ -529,18 +525,14 @@ func (decoder *Decoder) fastValue(x interface{}) bool {
 		l := int(s)
 		*d = make([]int, l)
 		for i := 0; i < l; i++ {
-			ux, _ := decoder.Uvarint() // ok to continue in presence of error
-			(*d)[i] = int(ToVarint(ux))
-			//(*d)[i] = decoder.Int()
+			(*d)[i] = decoder.Int()
 		}
 	case *[]uint:
 		s, _ := decoder.Uvarint()
 		l := int(s)
 		*d = make([]uint, l)
 		for i := 0; i < l; i++ {
-			ux, _ := decoder.Uvarint() // ok to continue in presence of error
-			(*d)[i] = uint(ux)
-			//(*d)[i] = decoder.Uint()
+			(*d)[i] = decoder.Uint()
 		}
 
 	case *[]int8:
