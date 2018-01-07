@@ -245,7 +245,7 @@ func (encoder *Encoder) Uvarint(x uint64) (size int, err error) {
 	}
 	if followByteNum > 0 {
 		var b []byte
-		if b, err = encoder.reserve(size); err != nil {
+		if b, err = encoder.reserve(int(followByteNum)); err != nil {
 			return 0, err
 		}
 		for i, x_ := uint8(0), x; i < followByteNum; i++ {
