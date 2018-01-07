@@ -33,7 +33,12 @@ import (
 const (
 	MaxVarintLen16 = 3
 	MaxVarintLen32 = 5
-	MaxVarintLen64 = 10
+	MaxVarintLen64 = 9
+
+	longUvarintFlagMask   = 0x80
+	longUvarintMinByteNum = 3
+	shortUvarintLenBits   = 2 //length bits of short uvarint(<= 2 bytes) 00 01
+	longUvarintLenBits    = 4 //length bits of long uvarint(> 2 bytes) 100 101 110 111
 )
 
 // PutUvarint encodes a uint64 into buf and returns the number of bytes written.
@@ -150,9 +155,52 @@ func SizeofVarint(x int64) int {
 
 // SizeofUvarint return bytes number of an uint64 value store as uvarint
 func SizeofUvarint(ux uint64) int {
-	i := 0
-	for n := ux; n >= 0x80; n >>= 7 {
+	//	i := 1
+	//	for n := ux; n >= 0x40; n >>= 8 { //short style
+	//		i++
+	//	}
+	//	if i >= longUvarintMinBytes && n >= 0x10 { //long style, check if need more bytes
+	//		i++
+	//	}
+	//	return i
+	size, _ := sizeofUvarint(ux)
+	return size
+}
+
+// SizeofUvarint return bytes number of an uint64 value store as uvarint
+func sizeofUvarint(ux uint64) (size int, topBits byte) {
+	i, n := 1, ux
+	for ; n >= 0x40; n >>= 8 { //short style
 		i++
 	}
-	return i + 1 + 1
+	if i >= longUvarintMinByteNum && n >= 0x10 { //long style, check if need more bytes
+		i++
+		n = 0
+	}
+	return i, byte(n)
+}
+
+func packUvarintHead(ux uint64) (headByte byte, followByteNum uint8) {
+	size, topBits := sizeofUvarint(ux)
+	followByteNum = byte(size - 1)
+	if size < longUvarintMinByteNum { //short style
+		headByte = followByteNum << (8 - shortUvarintLenBits)
+	} else { //long style
+		headByte = (followByteNum - longUvarintMinByteNum + 1) << (8 - longUvarintLenBits)
+		headByte |= longUvarintFlagMask
+	}
+	headByte |= topBits
+	return
+}
+
+func unpackUvarintHead(headByte byte) (followByteNum uint8, topBits uint64) {
+	if headByte&longUvarintFlagMask == 0 { //short style
+		followByteNum = headByte >> (8 - shortUvarintLenBits)
+		topBits = uint64(headByte << shortUvarintLenBits >> shortUvarintLenBits)
+	} else { //long style
+		followByteNum = (headByte&0x7f)>>(8-shortUvarintLenBits) + longUvarintMinByteNum - 1
+		topBits = uint64(headByte << longUvarintLenBits >> longUvarintLenBits)
+	}
+	topBits <<= (8 * followByteNum)
+	return
 }

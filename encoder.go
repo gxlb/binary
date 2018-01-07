@@ -239,21 +239,37 @@ func (encoder *Encoder) Varint(x int64) (int, error) {
 // Uvarint encode a uint64 value to Encoder buffer with varint(1~10 bytes).
 // It will panic if buffer is not enough.
 func (encoder *Encoder) Uvarint(x uint64) (size int, err error) {
-	size = SizeofUvarint(x)
-	if err = encoder.Uint8(uint8(size)); err != nil {
+	headByte, followByteNum := packUvarintHead(x)
+	if err = encoder.Uint8(headByte); err != nil {
 		return 0, err
 	}
-	var b []byte
-	if b, err = encoder.reserve(size); err != nil {
-		return 0, err
+	if followByteNum > 0 {
+		var b []byte
+		if b, err = encoder.reserve(size); err != nil {
+			return 0, err
+		}
+		for i, x_ := uint8(0), x; i < followByteNum; i++ {
+			b[i] = byte(x_)
+			x_ >>= 8
+		}
 	}
-	x_ := x
-	for i, s := 0, size-1; i < s; i++ {
-		b[i] = byte(x_) | 0x80
-		x_ >>= 7
-	}
-	b[size-1] = byte(x_)
-	return size, nil
+	return int(followByteNum + 1), nil
+
+	//	size = SizeofUvarint(x)
+	//	if err = encoder.Uint8(uint8(size)); err != nil {
+	//		return 0, err
+	//	}
+	//	var b []byte
+	//	if b, err = encoder.reserve(size); err != nil {
+	//		return 0, err
+	//	}
+	//	x_ := x
+	//	for i, s := 0, size-1; i < s; i++ {
+	//		b[i] = byte(x_) | 0x80
+	//		x_ >>= 7
+	//	}
+	//	b[size-1] = byte(x_)
+	//	return size, nil
 }
 
 // Value encode an interface value to Encoder buffer.

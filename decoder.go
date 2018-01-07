@@ -245,51 +245,63 @@ func (decoder *Decoder) Varint() (int64, int) {
 // It will panic if buffer is not enough.
 // It will return n <= 0 if varint error
 func (decoder *Decoder) Uvarint() (uint64, int) {
-	var x uint64
-	var bit uint
-	var i int
-	size := decoder.Uint8()
+	headByte := decoder.Uint8()
+	followByteNum, topBits := unpackUvarintHead(headByte)
+	size := int(followByteNum + 1)
 	if size > MaxVarintLen64 {
-		return 0, 0
+		//return 0, 0
+		panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value len=%d (pos:%d/%d)", size, decoder.Len(), decoder.Cap()))
 	}
-	buff := decoder.mustReserve(int(size))
-	for i = 0; i < MaxVarintLen64; i++ {
-		b := buff[i]
-		x |= uint64(b&0x7f) << bit
-		if b < 0x80 {
-			if i > 9 || i == 9 && b > 1 {
-				break // overflow
-			}
-			return x, i + 1
+	x := topBits
+	if followByteNum > 0 {
+		buff := decoder.mustReserve(int(followByteNum))
+		for i := uint8(0); i < followByteNum; i++ {
+			x |= uint64(buff[i]) << (8 * i)
 		}
-		bit += 7
 	}
-	//return 0, 0
-	panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d)", decoder.Len(), decoder.Cap()))
+	return x, size
+
+	//	var x uint64
+	//	var bit uint
+	//	var i int
+
+	//	buff := decoder.mustReserve(int(size))
+	//	for i = 0; i < MaxVarintLen64; i++ {
+	//		b := buff[i]
+	//		x |= uint64(b&0x7f) << bit
+	//		if b < 0x80 {
+	//			if i > 9 || i == 9 && b > 1 {
+	//				break // overflow
+	//			}
+	//			return x, i + 1
+	//		}
+	//		bit += 7
+	//	}
+	//	//return 0, 0
+	//	panic(fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d)", decoder.Len(), decoder.Cap()))
 }
 
-func (decoder *Decoder) varint() (int64, int, error) {
-	ux, n, err := decoder.uvarint() // ok to continue in presence of error
-	return ToVarint(ux), n, err
-}
-
-func (decoder *Decoder) uvarint() (uint64, int, error) {
-	var x uint64
-	var bit uint
-	var i int
-	for i = 0; i < MaxVarintLen64; i++ {
-		b := decoder.Uint8()
-		x |= uint64(b&0x7f) << bit
-		if b < 0x80 {
-			if i >= MaxVarintLen64 || i == MaxVarintLen64-1 && b > 1 {
-				break // overflow
-			}
-			return x, i + 1, nil
-		}
-		bit += 7
-	}
-	return 0, 0, fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d)", decoder.Len(), decoder.Cap())
-}
+//func (decoder *Decoder) varint() (int64, int, error) {
+//	ux, n, err := decoder.uvarint() // ok to continue in presence of error
+//	return ToVarint(ux), n, err
+//}
+//func (decoder *Decoder) uvarint() (uint64, int, error) {
+//	var x uint64
+//	var bit uint
+//	var i int
+//	for i = 0; i < MaxVarintLen64; i++ {
+//		b := decoder.Uint8()
+//		x |= uint64(b&0x7f) << bit
+//		if b < 0x80 {
+//			if i >= MaxVarintLen64 || i == MaxVarintLen64-1 && b > 1 {
+//				break // overflow
+//			}
+//			return x, i + 1, nil
+//		}
+//		bit += 7
+//	}
+//	return 0, 0, fmt.Errorf("binary.Decoder.Uvarint: overflow 64-bits value(pos:%d/%d)", decoder.Len(), decoder.Cap())
+//}
 
 // Value decode an interface value from Encoder buffer.
 // x must be interface of pointer for modify.
