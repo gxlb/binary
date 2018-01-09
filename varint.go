@@ -35,10 +35,12 @@ const (
 	MaxVarintLen32 = 5
 	MaxVarintLen64 = 9
 
-	longUvarintFlagMask   = 0x80
-	longUvarintMinByteNum = 3
-	shortUvarintLenBits   = 2 //length bits of short uvarint(<= 2 bytes) 00 01
-	longUvarintLenBits    = 4 //length bits of long uvarint(> 2 bytes) 100 101 110 111
+	longUvarintFlagMask     = byte(0x80)
+	shortUvarintMaxByteNum  = 2
+	shortUvarintLenBitNum   = 2 //length bits of short uvarint(<= 2 bytes) 00~01
+	longUvarintLenBitNum    = 4 //length bits of long uvarint(> 2 bytes) 1000~1111
+	shortUvarintValueBitNum = 8 - shortUvarintLenBitNum
+	longUvarintValueBitNum  = 8 - longUvarintLenBitNum
 )
 
 // PutUvarint encodes a uint64 into buf and returns the number of bytes written.
@@ -169,32 +171,30 @@ func SizeofUvarint(ux uint64) int {
 
 // SizeofUvarint return bytes number of an uint64 value store as uvarint
 func sizeofUvarint(ux uint64) (size int, topBits byte) {
-	i, n := 1, ux
-	for ; n >= 0x40; n >>= 8 { //short style
-		i++
+	n, x := 1, ux
+	for ; x > 0x3F; x >>= 8 { //short style, 6 effective bits
+		n++
 	}
-	if i >= longUvarintMinByteNum && n >= 0x10 { //long style, check if need more bytes
-		i++
-		n = 0
+	if n > shortUvarintMaxByteNum && x > 0x0F { //long style, 4 effective bits, check if need more bytes
+		n, x = n+1, 0
 	}
-	return i, byte(n)
+	return n, byte(x)
 }
 
-//0 1bytes 0~7 bits
-//10 2byte 8~14 bytes
+// 00~01 1~2 bytes 0~14 bits
+// 100~101 3~4
+// 1100~1101 5~6
+// 11100~11101 7~10
 
-// 00 01 1~2 bytes 0~14 bits
-// 100 101 3~4 bytes 15~29 bits
-// 1100~1111 5~8 bytes 30~60 bits
-// 1111 && topBits==0 9 bytes 61~64 bits
+// 00~01 1~2 bytes 0~14 bits 0~16383
+// 1000~1111 3~9 bytes
 func packUvarintHead(ux uint64) (headByte byte, followByteNum uint8) {
 	size, topBits := sizeofUvarint(ux)
 	followByteNum = byte(size - 1)
-	if size < longUvarintMinByteNum { //short style
-		headByte = followByteNum << (8 - shortUvarintLenBits)
+	if size <= shortUvarintMaxByteNum { //short style
+		headByte = followByteNum << shortUvarintValueBitNum
 	} else { //long style
-		headByte = (followByteNum - longUvarintMinByteNum + 1) << (8 - longUvarintLenBits)
-		headByte |= longUvarintFlagMask
+		headByte = longUvarintFlagMask | ((followByteNum - shortUvarintMaxByteNum) << longUvarintValueBitNum)
 	}
 	headByte |= topBits
 	return
@@ -202,11 +202,11 @@ func packUvarintHead(ux uint64) (headByte byte, followByteNum uint8) {
 
 func unpackUvarintHead(headByte byte) (followByteNum uint8, topBits uint64) {
 	if headByte&longUvarintFlagMask == 0 { //short style
-		followByteNum = headByte >> (8 - shortUvarintLenBits)
-		topBits = uint64(headByte << shortUvarintLenBits >> shortUvarintLenBits)
+		followByteNum = headByte >> shortUvarintValueBitNum
+		topBits = uint64(headByte << shortUvarintLenBitNum >> shortUvarintLenBitNum)
 	} else { //long style
-		followByteNum = (headByte&0x7f)>>(8-shortUvarintLenBits) + longUvarintMinByteNum - 1
-		topBits = uint64(headByte << longUvarintLenBits >> longUvarintLenBits)
+		followByteNum = (headByte&0x7f)>>longUvarintValueBitNum + shortUvarintMaxByteNum
+		topBits = uint64(headByte << longUvarintLenBitNum >> longUvarintLenBitNum)
 	}
 	topBits <<= (8 * followByteNum)
 	return
