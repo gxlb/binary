@@ -26,6 +26,7 @@ package binary
 
 import (
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -46,14 +47,15 @@ const (
 // PutUvarint encodes a uint64 into buf and returns the number of bytes written.
 // If the buffer is too small, PutUvarint will panic.
 func PutUvarint(buf []byte, x uint64) int {
-	i := 0
-	for x >= 0x80 {
-		buf[i] = byte(x) | 0x80
-		x >>= 7
-		i++
+	headByte, followByteNum := packUvarintHead(x)
+	buf[0] = headByte
+	if followByteNum > 0 {
+		for i, x_ := uint8(1), x; i <= followByteNum; i++ {
+			buf[i] = byte(x_)
+			x_ >>= 8
+		}
 	}
-	buf[i] = byte(x)
-	return i + 1
+	return int(followByteNum + 1)
 }
 
 // Uvarint decodes a uint64 from buf and returns that value and the
@@ -65,19 +67,19 @@ func PutUvarint(buf []byte, x uint64) int {
 //              and -n is the number of bytes read
 //
 func Uvarint(buf []byte) (uint64, int) {
-	var x uint64
-	var s uint
-	for i, b := range buf {
-		if b < 0x80 {
-			if i > 9 || i == 9 && b > 1 {
-				return 0, -(i + 1) // overflow
-			}
-			return x | uint64(b)<<s, i + 1
-		}
-		x |= uint64(b&0x7f) << s
-		s += 7
+	headByte := buf[0]
+	followByteNum, topBits := unpackUvarintHead(headByte)
+	size := int(followByteNum + 1)
+	if size > MaxVarintLen64 {
+		panic(fmt.Errorf("binary.Uvarint: overflow 64-bits value len=%d", size))
 	}
-	return 0, 0
+	x := topBits
+	if followByteNum > 0 {
+		for i := uint8(1); i <= followByteNum; i++ {
+			x |= uint64(buf[i]) << (8 * (i - 1))
+		}
+	}
+	return x, size
 }
 
 // PutVarint encodes an int64 into buf and returns the number of bytes written.
@@ -102,27 +104,31 @@ func Varint(buf []byte) (int64, int) {
 var errOverflow = errors.New("binary: varint overflows a 64-bit integer")
 
 // ReadUvarint reads an encoded unsigned integer from r and returns it as a uint64.
-func ReadUvarint(r io.ByteReader) (uint64, error) {
-	var x uint64
-	var s uint
-	for i := 0; ; i++ {
-		b, err := r.ReadByte()
-		if err != nil {
-			return x, err
-		}
-		if b < 0x80 {
-			if i > 9 || i == 9 && b > 1 {
-				return x, errOverflow
-			}
-			return x | uint64(b)<<s, nil
-		}
-		x |= uint64(b&0x7f) << s
-		s += 7
+func ReadUvarint(r io.Reader) (uint64, error) {
+	var buff [8]byte
+	if _, err := r.Read(buff[:1]); err != nil {
+		return 0, err
 	}
+	headByte := buff[0]
+	followByteNum, topBits := unpackUvarintHead(headByte)
+	if size := int(followByteNum + 1); size > MaxVarintLen64 {
+		//return 0, 0
+		return 0, fmt.Errorf("binary.ReadUvarint: overflow 64-bits value len=%d ", size)
+	}
+	x := topBits
+	if followByteNum > 0 {
+		if n, err := r.Read(buff[:followByteNum]); n != int(followByteNum) || err != nil {
+			return 0, err
+		}
+		for i := uint8(0); i < followByteNum; i++ {
+			x |= uint64(buff[i]) << (8 * i)
+		}
+	}
+	return x, nil
 }
 
 // ReadVarint reads an encoded signed integer from r and returns it as an int64.
-func ReadVarint(r io.ByteReader) (int64, error) {
+func ReadVarint(r io.Reader) (int64, error) {
 	ux, err := ReadUvarint(r) // ok to continue in presence of error
 	return ToVarint(ux), err
 }
