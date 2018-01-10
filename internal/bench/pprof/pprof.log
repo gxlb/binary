@@ -1085,3 +1085,19 @@ NormalValues.StringSlice      -         -         3.96s     3.18s     3.80s     
 NormalValues.MapUU            -         -         9.83s     5.38s     9.65s     5.26s     30.12s    512.56s   
 finish time = 2018-01-07 19:41:52
 Cost = 512.56s
+
+===============
+time = 2018-01-10 23:03:17
+buildtime = 2018-01-10 23:03:04
+doCnt = 20000000
+Case                          StdWrite  StdRead   EncodeY   DecodeY   EncodeN   DecodeN   Cost      TotalTime 
+FastValues.Int                -         -         1.63s     1.15s     1.64s     1.15s     5.57s     5.61s     
+FastValues.Uint               -         -         1.46s     1.10s     1.47s     1.10s     5.12s     10.73s    
+FastValues.IntSlice           -         -         1.20s     1.05s     1.20s     1.06s     4.51s     15.24s    
+FastValues.UintSlice          -         -         1.08s     0.94s     1.08s     0.95s     4.04s     19.28s    
+NormalValues.Int              -         -         3.53s     2.53s     2.58s     1.93s     10.57s    29.84s    
+NormalValues.Uint             -         -         3.45s     2.42s     2.49s     2.04s     10.41s    40.26s    
+NormalValues.IntSlice         -         -         3.21s     2.14s     2.57s     2.08s     9.99s     50.25s    
+NormalValues.UintSlice        -         -         2.63s     1.78s     2.34s     1.74s     8.49s     58.74s    
+finish time = 2018-01-10 23:04:15
+Cost = 58.74s
