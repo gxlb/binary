@@ -1101,3 +1101,13 @@ NormalValues.IntSlice         -         -         3.21s     2.14s     2.57s     
 NormalValues.UintSlice        -         -         2.63s     1.78s     2.34s     1.74s     8.49s     58.74s    
 finish time = 2018-01-10 23:04:15
 Cost = 58.74s
+
+===============
+time = 2018-01-12 23:37:59
+buildtime = 2018-01-12 23:37:30
+doCnt = 20000000
+Case                          StdWrite  StdRead   EncodeY   DecodeY   EncodeN   DecodeN   Cost      TotalTime 
+NormalValues.MapUU            -         -         10.24s    5.83s     9.88s     5.65s     31.60s    31.65s    
+LargeData.LgMapUU             -         -         9.04s     5.17s     8.93s     5.21s     28.35s    60.00s    
+finish time = 2018-01-12 23:38:59
+Cost = 60.00s

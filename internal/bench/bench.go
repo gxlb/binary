@@ -5,6 +5,7 @@ package bench
 import (
 	"bytes"
 	std "encoding/binary"
+	"encoding/gob"
 	"fmt"
 	"reflect"
 	"time"
@@ -24,6 +25,8 @@ const (
 	BenchStdRead
 	BenchEncode
 	BenchDecode
+	BenchGobEncode
+	BenchGobDecode
 
 	benchDoCnt = 100000
 )
@@ -38,6 +41,10 @@ func (bench benchType) String() string {
 		return "BenchEncode"
 	case BenchDecode:
 		return "BenchDecode"
+	case BenchGobEncode:
+		return "BenchGobEncode"
+	case BenchGobDecode:
+		return "BenchGobDecode"
 	}
 	panic("undefined benchType")
 }
@@ -123,6 +130,33 @@ func DoBench(bench benchType, data interface{},
 		if err != nil {
 			panic(err)
 		}
+
+	case BenchGobEncode:
+		buffer.Reset()
+		coder := gob.NewEncoder(buffer)
+		if err := coder.Encode(data); err != nil {
+			panic(err)
+		}
+		for i := 0; i < doCnt; i++ {
+			buffer.Reset()
+			coder.Encode(data)
+		}
+
+	case BenchGobDecode:
+		buffer.Reset()
+		encoder := gob.NewEncoder(buffer)
+		if err := encoder.Encode(data); err != nil {
+			panic(err)
+		}
+		buf := buffer.Bytes()
+		r := binary.BytesReader(buf)
+		decoder := gob.NewDecoder(&r)
+		w := NewSame(data)
+		decoder.Decode(w)
+		for i := 0; i < doCnt; i++ {
+			r = binary.BytesReader(buf)
+			decoder.Decode(w)
+		}
 	}
 
 	dur := Duration(time.Now().Sub(start))
@@ -197,8 +231,8 @@ type FastValues struct {
 	//	Complex64  complex64
 	//	Complex128 complex128
 	//	String     string
-	IntSlice  []int
-	UintSlice []uint
+	//	IntSlice  []int
+	//	UintSlice []uint
 	//	BoolSlice       []bool
 	//	Int8Slice       []int8
 	//	Int16Slice      []int16
@@ -216,8 +250,8 @@ type FastValues struct {
 }
 
 type NormalValues struct {
-	Int  Int
-	Uint Uint
+	//	Int  Int
+	//	Uint Uint
 	//	Bool            Bool
 	//	Int8            Int8
 	//	Int16           Int16
@@ -232,8 +266,8 @@ type NormalValues struct {
 	//	Complex64       Complex64
 	//	Complex128      Complex128
 	//	String          String
-	IntSlice  []Int
-	UintSlice []Uint
+	//	IntSlice  []Int
+	//	UintSlice []Uint
 	//	BoolSlice       []Bool
 	//	Int8Slice       []Int8
 	//	Int16Slice      []Int16
@@ -248,12 +282,12 @@ type NormalValues struct {
 	//	Complex64Slice  []Complex64
 	//	Complex128Slice []Complex128
 	//	StringSlice     []String
-	//	MapUU           map[uint64]uint32
+	MapUU map[uint64]uint32
 }
 
 type LargeData struct {
-	LgIntSlice  []int
-	LgUintSlice []uint
+	//	LgIntSlice  []int
+	//	LgUintSlice []uint
 	//	LgBoolSlice       []bool
 	//	LgInt8Slice       []int8
 	//	LgInt16Slice      []int16
@@ -268,8 +302,8 @@ type LargeData struct {
 	//	LgComplex64Slice  []complex64
 	//	LgComplex128Slice []complex128
 	//	LgStringSlice     []string
-	LgIntArray  [1000]int
-	LgUintArray [1000]uint
+	//	LgIntArray  [1000]int
+	//	LgUintArray [1000]uint
 	//	LgBoolArray       [1000]bool
 	//	LgInt8Array       [1000]int8
 	//	LgInt16Array      [1000]int16
@@ -284,7 +318,7 @@ type LargeData struct {
 	//	LgComplex64Array  [1000]complex64
 	//	LgComplex128Array [1000]complex128
 	//	LgStringArray     [1000]string
-	//	LgMapUU           map[uint64]uint32
+	LgMapUU map[uint64]uint32
 }
 
 type FullStruct struct {
@@ -337,9 +371,9 @@ func init() {
 	rnd.ValueX(&full.Special, seed, 10, 0)
 	//fmt.Printf("%@#v\n", full)
 
-	genCase(full.FastValues, "FastValues")
+	//genCase(full.FastValues, "FastValues")
 	genCase(full.NormalValues, "NormalValues")
-	//genCase(full.LargeData, "LargeData")
+	genCase(full.LargeData, "LargeData")
 	//genCase(full.Special, "Special")
 	//fmt.Printf("%@#v\n", cases)
 }

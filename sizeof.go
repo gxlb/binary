@@ -261,13 +261,14 @@ func bitsOfValue(v reflect.Value, topLevel, packed bool, serializer serializerSw
 		keySerilaizer := serializer.subSwitchCheck(kt)
 		valueSerilaizer := serializer.subSwitchCheck(vt)
 
+		var value reflect.Value
 		for i := 0; i < mapLen; i++ {
 			key := keys[i]
 			sizeKey := bitsOfValue(key, false, packed, keySerilaizer)
 			//assert(sizeKey >= 0, key.Type().Kind().String()) //key size must not error
 
 			sum += sizeKey
-			value := v.MapIndex(key)
+			value = v.MapIndex(key)
 			sizeValue := bitsOfValue(value, false, packed, valueSerilaizer)
 			//assert(sizeValue >= 0, value.Type().Kind().String()) //key size must not error
 
