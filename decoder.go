@@ -66,7 +66,7 @@ func (decoder *Decoder) reserve(size int) ([]byte, error) {
 		return buff, nil
 	}
 
-	return decoder.coder.reserve(size) //decode from bytes buffer
+	return decoder.coder.reserve(size, false) //decode from bytes buffer
 }
 
 // Init initialize Encoder with buffer and endian.

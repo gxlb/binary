@@ -35,9 +35,16 @@ type Encoder struct {
 
 // Init initialize Encoder with buffer size and endian.
 func (encoder *Encoder) Init(size int, endian Endian) {
+	if size < defaultBufferSize {
+		size = defaultBufferSize
+	}
 	encoder.buff = make([]byte, size)
 	encoder.pos = 0
 	encoder.endian = endian
+}
+
+func (encoder *Encoder) reserve(size int) ([]byte, error) {
+	return encoder.coder.reserve(size, true)
 }
 
 // ResizeBuffer confirm that len(buffer) >= size and alloc larger buffer if necessary

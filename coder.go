@@ -9,6 +9,10 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	defaultBufferSize = 64
+)
+
 var (
 	// ErrNotEnoughSpace buffer not enough
 	ErrNotEnoughSpace = errors.New("not enough space")
@@ -91,11 +95,18 @@ func (cder *coder) mustReserve(size int) []byte {
 }
 
 // reserve returns next size bytes for encoding/decoding.
-func (cder *coder) reserve(size int) ([]byte, error) {
+func (cder *coder) reserve(size int, expand bool) ([]byte, error) {
 	newPos := cder.pos + size
 	_cap := len(cder.buff)
 	if newPos > _cap {
-		return nil, fmt.Errorf("binary.Coder:buffer overflow pos=%d cap=%d require=%d, not enough space", cder.pos, cder.Cap(), size)
+		if expand {
+			newSize := 2 * _cap
+			oldBuff := cder.buff
+			cder.buff = make([]byte, newSize, newSize)
+			copy(cder.buff, oldBuff)
+		} else {
+			return nil, fmt.Errorf("binary.Coder:buffer overflow pos=%d cap=%d require=%d, not enough space", cder.pos, cder.Cap(), size)
+		}
 	}
 	if size > 0 {
 		b := cder.buff[cder.pos:newPos]
