@@ -1111,3 +1111,13 @@ NormalValues.MapUU            -         -         10.24s    5.83s     9.88s     
 LargeData.LgMapUU             -         -         9.04s     5.17s     8.93s     5.21s     28.35s    60.00s    
 finish time = 2018-01-12 23:38:59
 Cost = 60.00s
+
+===============
+time = 2018-01-13 23:35:11
+buildtime = 2018-01-13 23:34:05
+doCnt = 20000000
+Case                          GobEncode GobDecode StdWrite  StdRead   EncodeY   DecodeY   EncodeN   DecodeN   Cost      TotalTime 
+NormalValues.MapUU            5.32s     2.10s     -         -         9.63s     5.45s     9.37s     5.32s     37.19s    37.28s    
+LargeData.LgMapUU             4.20s     0.64s     -         -         8.81s     5.06s     9.60s     5.08s     33.39s    70.66s    
+finish time = 2018-01-13 23:36:22
+Cost = 70.66s
