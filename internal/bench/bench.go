@@ -79,6 +79,27 @@ func (dur Duration) String() string {
 	return fmt.Sprintf("%.2fms", float64(dur)/float64(time.Millisecond))
 }
 
+var UvarintCases = []uint64{
+	0x0000000000000001, 0x3, 0x7, 0xF, 0x1F, 0x3F, 0x7F, 0xFF,
+	0x1FF, 0x3FF, 0x7FF, 0xFFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF,
+	0x1FFFF, 0x3FFFF, 0x7FFFF, 0xFFFFF, 0x1FFFFF, 0x3FFFFF, 0x7FFFFF, 0xFFFFFF,
+	0x1FFFFFF, 0x3FFFFFF, 0x7FFFFFF, 0xFFFFFFF, 0x1FFFFFFF, 0x3FFFFFFF, 0x7FFFFFFF, 0xFFFFFFFF,
+}
+
+func DoBenchUvarint(bench benchType, data []uint64, doCnt int) (t Duration, speed Speed, size int) {
+	start := time.Now()
+	byteNum := 0
+	switch bench {
+	case BenchStdWrite:
+	case BenchStdRead:
+	case BenchEncode:
+	case BenchDecode:
+	}
+	dur := Duration(time.Now().Sub(start))
+	speed = Speed(float64(time.Duration(byteNum)*time.Second) / float64(dur*1024*1024))
+	return dur, speed, byteNum
+}
+
 // DoBench runs a bench test case for binary
 func DoBench(bench benchType, data interface{},
 	doCnt int, enableSerializer bool) (t Duration, speed Speed) {
