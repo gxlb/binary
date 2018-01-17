@@ -50,3 +50,33 @@ LittleRead          426.92s   19.75GB   460.51s   19.75GB
 BigRead             422.52s   37.98GB   457.22s   35.75GB   
 LittleReadFile      314.06s   19.75GB   424.12s   19.75GB   
 BigReadFile         552.74s   37.98GB   466.51s   35.75GB   
+
+===============
+time = 2018-01-17 20:30:08
+buildtime = 2018-01-17 20:28:53
+doCnt = 20000000
+Case                StdEnCode StdDecode Encode    Decode    
+FixCase             9.76s     14.42s    11.34s    17.22s    
+LittleCase          75.77s    19.75GB   84.84s    19.75GB   
+BigCase             107.25s   37.98GB   107.35s   35.75GB   
+LittleRead          349.43s   19.75GB   411.61s   19.75GB   
+BigRead             420.46s   37.98GB   442.46s   35.75GB   
+LittleReadFile      311.03s   19.75GB   395.76s   19.75GB   
+BigReadFile         539.81s   37.98GB   550.10s   35.75GB   
+finish time = 2018-01-17 21:34:17
+Cost = 3848.65s
+
+===============
+time = 2018-01-17 21:38:01
+buildtime = 2018-01-17 20:28:53
+doCnt = 20000000
+Case                StdEnCode StdDecode Encode    Decode    
+FixCase             9.56s     14.15s    11.01s    16.92s    
+LittleCase          73.97s    19.75GB   84.01s    19.75GB   
+BigCase             107.33s   37.98GB   109.24s   35.75GB   
+LittleRead          412.35s   19.75GB   413.41s   19.75GB   
+BigRead             442.54s   37.98GB   449.63s   35.75GB   
+LittleReadFile      316.59s   19.75GB   386.14s   19.75GB   
+BigReadFile         532.47s   37.98GB   473.60s   35.75GB   
+finish time = 2018-01-17 22:42:14
+Cost = 3852.97s
