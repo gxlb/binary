@@ -59,21 +59,23 @@ func doCase(n int, head bool, start time.Time) {
 	fmt.Printf("%-10s", dur.String())
 	fmt.Printf("\n")
 
-	fmt.Printf("%-10s", "LittleUvarint")
+	fmt.Printf("%-10s", "LittleCase")
 	dur, speed, byteN = DoBenchUvarint(BenchStdWrite, LittleUvarint, _doCnt)
 	fmt.Printf("%-10s", dur.String())
-	fmt.Printf("%-10d", byteN)
+	fmt.Printf("%-10dK", byteN>>10)
 	dur, speed, byteN = DoBenchUvarint(BenchEncode, LittleUvarint, _doCnt)
 	fmt.Printf("%-10s", dur.String())
-	fmt.Printf("%-10d", byteN)
+	fmt.Printf("%-10dK", byteN>>10)
+	fmt.Printf("\n")
 
-	fmt.Printf("%-10s", "BigUvarint")
+	fmt.Printf("%-10s", "BigCase")
 	dur, speed, byteN = DoBenchUvarint(BenchStdWrite, BigUvarint, _doCnt)
 	fmt.Printf("%-10s", dur.String())
-	fmt.Printf("%-10d", byteN)
+	fmt.Printf("%-10dK", byteN>>10)
 	dur, speed, byteN = DoBenchUvarint(BenchEncode, BigUvarint, _doCnt)
 	fmt.Printf("%-10s", dur.String())
-	fmt.Printf("%-10d", byteN)
+	fmt.Printf("%-10dK", byteN>>10)
+	fmt.Printf("\n")
 
 	dur, speed = dur, speed
 }
