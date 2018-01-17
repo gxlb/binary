@@ -79,6 +79,28 @@ func (dur Duration) String() string {
 	return fmt.Sprintf("%.2fms", float64(dur)/float64(time.Millisecond))
 }
 
+type Size int
+
+const (
+	kBits = 10
+	kb    = 1 << kBits
+)
+
+var bytesNames = []string{"B", "KB", "MB", "GB", "TB"} //max16EB ignore the next: "ZB", "YB", "BB"
+
+func (s Size) String() string {
+	m64 := uint64(s)
+	i, b := 0, uint64(0)
+	for ; i < len(bytesNames); i, b = i+1, b+kBits {
+		if (m64 >> b) < kb {
+			break
+		}
+	}
+	m := 1 << b
+	d := float64(s) / float64(m)
+	return fmt.Sprintf("%.2f%s", d, bytesNames[i])
+}
+
 var (
 	UvarintCases = []uint64{
 		0x0000000000000001, 0x0000000000000003, 0x0000000000000007, 0x000000000000000F,
@@ -151,9 +173,11 @@ type bigUvarintCase byte
 const (
 	LittleUvarint littleUvarintCase = 0
 	BigUvarint    bigUvarintCase    = 0
+	delta                           = 5
+	deltaBig                        = delta * 0x100000000
 )
 
-func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, speed Speed, size int) {
+func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, speed Speed, size Size) {
 	start := time.Now()
 	byteNum := 0
 	var buf [10]byte
@@ -169,12 +193,12 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 				}
 			}
 		case littleUvarintCase:
-			for x := uint64(0); x <= 0xFFFFFFFF; x++ {
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
 				byteNum += std.PutUvarint(buff, x)
 				std.Uvarint(buff)
 			}
 		case bigUvarintCase:
-			for x := uint64(0x100000000); x != 0; x += 0x100000000 {
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
 				byteNum += std.PutUvarint(buff, x)
 				std.Uvarint(buff)
 			}
@@ -204,12 +228,12 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 				}
 			}
 		case littleUvarintCase:
-			for x := uint64(0); x <= 0xFFFFFFFF; x++ {
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
 				byteNum += binary.PutUvarint(buff, x)
 				binary.Uvarint(buff)
 			}
 		case bigUvarintCase:
-			for x := uint64(0x100000000); x != 0; x += 0x100000000 {
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
 				byteNum += binary.PutUvarint(buff, x)
 				binary.Uvarint(buff)
 			}
@@ -232,7 +256,7 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 	}
 	dur := Duration(time.Now().Sub(start))
 	speed = Speed(float64(time.Duration(byteNum)*time.Second) / float64(dur*1024*1024))
-	return dur, speed, byteNum
+	return dur, speed, Size(byteNum)
 }
 
 // DoBench runs a bench test case for binary
