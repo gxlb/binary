@@ -7,6 +7,7 @@ import (
 	std "encoding/binary"
 	"encoding/gob"
 	"fmt"
+	"os"
 	"reflect"
 	"time"
 
@@ -169,13 +170,37 @@ var (
 
 type littleUvarintCase byte
 type bigUvarintCase byte
+type littleUvarintCaseRead byte
+type bigUvarintCaseRead byte
+type littleUvarintCaseReadFile byte
+type bigUvarintCaseReadFile byte
 
 const (
-	LittleUvarint littleUvarintCase = 0
-	BigUvarint    bigUvarintCase    = 0
-	delta                           = 1
-	deltaBig                        = delta * 0x100000000
+	LittleUvarint         littleUvarintCase         = 0
+	BigUvarint            bigUvarintCase            = 0
+	LittleUvarintRead     littleUvarintCaseRead     = 0
+	BigUvarintRead        bigUvarintCaseRead        = 0
+	LittleUvarintReadFile littleUvarintCaseReadFile = 0
+	BigUvarintReadFile    bigUvarintCaseReadFile    = 0
+	delta                                           = 64
+	deltaBig                                        = delta * 0x100000000
 )
+
+type FileReader struct {
+	*os.File
+}
+
+func NewFileReader(f *os.File) *FileReader {
+	return &FileReader{f}
+}
+
+func (fr *FileReader) ReadByte() (byte, error) {
+	var buf [1]byte
+	if _, err := fr.File.Read(buf[0:]); err != nil {
+		return 0, err
+	}
+	return buf[0], nil
+}
 
 func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, speed Speed, size Size) {
 	start := time.Now()
@@ -197,11 +222,57 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 				byteNum += std.PutUvarint(buff, x)
 				std.Uvarint(buff)
 			}
+		case littleUvarintCaseRead:
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
+				byteNum += std.PutUvarint(buff, x)
+				reader := binary.BytesReader(buff)
+				std.ReadUvarint(&reader)
+			}
+		case littleUvarintCaseReadFile:
+			file := "stduvarintlittle.hex"
+			f, _ := os.Open(file)
+			f.Truncate(0)
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
+				n := std.PutUvarint(buff, x)
+				byteNum += n
+				f.Write(buff[:n])
+			}
+			f.Sync()
+			f.Close()
+			f, _ = os.Open(file)
+			fr := NewFileReader(f)
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
+				std.ReadUvarint(fr)
+			}
+			f.Close()
 		case bigUvarintCase:
 			for x := uint64(0x100000000); x != 0; x += deltaBig {
 				byteNum += std.PutUvarint(buff, x)
 				std.Uvarint(buff)
 			}
+		case bigUvarintCaseRead:
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
+				byteNum += std.PutUvarint(buff, x)
+				reader := binary.BytesReader(buff)
+				binary.ReadUvarint(&reader)
+			}
+		case bigUvarintCaseReadFile:
+			file := "stduvarintbig.hex"
+			f, _ := os.Open(file)
+			f.Truncate(0)
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
+				n := std.PutUvarint(buff, x)
+				byteNum += n
+				f.Write(buff[:n])
+			}
+			f.Sync()
+			f.Close()
+			f, _ = os.Open(file)
+			fr := NewFileReader(f)
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
+				std.ReadUvarint(fr)
+			}
+			f.Close()
 		}
 
 	case BenchStdRead:
@@ -232,11 +303,57 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 				byteNum += binary.PutUvarint(buff, x)
 				binary.Uvarint(buff)
 			}
+		case littleUvarintCaseRead:
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
+				byteNum += binary.PutUvarint(buff, x)
+				reader := binary.BytesReader(buff)
+				binary.ReadUvarint(&reader)
+			}
+		case littleUvarintCaseReadFile:
+			file := "uvarintlittle.hex"
+			f, _ := os.Open(file)
+			f.Truncate(0)
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
+				n := binary.PutUvarint(buff, x)
+				byteNum += n
+				f.Write(buff[:n])
+			}
+			f.Sync()
+			f.Close()
+			f, _ = os.Open(file)
+			fr := NewFileReader(f)
+			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
+				binary.ReadUvarint(fr)
+			}
+			f.Close()
 		case bigUvarintCase:
 			for x := uint64(0x100000000); x != 0; x += deltaBig {
 				byteNum += binary.PutUvarint(buff, x)
 				binary.Uvarint(buff)
 			}
+		case bigUvarintCaseRead:
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
+				byteNum += binary.PutUvarint(buff, x)
+				reader := binary.BytesReader(buff)
+				binary.ReadUvarint(&reader)
+			}
+		case bigUvarintCaseReadFile:
+			file := "uvarintbig.hex"
+			f, _ := os.Open(file)
+			f.Truncate(0)
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
+				n := binary.PutUvarint(buff, x)
+				byteNum += n
+				f.Write(buff[:n])
+			}
+			f.Sync()
+			f.Close()
+			f, _ = os.Open(file)
+			fr := NewFileReader(f)
+			for x := uint64(0x100000000); x != 0; x += deltaBig {
+				binary.ReadUvarint(fr)
+			}
+			f.Close()
 		}
 
 	case BenchDecode:

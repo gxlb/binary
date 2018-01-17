@@ -129,6 +129,15 @@ func (p *BytesReader) Read(data []byte) (n int, err error) {
 	return
 }
 
+func (p *BytesReader) ReadByte() (b byte, err error) {
+	if len(*p) == 0 {
+		return 0, io.EOF
+	}
+	b = (*p)[0]
+	*p = (*p)[1:]
+	return
+}
+
 // BytesWriter transform bytes as Writer
 type BytesWriter []byte
 
