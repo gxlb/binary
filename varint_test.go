@@ -6,8 +6,8 @@ package binary
 
 import (
 	"bytes"
-	std "encoding/binary"
-	"fmt"
+	//std "encoding/binary"
+	//"fmt"
 	"io"
 	"testing"
 )
@@ -35,43 +35,43 @@ var (
 	UvarintBytes    = []byte{}
 )
 
-func init() {
-	//	for i := uint(1); i <= 64; i++ {
-	//		x := uint64(1<<i) - 1
-	//		fmt.Printf("0x%016X, ", x)
-	//		if i%4 == 0 {
-	//			fmt.Println("")
-	//		}
-	//	}
-	var buf [10]byte
-	cnt := 0
+//func init() {
+//	//	for i := uint(1); i <= 64; i++ {
+//	//		x := uint64(1<<i) - 1
+//	//		fmt.Printf("0x%016X, ", x)
+//	//		if i%4 == 0 {
+//	//			fmt.Println("")
+//	//		}
+//	//	}
+//	var buf [10]byte
+//	cnt := 0
 
-	cnt = 0
-	for _, x := range UvarintCases {
-		n := std.PutUvarint(buf[0:], x)
-		for i := 0; i < n; i++ {
-			fmt.Printf("0x%02x, ", buf[i])
-			cnt++
-			if cnt%16 == 0 {
-				fmt.Println("")
-			}
-		}
-	}
-	fmt.Println("\ncnt=", cnt)
+//	cnt = 0
+//	for _, x := range UvarintCases {
+//		n := std.PutUvarint(buf[0:], x)
+//		for i := 0; i < n; i++ {
+//			fmt.Printf("0x%02x, ", buf[i])
+//			cnt++
+//			if cnt%16 == 0 {
+//				fmt.Println("")
+//			}
+//		}
+//	}
+//	fmt.Println("\ncnt=", cnt)
 
-	cnt = 0
-	for _, x := range UvarintCases {
-		n := PutUvarint(buf[0:], x)
-		for i := 0; i < n; i++ {
-			fmt.Printf("0x%02x, ", buf[i])
-			cnt++
-			if cnt%16 == 0 {
-				fmt.Println("")
-			}
-		}
-	}
-	fmt.Println("\ncnt=", cnt)
-}
+//	cnt = 0
+//	for _, x := range UvarintCases {
+//		n := PutUvarint(buf[0:], x)
+//		for i := 0; i < n; i++ {
+//			fmt.Printf("0x%02x, ", buf[i])
+//			cnt++
+//			if cnt%16 == 0 {
+//				fmt.Println("")
+//			}
+//		}
+//	}
+//	fmt.Println("\ncnt=", cnt)
+//}
 
 func testConstant(t *testing.T, w uint, max int) {
 	buf := make([]byte, MaxVarintLen64)

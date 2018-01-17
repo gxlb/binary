@@ -1,0 +1,7 @@
+
+===============
+time = 2018-01-17 11:18:42
+buildtime = 2018-01-17 11:10:41
+doCnt = 20000000
+StdEnCode StdDecode Encode    Decode    
+8.10s     12.89s    18.51s    14.59s    
