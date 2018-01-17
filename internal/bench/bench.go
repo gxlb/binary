@@ -3,6 +3,7 @@
 package bench
 
 import (
+	"bufio"
 	"bytes"
 	std "encoding/binary"
 	"encoding/gob"
@@ -182,25 +183,9 @@ const (
 	BigUvarintRead        bigUvarintCaseRead        = 0
 	LittleUvarintReadFile littleUvarintCaseReadFile = 0
 	BigUvarintReadFile    bigUvarintCaseReadFile    = 0
-	delta                                           = 64
+	delta                                           = 1
 	deltaBig                                        = delta * 0x100000000
 )
-
-type FileReader struct {
-	*os.File
-}
-
-func NewFileReader(f *os.File) *FileReader {
-	return &FileReader{f}
-}
-
-func (fr *FileReader) ReadByte() (byte, error) {
-	var buf [1]byte
-	if _, err := fr.File.Read(buf[0:]); err != nil {
-		return 0, err
-	}
-	return buf[0], nil
-}
 
 func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, speed Speed, size Size) {
 	start := time.Now()
@@ -230,49 +215,51 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 			}
 		case littleUvarintCaseReadFile:
 			file := "stduvarintlittle.hex"
-			f, _ := os.Open(file)
-			f.Truncate(0)
+			f, _ := os.Create(file)
+			w := bufio.NewWriter(f)
 			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
 				n := std.PutUvarint(buff, x)
 				byteNum += n
-				f.Write(buff[:n])
+				w.Write(buff[:n])
 			}
 			f.Sync()
 			f.Close()
 			f, _ = os.Open(file)
-			fr := NewFileReader(f)
+			r := bufio.NewReader(f)
 			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
-				std.ReadUvarint(fr)
+				std.ReadUvarint(r)
 			}
 			f.Close()
+			os.Remove(file)
 		case bigUvarintCase:
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				byteNum += std.PutUvarint(buff, x)
 				std.Uvarint(buff)
 			}
 		case bigUvarintCaseRead:
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				byteNum += std.PutUvarint(buff, x)
 				reader := binary.BytesReader(buff)
 				binary.ReadUvarint(&reader)
 			}
 		case bigUvarintCaseReadFile:
 			file := "stduvarintbig.hex"
-			f, _ := os.Open(file)
-			f.Truncate(0)
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
+			f, _ := os.Create(file)
+			w := bufio.NewWriter(f)
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				n := std.PutUvarint(buff, x)
 				byteNum += n
-				f.Write(buff[:n])
+				w.Write(buff[:n])
 			}
 			f.Sync()
 			f.Close()
 			f, _ = os.Open(file)
-			fr := NewFileReader(f)
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
-				std.ReadUvarint(fr)
+			r := bufio.NewReader(f)
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
+				std.ReadUvarint(r)
 			}
 			f.Close()
+			os.Remove(file)
 		}
 
 	case BenchStdRead:
@@ -311,21 +298,22 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 			}
 		case littleUvarintCaseReadFile:
 			file := "uvarintlittle.hex"
-			f, _ := os.Open(file)
-			f.Truncate(0)
+			f, _ := os.Create(file)
+			w := bufio.NewWriter(f)
 			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
 				n := binary.PutUvarint(buff, x)
 				byteNum += n
-				f.Write(buff[:n])
+				w.Write(buff[:n])
 			}
 			f.Sync()
 			f.Close()
 			f, _ = os.Open(file)
-			fr := NewFileReader(f)
+			r := bufio.NewReader(f)
 			for x := uint64(0); x <= 0xFFFFFFFF; x += delta {
-				binary.ReadUvarint(fr)
+				binary.ReadUvarint(r)
 			}
 			f.Close()
+			os.Remove(file)
 		case bigUvarintCase:
 			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				byteNum += binary.PutUvarint(buff, x)
@@ -339,21 +327,22 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 			}
 		case bigUvarintCaseReadFile:
 			file := "uvarintbig.hex"
-			f, _ := os.Open(file)
-			f.Truncate(0)
+			f, _ := os.Create(file)
+			w := bufio.NewWriter(f)
 			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				n := binary.PutUvarint(buff, x)
 				byteNum += n
-				f.Write(buff[:n])
+				w.Write(buff[:n])
 			}
 			f.Sync()
 			f.Close()
 			f, _ = os.Open(file)
-			fr := NewFileReader(f)
+			r := bufio.NewReader(f)
 			for x := uint64(deltaBig); x != 0; x += deltaBig {
-				binary.ReadUvarint(fr)
+				binary.ReadUvarint(r)
 			}
 			f.Close()
+			os.Remove(file)
 		}
 
 	case BenchDecode:
