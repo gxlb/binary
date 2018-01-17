@@ -113,5 +113,7 @@ func doCase(n int, head bool, start time.Time) {
 	fmt.Printf("%-10s", size.String())
 	fmt.Printf("\n")
 
+	fmt.Printf("finish time = %s\nCost = %s\n", time.Now().Format("2006-01-02 15:04:05"), Duration(time.Now().Sub(start)).String())
+
 	dur, speed = dur, speed
 }
