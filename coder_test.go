@@ -717,11 +717,11 @@ func TestEncodeDonotSupportedType(t *testing.T) {
 			//fmt.Printf("Decode error: %#v\n%s\n", tv.Field(i).Addr().Type().String(), err.Error())
 		}
 
-		if err := decoder.value(tv.Field(i), true, false, serializerCheck); err == nil {
-			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
-		} else {
-			//fmt.Println(err)
-		}
+		//		if err := decoder.value(tv.Field(i), true, false, serializerCheck); err == nil {
+		//			t.Errorf("EncodeDonotSupportedType.%v: have err == nil, want non-nil", tv.Field(i).Type())
+		//		} else {
+		//			//fmt.Println(err)
+		//		}
 	}
 
 	if queryStruct(tv.Type()).decode(decoder, tv, serializerCheck) == nil {
