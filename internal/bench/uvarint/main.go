@@ -3,6 +3,7 @@
 // go tool pprof gb.prof
 //png
 //quit
+//go build -gcflags="-m" > build.log 2>&1
 
 package main
 
@@ -38,6 +39,7 @@ func doCase(n int, head bool, start time.Time) {
 		fmt.Printf("time = %s\n", start.Format("2006-01-02 15:04:05"))
 		fmt.Printf("buildtime = %s\n", time.BuildTime().Format("2006-01-02 15:04:05"))
 		fmt.Printf("doCnt = %d\n", doCnt)
+		fmt.Printf("%-10s", "Case")
 		fmt.Printf("%-10s", "StdEnCode")
 		fmt.Printf("%-10s", "StdDecode")
 		fmt.Printf("%-10s", "Encode")
@@ -46,7 +48,8 @@ func doCase(n int, head bool, start time.Time) {
 	}
 
 	_doCnt := doCnt
-	dur, speed, _ := DoBenchUvarint(BenchStdWrite, UvarintCases, _doCnt)
+	fmt.Printf("%-10s", "FixCase")
+	dur, speed, byteN := DoBenchUvarint(BenchStdWrite, UvarintCases, _doCnt)
 	fmt.Printf("%-10s", dur.String())
 	dur, speed, _ = DoBenchUvarint(BenchStdRead, UvarintStdBytes, _doCnt)
 	fmt.Printf("%-10s", dur.String())
@@ -54,6 +57,23 @@ func doCase(n int, head bool, start time.Time) {
 	fmt.Printf("%-10s", dur.String())
 	dur, speed, _ = DoBenchUvarint(BenchDecode, UvarintBytes, _doCnt)
 	fmt.Printf("%-10s", dur.String())
+	fmt.Printf("\n")
+
+	fmt.Printf("%-10s", "LittleUvarint")
+	dur, speed, byteN = DoBenchUvarint(BenchStdWrite, LittleUvarint, _doCnt)
+	fmt.Printf("%-10s", dur.String())
+	fmt.Printf("%-10d", byteN)
+	dur, speed, byteN = DoBenchUvarint(BenchEncode, LittleUvarint, _doCnt)
+	fmt.Printf("%-10s", dur.String())
+	fmt.Printf("%-10d", byteN)
+
+	fmt.Printf("%-10s", "BigUvarint")
+	dur, speed, byteN = DoBenchUvarint(BenchStdWrite, BigUvarint, _doCnt)
+	fmt.Printf("%-10s", dur.String())
+	fmt.Printf("%-10d", byteN)
+	dur, speed, byteN = DoBenchUvarint(BenchEncode, BigUvarint, _doCnt)
+	fmt.Printf("%-10s", dur.String())
+	fmt.Printf("%-10d", byteN)
 
 	dur, speed = dur, speed
 }

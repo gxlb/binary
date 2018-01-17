@@ -77,7 +77,6 @@ func Uvarint(buf []byte) (uint64, int) {
 	if followByteNum > 0 {
 		for i, shift := uint8(1), uint(0); i <= followByteNum; i, shift = i+1, shift+8 {
 			x |= uint64(buf[i]) << shift
-
 		}
 	}
 	return x, size

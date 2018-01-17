@@ -145,46 +145,90 @@ var (
 	}
 )
 
+type littleUvarintCase byte
+type bigUvarintCase byte
+
+const (
+	LittleUvarint littleUvarintCase = 0
+	BigUvarint    bigUvarintCase    = 0
+)
+
 func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, speed Speed, size int) {
 	start := time.Now()
 	byteNum := 0
+	var buf [10]byte
+	buff := buf[0:]
 	switch bench {
 	case BenchStdWrite:
-		var buff [10]byte
-		datax := data.([]uint64)
-		for i := 0; i < doCnt; i++ {
-			byteNum = 0
-			for _, x := range datax {
-				byteNum += std.PutUvarint(buff[0:], x)
+		switch datax := data.(type) {
+		case []uint64:
+			for i := 0; i < doCnt; i++ {
+				byteNum = 0
+				for _, x := range datax {
+					byteNum += std.PutUvarint(buff, x)
+				}
+			}
+		case littleUvarintCase:
+			for x := uint64(0); x <= 0xFFFFFFFF; x++ {
+				byteNum += std.PutUvarint(buff, x)
+				std.Uvarint(buff)
+			}
+		case bigUvarintCase:
+			for x := uint64(0x100000000); x != 0; x += 0x100000000 {
+				byteNum += std.PutUvarint(buff, x)
+				std.Uvarint(buff)
 			}
 		}
+
 	case BenchStdRead:
-		datax := data.([]byte)
-		for i := 0; i < doCnt; i++ {
-			byteNum = 0
-			for byteNum < len(datax) {
-				_, n := std.Uvarint(datax[byteNum:])
-				byteNum += n
+		switch datax := data.(type) {
+		case []byte:
+			for i := 0; i < doCnt; i++ {
+				byteNum = 0
+				for byteNum < len(datax) {
+					_, n := std.Uvarint(datax[byteNum:])
+					byteNum += n
+				}
 			}
+		case littleUvarintCase:
+		case bigUvarintCase:
 		}
+
 	case BenchEncode:
-		var buff [10]byte
-		datax := data.([]uint64)
-		for i := 0; i < doCnt; i++ {
-			byteNum = 0
-			for _, x := range datax {
-				byteNum += binary.PutUvarint(buff[0:], x)
+		switch datax := data.(type) {
+		case []uint64:
+			for i := 0; i < doCnt; i++ {
+				byteNum = 0
+				for _, x := range datax {
+					byteNum += binary.PutUvarint(buff, x)
+				}
+			}
+		case littleUvarintCase:
+			for x := uint64(0); x <= 0xFFFFFFFF; x++ {
+				byteNum += binary.PutUvarint(buff, x)
+				binary.Uvarint(buff)
+			}
+		case bigUvarintCase:
+			for x := uint64(0x100000000); x != 0; x += 0x100000000 {
+				byteNum += binary.PutUvarint(buff, x)
+				binary.Uvarint(buff)
 			}
 		}
+
 	case BenchDecode:
-		datax := data.([]byte)
-		for i := 0; i < doCnt; i++ {
-			byteNum = 0
-			for byteNum < len(datax) {
-				_, n := binary.Uvarint(datax[byteNum:])
-				byteNum += n
+		switch datax := data.(type) {
+		case []byte:
+			for i := 0; i < doCnt; i++ {
+				byteNum = 0
+				for byteNum < len(datax) {
+					_, n := binary.Uvarint(datax[byteNum:])
+					byteNum += n
+				}
 			}
+		case littleUvarintCase:
+		case bigUvarintCase:
 		}
+
 	}
 	dur := Duration(time.Now().Sub(start))
 	speed = Speed(float64(time.Duration(byteNum)*time.Second) / float64(dur*1024*1024))
