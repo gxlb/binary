@@ -46,17 +46,17 @@ const (
 
 // PutUvarint encodes a uint64 into buf and returns the number of bytes written.
 // If the buffer is too small, PutUvarint will panic.
-func PutUvarint(buf []byte, x uint64) int {
-	headByte, followByteNum := packUvarintHead(x)
-	buf[0] = headByte
-	if followByteNum > 0 {
-		for i, x_ := uint8(1), x; i <= followByteNum; i++ {
-			buf[i] = byte(x_)
-			x_ >>= 8
-		}
-	}
-	return int(followByteNum + 1)
-}
+//func PutUvarint(buf []byte, x uint64) int {
+//	headByte, followByteNum := packUvarintHead(x)
+//	buf[0] = headByte
+//	if followByteNum > 0 {
+//		for i, x_ := uint8(1), x; i <= followByteNum; i++ {
+//			buf[i] = byte(x_)
+//			x_ >>= 8
+//		}
+//	}
+//	return int(followByteNum + 1)
+//}
 
 // Uvarint decodes a uint64 from buf and returns that value and the
 // number of bytes read (> 0). If an error occurred, the value is 0
@@ -75,8 +75,9 @@ func Uvarint(buf []byte) (uint64, int) {
 	}
 	x := topBits
 	if followByteNum > 0 {
-		for i := uint8(1); i <= followByteNum; i++ {
-			x |= uint64(buf[i]) << (8 * (i - 1))
+		for i, shift := uint8(1), uint(0); i <= followByteNum; i, shift = i+1, shift+8 {
+			x |= uint64(buf[i]) << shift
+
 		}
 	}
 	return x, size
@@ -173,6 +174,28 @@ func SizeofUvarint(ux uint64) int {
 	//	return i
 	size, _ := sizeofUvarint(ux)
 	return size
+}
+
+func PutUvarint(buf []byte, ux uint64) (size int) {
+	n, x := 1, ux
+	for ; x > 0x3F; x >>= 8 { //short style, 6 effective bits
+		buf[n] = byte(x)
+		n++
+	}
+	headByte := byte(x)
+	followByteNum := uint8(n - 1)
+	if n > shortUvarintMaxByteNum { //long style, 4 effective bits, check if need more bytes
+		if x > 0x0F {
+			buf[n] = byte(x)
+			n, headByte = n+1, 0
+			followByteNum++
+		}
+		headByte |= longUvarintFlagMask | ((followByteNum - shortUvarintMaxByteNum) << longUvarintValueBitNum)
+	} else { //short style, 6 effective bits
+		headByte |= followByteNum << shortUvarintValueBitNum
+	}
+	buf[0] = headByte
+	return n
 }
 
 // SizeofUvarint return bytes number of an uint64 value store as uvarint
