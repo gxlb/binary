@@ -327,12 +327,12 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 			}
 			f.Close()
 		case bigUvarintCase:
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				byteNum += binary.PutUvarint(buff, x)
 				binary.Uvarint(buff)
 			}
 		case bigUvarintCaseRead:
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				byteNum += binary.PutUvarint(buff, x)
 				reader := binary.BytesReader(buff)
 				binary.ReadUvarint(&reader)
@@ -341,7 +341,7 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 			file := "uvarintbig.hex"
 			f, _ := os.Open(file)
 			f.Truncate(0)
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				n := binary.PutUvarint(buff, x)
 				byteNum += n
 				f.Write(buff[:n])
@@ -350,7 +350,7 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 			f.Close()
 			f, _ = os.Open(file)
 			fr := NewFileReader(f)
-			for x := uint64(0x100000000); x != 0; x += deltaBig {
+			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				binary.ReadUvarint(fr)
 			}
 			f.Close()
