@@ -173,7 +173,7 @@ type bigUvarintCase byte
 const (
 	LittleUvarint littleUvarintCase = 0
 	BigUvarint    bigUvarintCase    = 0
-	delta                           = 5
+	delta                           = 1
 	deltaBig                        = delta * 0x100000000
 )
 

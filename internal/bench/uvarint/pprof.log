@@ -19,3 +19,12 @@ Case      StdEnCode StdDecode Encode    Decode
 FixCase   8.13s     13.10s    8.46s     16.60s    
 LittleCase57.89s    20707311  K68.56s    20708335  K
 BigCase   92.98s    39829374  K98.55s    37485563  K
+
+===============
+time = 2018-01-17 14:44:20
+buildtime = 2018-01-17 14:43:56
+doCnt = 20000000
+Case      StdEnCode StdDecode Encode    Decode    
+FixCase   8.34s     13.11s    9.29s     16.14s    
+LittleCase11.23s    3.95GB    14.07s    3.95GB    
+BigCase   18.74s    7.60GB    19.35s    7.15GB    
