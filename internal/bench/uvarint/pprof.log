@@ -115,3 +115,17 @@ BigCase             93.71s    37.98GB   93.58s    35.75GB
 LittleRead          304.42s   19.75GB   352.55s   19.75GB   
 BigRead             437.27s   37.98GB   383.65s   35.75GB   
 LittleReadFile      1951.98s  19.75GB   
+===============
+time = 2018-01-18 12:01:10
+buildtime = 2018-01-18 10:38:57
+doCnt = 20000000
+Case                StdEnCode StdDecode Encode    Decode    
+FixCase             8.03s     12.86s    10.02s    14.17s    
+LittleCase          56.92s    19.75GB   64.96s    19.75GB   
+BigCase             93.43s    37.98GB   93.53s    35.75GB   
+LittleRead          302.74s   19.75GB   347.35s   19.75GB   
+BigRead             437.30s   37.98GB   382.66s   35.75GB   
+LittleReadFile      1147.85s  19.75GB   1618.27s  19.75GB   
+BigReadFile         2522.17s  37.98GB   2147.55s  35.75GB   
+finish time = 2018-01-18 14:35:31
+Cost = 9259.90s
