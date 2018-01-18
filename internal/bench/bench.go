@@ -240,7 +240,7 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 			for x := uint64(deltaBig); x != 0; x += deltaBig {
 				byteNum += std.PutUvarint(buff, x)
 				reader := binary.BytesReader(buff)
-				binary.ReadUvarint(&reader)
+				std.ReadUvarint(&reader)
 			}
 		case bigUvarintCaseReadFile:
 			file := "stduvarintbig.hex"

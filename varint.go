@@ -42,6 +42,8 @@ const (
 	longUvarintLenBitNum    = 4 //length bits of long uvarint(> 2 bytes) 1000~1111
 	shortUvarintValueBitNum = 8 - shortUvarintLenBitNum
 	longUvarintValueBitNum  = 8 - longUvarintLenBitNum
+	shortUvarintValueMask   = 1<<shortUvarintValueBitNum - 1
+	longUvarintValueMask    = 1<<longUvarintValueBitNum - 1
 )
 
 // PutUvarint encodes a uint64 into buf and returns the number of bytes written.
@@ -120,8 +122,8 @@ func ReadUvarint(r io.Reader) (uint64, error) {
 		if n, err := r.Read(buff[:followByteNum]); n != int(followByteNum) || err != nil {
 			return 0, err
 		}
-		for i := uint8(0); i < followByteNum; i++ {
-			x |= uint64(buff[i]) << (8 * i)
+		for i, shift := uint8(0), uint(0); i < followByteNum; i, shift = i+1, shift+8 {
+			x |= uint64(buff[i]) << shift
 		}
 	}
 	return x, nil
@@ -231,10 +233,10 @@ func packUvarintHead(ux uint64) (headByte byte, followByteNum uint8) {
 func unpackUvarintHead(headByte byte) (followByteNum uint8, topBits uint64) {
 	if headByte&longUvarintFlagMask == 0 { //short style
 		followByteNum = headByte >> shortUvarintValueBitNum
-		topBits = uint64(headByte << shortUvarintLenBitNum >> shortUvarintLenBitNum)
+		topBits = uint64(headByte & shortUvarintValueMask)
 	} else { //long style
 		followByteNum = (headByte&0x7f)>>longUvarintValueBitNum + shortUvarintMaxByteNum
-		topBits = uint64(headByte << longUvarintLenBitNum >> longUvarintLenBitNum)
+		topBits = uint64(headByte & shortUvarintValueMask)
 	}
 	topBits <<= (8 * followByteNum)
 	return
