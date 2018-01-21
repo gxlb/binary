@@ -255,8 +255,8 @@ func (decoder *Decoder) Uvarint() (uint64, int) {
 	x := topBits
 	if followByteNum > 0 {
 		buff := decoder.mustReserve(int(followByteNum))
-		for i := uint8(0); i < followByteNum; i++ {
-			x |= uint64(buff[i]) << (8 * i)
+		for i, shift := uint8(0), uint(0); i < followByteNum; i, shift = i+1, shift+8 {
+			x |= uint64(buff[i]) << shift
 		}
 	}
 	return x, size

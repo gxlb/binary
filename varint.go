@@ -177,6 +177,33 @@ func SizeofUvarint(ux uint64) int {
 	return size
 }
 
+// it is slow, why?
+////a faster way to put uvarint
+//func PutUvarint(buf []byte, ux uint64) (size int) {
+//	s := u64ToBytes(&ux)
+//	i := len(s) - 1
+//	for i > 0 && s[i] == 0 { //find real byte num
+//		i--
+//	}
+//	headByte := s[i]
+//	if headByte > 0x3F || i >= shortUvarintMaxByteNum && headByte > 0xF {
+//		i++
+//		headByte = 0
+//	}
+//	followByteNum := uint8(i)
+//	if size = i + 1; size > shortUvarintMaxByteNum {
+//		headByte |= longUvarintFlagMask | ((followByteNum - shortUvarintMaxByteNum) << longUvarintValueBitNum)
+//	} else {
+//		headByte |= followByteNum << shortUvarintValueBitNum
+//	}
+//	buf[0] = headByte
+//	b := buf[1:]
+//	for idx, v := range s[:i] {
+//		b[idx] = v
+//	}
+//	return
+//}
+
 func PutUvarint(buf []byte, ux uint64) (size int) {
 	n, x := 1, ux
 	for ; x > 0x3F; x >>= 8 { //short style, 6 effective bits

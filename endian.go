@@ -1,5 +1,10 @@
 package binary
 
+//import (
+//	"reflect"
+//	"unsafe"
+//)
+
 // Endian is a ByteOrder specifies how to convert byte sequences into
 // 16-, 32-, or 64-bit unsigned integers.
 type Endian interface {
@@ -116,3 +121,12 @@ func (bigEndian) PutUint64(b []byte, v uint64) {
 func (bigEndian) String() string { return "BigEndian" }
 
 func (bigEndian) GoString() string { return "binary.BigEndian" }
+
+//func u64ToBytes(p *uint64) []byte {
+//	h := reflect.SliceHeader{
+//		Data: uintptr(unsafe.Pointer(p)),
+//		Len:  8,
+//		Cap:  8,
+//	}
+//	return *(*[]byte)(unsafe.Pointer(&h))
+//}
