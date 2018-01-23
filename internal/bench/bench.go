@@ -66,7 +66,14 @@ func (s Speed) String() string {
 	if s < 0 {
 		return "-"
 	}
-	return fmt.Sprintf("%.02fMB/s", s)
+	if s >= 1000000 {
+		return fmt.Sprintf("%.2fMOp/s", s/1000000)
+	}
+
+	if s >= 1000 {
+		return fmt.Sprintf("%.2fKOp/s", s/1000)
+	}
+	return fmt.Sprintf("%.0fOp/s", s)
 }
 
 type Duration time.Duration
@@ -91,6 +98,10 @@ const (
 var bytesNames = []string{"B", "KB", "MB", "GB", "TB"} //max16EB ignore the next: "ZB", "YB", "BB"
 
 func (s Size) String() string {
+	if s <= 0 {
+		return "-"
+	}
+
 	m64 := uint64(s)
 	i, b := 0, uint64(0)
 	for ; i < len(bytesNames); i, b = i+1, b+kBits {
@@ -367,7 +378,7 @@ func DoBenchUvarint(bench benchType, data interface{}, doCnt int) (t Duration, s
 
 // DoBench runs a bench test case for binary
 func DoBench(bench benchType, data interface{},
-	doCnt int, enableSerializer bool) (t Duration, speed Speed) {
+	doCnt int, enableSerializer bool) (t Duration, speed Speed, size Size) {
 	start := time.Now()
 	var err error
 	var b []byte
@@ -376,7 +387,7 @@ func DoBench(bench benchType, data interface{},
 	case BenchStdWrite:
 		s := std.Size(data)
 		if s < 0 {
-			return -1, Speed(s)
+			return -1, Speed(s), 0
 		}
 		for i := 0; i < doCnt; i++ {
 			buffer.Reset()
@@ -386,7 +397,7 @@ func DoBench(bench benchType, data interface{},
 	case BenchStdRead:
 		s := std.Size(data)
 		if s < 0 {
-			return -1, Speed(s)
+			return -1, Speed(s), 0
 		}
 		if err = std.Write(buffer, std.LittleEndian, data); err != nil {
 			panic(err)
@@ -423,6 +434,7 @@ func DoBench(bench benchType, data interface{},
 		if err := coder.Encode(data); err != nil {
 			panic(err)
 		}
+		byteNum = buffer.Len() * (doCnt + 1)
 		for i := 0; i < doCnt; i++ {
 			buffer.Reset()
 			coder.Encode(data)
@@ -435,6 +447,7 @@ func DoBench(bench benchType, data interface{},
 			panic(err)
 		}
 		buf := buffer.Bytes()
+		byteNum = buffer.Len() * (doCnt + 1)
 		r := binary.BytesReader(buf)
 		decoder := gob.NewDecoder(&r)
 		w := NewSame(data)
@@ -446,8 +459,9 @@ func DoBench(bench benchType, data interface{},
 	}
 
 	dur := Duration(time.Now().Sub(start))
-	speed = Speed(float64(time.Duration(byteNum)*time.Second) / float64(dur*1024*1024))
-	return dur, speed
+	//speed = Speed(float64(time.Duration(byteNum)*time.Second) / float64(dur*1024*1024))
+	speed = Speed(float64(time.Duration(doCnt)*time.Second) / float64(dur))
+	return dur, speed, Size(byteNum)
 }
 
 func NewSame(x interface{}) interface{} {
