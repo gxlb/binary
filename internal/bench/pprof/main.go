@@ -39,6 +39,7 @@ func doCase(n int, head bool, start time.Time) {
 		fmt.Printf("buildtime = %s\n", time.BuildTime().Format("2006-01-02 15:04:05"))
 		fmt.Printf("doCnt = %d\n", doCnt)
 		fmt.Printf("%-30s", "Case")
+		fmt.Printf("%-10s", "Count")
 		fmt.Printf("%-10s", "GobEncode")
 		fmt.Printf("%-12s", "Speed")
 		fmt.Printf("%-10s", "GobDecode")
@@ -80,6 +81,10 @@ func doCase(n int, head bool, start time.Time) {
 		st := time.Now()
 		fmt.Printf("%-30s", v.Name)
 		_doCnt := doCnt / v.Length
+		if v.Length > 1 {
+			_doCnt *= 5
+		}
+		fmt.Printf("%-10d", _doCnt)
 		dur, speed, size := DoBench(BenchGobEncode, v.Data, _doCnt, false)
 		fmt.Printf("%-10s", dur.String())
 		fmt.Printf("%-12s", speed.String())
