@@ -139,7 +139,7 @@ func (rnd *Rand) Int() int {
 
 // Uint8 generate a random uint8 value.
 func (rnd *Rand) Uint8() uint8 {
-	return uint8(rnd.Rand() >> 54 & 0xFF)
+	return uint8(rnd.Rand() >> 55)
 }
 
 // Int8 generate a random int8 value.
@@ -149,7 +149,7 @@ func (rnd *Rand) Int8() int8 {
 
 // Uint16 generate a random uint16 value.
 func (rnd *Rand) Uint16() uint16 {
-	return uint16(rnd.Rand() >> 46 & 0xFFFF)
+	return uint16(rnd.Rand() >> 47)
 }
 
 // Int16 generate a random int16 value.
@@ -159,7 +159,7 @@ func (rnd *Rand) Int16() int16 {
 
 // Uint32 generate a random uint32 value.
 func (rnd *Rand) Uint32() uint32 {
-	return uint32(rnd.Rand() >> 30 & 0xFFFFFFFF)
+	return uint32(rnd.Rand() >> 31)
 }
 
 // Int32 generate a random int32 value.
@@ -302,6 +302,51 @@ func (rnd *Rand) value(v reflect.Value, minLen, maxLen uint32) error {
 	}
 
 	return nil
+}
+
+func (rnd *Rand) Perm(n int) []int {
+	m := make([]int, n)
+	// In the following loop, the iteration when i=0 always swaps m[0] with m[0].
+	// A change to remove this useless iteration is to assign 1 to i in the init
+	// statement. But Perm also effects r. Making this change will affect
+	// the final state of r. So this change can't be made for compatibility
+	// reasons for Go 1.
+	for i := 0; i < n; i++ {
+		j := int(rnd.RandMax64(uint64(i) + 1))
+		m[i] = m[j]
+		m[j] = i
+	}
+	return m
+}
+
+// Read generates len(p) random bytes and writes them into p. It
+// always returns len(p) and a nil error.
+// Read should not be called concurrently with any other Rand method.
+func (rnd *Rand) Read(p []byte) (n int, err error) {
+	for n = 0; n < len(p); n++ {
+		p[n] = rnd.Uint8()
+	}
+	return
+}
+
+// Shuffle pseudo-randomizes the order of elements.
+// n is the number of elements. Shuffle panics if n < 0.
+// swap swaps the elements with indexes i and j.
+func (rnd *Rand) Shuffle(n int, swap func(i, j int)) {
+	if n < 0 {
+		panic("invalid argument to Shuffle")
+	}
+	// Fisher-Yates shuffle: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+	// Shuffle really ought not be called with n that doesn't fit in 32 bits.
+	// Not only will it take a very long time, but with 2³¹! possible permutations,
+	// there's no way that any PRNG can have a big enough internal state to
+	// generate even a minuscule percentage of the possible permutations.
+	// Nevertheless, the right API signature accepts an int n, so handle it as best we can.
+	i := n - 1
+	for ; i > 0; i-- {
+		j := int(rnd.RandMax64(uint64(i) + 1))
+		swap(i, j)
+	}
 }
 
 // length generate random lenth with range [minLen, maxLen]
