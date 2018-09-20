@@ -2,10 +2,10 @@
 package random
 
 import (
+	"crypto/rand"
 	"fmt"
 	"math"
 	"reflect"
-	"time"
 )
 
 const (
@@ -25,10 +25,16 @@ func Default() *Rand {
 // RandSeed generate a seed for rand
 func RandSeed(init uint64) uint64 {
 	if 0 == init {
-		init = uint64(time.Now().Unix())
+		init = CryptoRand()
 	}
 	rnd := init*0xA7A263F04949875D + 0x88AB71F41758C2AF
 	return rnd
+}
+
+func CryptoRand() uint64 {
+	var b [8]byte
+	rand.Read(b[0:])
+	return (uint64(b[7]) << 56) | (uint64(b[6]) << 48) | (uint64(b[5]) << 40) | (uint64(b[4]) << 32) | (uint64(b[3]) << 24) | (uint64(b[2]) << 16) | (uint64(b[1]) << 8) | uint64(b[0])
 }
 
 // NewRand create a new random object with init
