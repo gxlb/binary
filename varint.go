@@ -268,3 +268,15 @@ func unpackUvarintHead(headByte byte) (followByteNum uint8, topBits uint64) {
 	topBits <<= (8 * followByteNum)
 	return
 }
+
+//real bytes
+func ToBytes(v uint64) []byte {
+	var buf [8]byte
+	n := 0
+	for v > 0 {
+		buf[n] = byte(v)
+		n++
+		v >>= 8
+	}
+	return buf[:n]
+}
