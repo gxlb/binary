@@ -238,13 +238,9 @@ func sizeofUvarint(ux uint64) (size int, topBits byte) {
 	return n, byte(x)
 }
 
-// 00~01 1~2 bytes 0~14 bits
-// 100~101 3~4
-// 1100~1101 5~6
-// 11100~11101 7~10
-
 // 00~01 1~2 bytes 0~14 bits 0~16383
-// 1000~1111 3~9 bytes
+// 1000~1110 3~9 bytes 15~68 bits
+// 1111	reserved for 128 bit integer extension
 func packUvarintHead(ux uint64) (headByte byte, followByteNum uint8) {
 	size, topBits := sizeofUvarint(ux)
 	followByteNum = byte(size - 1)
